@@ -4,6 +4,7 @@ import {
   compareMetric,
   computeMatchup,
   computeSide,
+  energyVerdict,
   oneCircleVerdict,
   timelineVerdict,
   turnRateDelta,
@@ -149,5 +150,13 @@ describe('turnRateDelta', () => {
     const points = turnRateDelta(m, 1_000);
     expect(points[0]?.str).toBeNull();
     expect(points.some((p) => p.str !== null)).toBe(true);
+  });
+});
+
+describe('energyVerdict', () => {
+  it('favours the jet with more airspeed left after the turn', () => {
+    const smooth = computeMatchup(scenario({ attacker: { ...f16, pilotG: 6 }, defender: f16 }));
+    expect(energyVerdict(smooth).winner).toBe('attacker');
+    expect(energyVerdict(computeMatchup(scenario({ defender: f16 }))).winner).toBe('even');
   });
 });

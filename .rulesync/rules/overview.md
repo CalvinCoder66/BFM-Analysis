@@ -22,9 +22,11 @@ Built by Calvin Cheung as a portfolio/learning project. The full plan lives in
 
 **UI design complete (phases 1–3 and the phase 4 HUD polish); the data is still mock.** The dashboard has
 scenario controls (altitude, merge speed, turn duration; per side aircraft, loadout, fuel,
-G limiter, pilot style, turn plane), four verdict cards, a comparison table and six views (turn
-circles, E-M diagram, turn timeline, turn-rate advantage, turn radius, Ps). What remains is phase 4's
-real data, which means replacing mock JSON with datamined values. The app is built in phases:
+G limiter, pilot style, turn plane), and a **hotbar** of four focus views: Summary (who wins
+each fight, E-M diagram), 1-circle, 2-circle and Energy. Each view shows only its own charts and
+a few key stats, with the rest behind "show more". Keep it that way: add new stats to a focus view's
+`more` list rather than to the always-visible ones. What remains is phase 4's real data, which means
+replacing mock JSON with datamined values. The app is built in phases:
 
 1. **Foundation & mock data** — React + Tailwind dashboard, charting library, 2–3 hardcoded
    matchups (e.g. F-16C vs. MiG-29) with mock E-M curves in JSON.
@@ -51,8 +53,9 @@ BFM-Analysis/
 │   │   │   ├── data/          # Aircraft JSON loader + zod schema (validated at load)
 │   │   │   ├── features/
 │   │   │   │   ├── scenario/   # Sidebar: altitude, merge speed, unit, per-side aircraft/loadout/fuel
-│   │   │   │   ├── comparison/ # matchup.ts (pure: computeMatchup, verdicts, deltas) + cards/table
-│   │   │   │   └── charts/     # series.ts (Plotly figures), circles.ts (merge geometry) + components
+│   │   │   │   ├── comparison/ # matchup.ts (pure: computeMatchup, verdicts), metrics.ts, StatsPanel
+│   │   │   │   ├── focus/      # focus.ts (focus views: charts + stats), Hotbar, FocusView
+│   │   │   │   └── charts/     # series.ts (Plotly figures), circles.ts (merge geometry), ChartArea
 │   │   │   ├── physics/       # Pure TS: ISA atmosphere, interpolation, performance model, turn timeline
 │   │   │   ├── shared/        # format.ts (display units), ui/ (Slider, Segmented)
 │   │   │   └── test/          # Vitest setup + shared scenario fixtures (sideConfig, testScenario)

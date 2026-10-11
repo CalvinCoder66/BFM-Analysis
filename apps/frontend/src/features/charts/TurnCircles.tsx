@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { formatSpeed, type SpeedUnit } from '../../shared/format';
-import { Segmented } from '../../shared/ui/Segmented';
 import { type Matchup, SIDES, type Side } from '../comparison/matchup';
 import {
   type FightType,
@@ -30,12 +29,10 @@ export function TurnCircles({
   matchup,
   unit,
   fightType,
-  onFightTypeChange,
 }: {
   matchup: Matchup;
   unit: SpeedUnit;
   fightType: FightType;
-  onFightTypeChange: (type: FightType) => void;
 }) {
   const tracks = useMemo(() => mergeTracks(matchup, fightType), [matchup, fightType]);
   const bounds = trackBounds(tracks);
@@ -45,28 +42,18 @@ export function TurnCircles({
 
   return (
     <div className="flex h-full flex-col gap-2">
-      <div className="flex flex-wrap items-center justify-between gap-2 px-2">
-        <div className="w-72">
-          <Segmented
-            legend="Fight type"
-            value={fightType}
-            options={[
-              { value: 'two-circle', label: '2-circle · as flown' },
-              { value: 'one-circle', label: '1-circle · full pull' },
-            ]}
-            onChange={onFightTypeChange}
-          />
-        </div>
-        <p className="text-xs text-slate-500">
-          Top-down, {duration.toFixed(0)} s from the merge · ticks every {TICK_EVERY_S} s
-        </p>
-      </div>
+      <p className="px-2 text-xs text-slate-500">
+        {fightType === 'one-circle'
+          ? '1-circle: defender turns away, both pull to the limiter'
+          : '2-circle: both turn towards each other, flown as set'}{' '}
+        · top-down, {duration.toFixed(0)} s from the merge · dot every {TICK_EVERY_S} s
+      </p>
 
       <svg
         role="img"
         aria-label={`Turn circles, ${fightType === 'one-circle' ? '1-circle' : '2-circle'} fight`}
         viewBox={`${bounds.minX} ${-(bounds.minY + bounds.height)} ${bounds.width} ${bounds.height}`}
-        className="min-h-[380px] w-full flex-1 rounded bg-[#0b1222]"
+        className="min-h-0 w-full flex-1 rounded bg-[#0b1222]"
         preserveAspectRatio="xMidYMid meet"
       >
         {/* Merge point */}
@@ -74,7 +61,7 @@ export function TurnCircles({
           <line x1={-unitSize * 1.5} y1={0} x2={unitSize * 1.5} y2={0} />
           <line x1={0} y1={-unitSize * 1.5} x2={0} y2={unitSize * 1.5} />
         </g>
-        <text x={unitSize * 2} y={-unitSize} fill="#facc15" fontSize={unitSize * 2.2}>
+        <text x={unitSize * 2} y={-unitSize} fill="#facc15" fontSize={unitSize * 3}>
           Merge
         </text>
 
@@ -101,7 +88,7 @@ export function TurnCircles({
                     x={p.x + unitSize * 1.2}
                     y={-p.y - unitSize * 1.2}
                     fill={colour}
-                    fontSize={unitSize * 1.8}
+                    fontSize={unitSize * 2.6}
                     opacity={0.85}
                   >
                     {p.t.toFixed(0)}s
@@ -127,7 +114,7 @@ export function TurnCircles({
             y={-unitSize * 1.8}
             fill="#94a3b8"
             stroke="none"
-            fontSize={unitSize * 2}
+            fontSize={unitSize * 2.8}
             textAnchor="middle"
           >
             {scale >= 1000 ? `${scale / 1000} km` : `${scale} m`}

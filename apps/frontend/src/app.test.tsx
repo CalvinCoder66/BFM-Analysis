@@ -6,38 +6,64 @@ vi.mock('./features/charts/PlotlyChart', () => ({
   PlotlyChart: ({ label }: { label: string }) => <div role="img" aria-label={label} />,
 }));
 
-const mergeCell = (label: string, column: number) =>
-  within(screen.getByRole('row', { name: new RegExp(`^${label}`) })).getAllByRole('cell')[column]
-    ?.textContent;
+const statNumber = (label: string, column = 0) =>
+  Number.parseFloat(
+    within(
+      screen.getByRole('rowheader', { name: label }).closest('tr') as HTMLElement,
+    ).getAllByRole('cell')[column]?.textContent ?? '',
+  );
+const focusTab = (name: RegExp) => screen.getByRole('tab', { name });
 
 describe('App', () => {
-  it('renders the dashboard with the default F-16C vs MiG-29 matchup', () => {
+  it('opens on the summary: who wins each fight, with the E-M diagram', () => {
     render(<App />);
     expect(screen.getByRole('heading', { name: /bfm analysis/i })).toBeInTheDocument();
-    expect(screen.getByLabelText('Attacker aircraft')).toHaveValue('f-16c');
-    expect(screen.getByLabelText('Defender aircraft')).toHaveValue('mig-29');
+    expect(focusTab(/^Summary/)).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('img', { name: 'E-M diagram chart' })).toBeInTheDocument();
+    const stats = screen.getByRole('complementary', { name: 'Summary stats' });
+    expect(within(stats).getAllByRole('button', { name: 'Details ›' })).toHaveLength(3);
+    // The full table stays hidden until asked for.
+    expect(screen.queryByRole('rowheader', { name: 'Wing loading' })).toBeNull();
+  });
+
+  it('drills down into each fight from the hotbar or the summary', async () => {
+    render(<App />);
+    await userEvent.click(focusTab(/^1-circle/));
+    expect(screen.getByRole('img', { name: 'Turn circles, 1-circle fight' })).toBeInTheDocument();
+    expect(screen.getByRole('rowheader', { name: 'Min radius' })).toBeInTheDocument();
+    expect(screen.queryByRole('rowheader', { name: 'Best STR' })).toBeNull();
+
+    await userEvent.click(focusTab(/^Summary/));
+    const [, twoCircleDetails] = screen.getAllByRole('button', { name: 'Details ›' });
+    await userEvent.click(twoCircleDetails as HTMLElement);
+    expect(focusTab(/^2-circle/)).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('img', { name: 'Turn circles, 2-circle fight' })).toBeInTheDocument();
-    // Default contrast: a smooth 7 g F-16C pilot against a MiG-29 pilot who yanks.
-    expect(screen.getByLabelText('Attacker pilot G')).toHaveValue('7');
-    expect(screen.queryByLabelText('Defender pilot G')).not.toBeInTheDocument();
+    expect(screen.getByRole('rowheader', { name: 'Best STR' })).toBeInTheDocument();
   });
 
   it('recomputes the comparison when the scenario changes', async () => {
     render(<App />);
-    const before = mergeCell('Sustained turn rate', 0);
+    await userEvent.click(focusTab(/^2-circle/));
+    const before = statNumber('Best STR');
 
     fireEvent.change(screen.getByLabelText('Altitude'), { target: { value: '9000' } });
-    const after = mergeCell('Sustained turn rate', 0);
-    expect(after).not.toBe(before);
-    expect(Number.parseFloat(after ?? '')).toBeLessThan(Number.parseFloat(before ?? ''));
+    expect(statNumber('Best STR')).toBeLessThan(before);
 
     await userEvent.selectOptions(screen.getByLabelText('Defender aircraft'), 'su-27');
     expect(screen.getByRole('columnheader', { name: 'Su-27S' })).toBeInTheDocument();
   });
 
+  it('summarises each side’s pilot and limits while the controls are collapsed', () => {
+    render(<App />);
+    expect(screen.getByText(/Instructor 10\.0 g · smooth 7\.0 g · 0° plane/)).toBeInTheDocument();
+    expect(screen.getByText(/Instructor 11\.\d g · yanks · 0° plane/)).toBeInTheDocument();
+    expect(screen.getByLabelText('Attacker pilot G')).not.toBeVisible();
+  });
+
   it('applies the speed unit across the dashboard', async () => {
     render(<App />);
     await userEvent.click(screen.getByLabelText('kts'));
-    expect(screen.getByText(/At merge · 432 kts/)).toBeInTheDocument();
+    expect(screen.getByText(/432 kts merge/)).toBeInTheDocument();
+    expect(focusTab(/^Energy/)).toHaveTextContent(/kts after 20 s/);
   });
 });
