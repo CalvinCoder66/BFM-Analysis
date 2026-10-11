@@ -36,13 +36,14 @@ BFM-Analysis/
 │   ├── frontend/              # React + Vite + Tailwind dashboard
 │   │   ├── src/
 │   │   │   ├── app.tsx        # Root component
+│   │   │   ├── data/          # Aircraft JSON loader + zod schema (validated at load)
 │   │   │   ├── features/      # Feature modules with colocated tests (planned)
-│   │   │   ├── physics/       # Pure TS E-M maths + interpolation, no React (planned)
+│   │   │   ├── physics/       # Pure TS: ISA atmosphere, interpolation, E-M performance model
 │   │   │   ├── shared/        # Cross-feature UI and utils (planned)
 │   │   │   └── test/setup.ts  # Vitest + Testing Library setup
 │   │   └── vite.config.ts     # Vite + Vitest config
 │   └── e2e/                   # Playwright tests against the production build
-├── data/aircraft/             # Version-controlled aircraft performance JSON (planned)
+├── data/aircraft/             # Version-controlled aircraft performance JSON (one file per aircraft)
 ├── docs/
 │   └── PROJECT-PLAN.md        # Product plan, feature blueprint, phased roadmap
 ├── .rulesync/                 # AI config source of truth → generates AGENTS.md, CLAUDE.md, etc.
@@ -92,11 +93,27 @@ and get a portal URL.
 | Frontend  | React 19 + Vite 8 + TypeScript 7 + Tailwind CSS 4     |
 | Charts    | Plotly.js (planned)                                   |
 | Physics   | Pure TypeScript module (interpolation, E-M maths)     |
-| Data      | Version-controlled JSON; Python datamine parser later |
+| Data      | Version-controlled JSON validated with zod; Python datamine parser later |
 | Tests     | Vitest + Testing Library (jsdom); Playwright (e2e)    |
 | Lint      | Biome                                                 |
 | Tooling   | mise + bun workspaces                                 |
 | CI        | GitHub Actions                                        |
+
+## Physics Model
+
+`apps/frontend/src/physics/performance.ts` is an algebraic point-performance model for level turns,
+not a time-stepping simulator:
+
+- Inputs per aircraft (`data/aircraft/*.json`): wing area, empty mass, internal fuel, G limit,
+  placard limits (max IAS, max Mach), Mach tables for CLmax / CD0 / k, an altitude × Mach
+  afterburner thrust table, and loadouts (mass + ΔCD0).
+- Scenario inputs: altitude, fuel fraction, loadout → mass, weight, ISA atmosphere.
+- Outputs per speed: lift-limited and available G, ITR, STR (thrust = drag), radii, Ps at 1 g and
+  at max G; plus stall / corner / placard speeds and Ps contours for E-M diagrams.
+- Tables are interpolated linearly and clamped at the edges (`interpolate.ts`).
+
+Adding an aircraft = adding one JSON file; the loader picks it up via `import.meta.glob` and the
+schema rejects malformed tables.
 
 ## Testing
 
