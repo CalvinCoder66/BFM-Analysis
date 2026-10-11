@@ -46,3 +46,6 @@ rulesync.local.jsonc
 
 # Amp orb scratch output
 .amp/in/
+
+# Amp generated portal state
+.amp/portals/

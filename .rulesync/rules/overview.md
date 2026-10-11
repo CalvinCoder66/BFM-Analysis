@@ -20,7 +20,8 @@ Built by Calvin Cheung as a portfolio/learning project. The full plan lives in
 
 ## Current Status
 
-**Pre-scaffold.** Only docs and agent configuration exist. The app is built in phases:
+**Scaffolded, Phase 1 in progress.** The frontend toolchain (Vite, React, Tailwind, Vitest,
+Playwright, Biome) is in place. The app is built in phases:
 
 1. **Foundation & mock data** — React + Tailwind dashboard, charting library, 2–3 hardcoded
    matchups (e.g. F-16C vs. MiG-29) with mock E-M curves in JSON.
@@ -40,6 +41,17 @@ below in the same change.
 
 ```
 BFM-Analysis/
+├── apps/
+│   ├── frontend/              # React + Vite + Tailwind dashboard
+│   │   ├── src/
+│   │   │   ├── app.tsx        # Root component
+│   │   │   ├── features/      # Feature modules with colocated tests (planned)
+│   │   │   ├── physics/       # Pure TS E-M maths + interpolation, no React (planned)
+│   │   │   ├── shared/        # Cross-feature UI and utils (planned)
+│   │   │   └── test/setup.ts  # Vitest + Testing Library setup
+│   │   └── vite.config.ts     # Vite + Vitest config
+│   └── e2e/                   # Playwright tests against the production build
+├── data/aircraft/             # Version-controlled aircraft performance JSON (planned)
 ├── docs/
 │   └── PROJECT-PLAN.md        # Product plan, feature blueprint, phased roadmap
 ├── .rulesync/                 # AI config source of truth → generates AGENTS.md, CLAUDE.md, etc.
@@ -47,20 +59,13 @@ BFM-Analysis/
 │   └── mcp.json               # MCP servers shared by all agents
 ├── .amp/
 │   ├── settings.json          # Amp workspace settings; rulesync owns `amp.mcpServers`
+│   ├── services.yaml          # Dev server definition for Amp orbs (`amp orb services ensure`)
 │   └── plugins/               # Amp plugins; rulesync-hooks.ts is generated from .rulesync/hooks.json
+├── .githooks/                 # Pre-commit hook (lint-staged: biome)
 ├── scripts/                   # Repo maintenance scripts
+├── biome.json                 # JS/TS/CSS/JSON lint + format config
+├── package.json               # Bun workspace root (apps/*)
 └── .mise.toml                 # Tool versions + tasks
-```
-
-Planned once Phase 1 starts (confirm when scaffolding):
-
-```
-├── apps/frontend/             # React + Vite + Tailwind dashboard
-│   └── src/
-│       ├── features/          # Feature modules (scenario/, comparison/, energy/) with colocated tests
-│       ├── physics/           # Pure TS E-M maths + interpolation (no React)
-│       └── shared/            # Cross-feature UI and utils
-└── data/aircraft/             # Version-controlled aircraft performance JSON
 ```
 
 ## Essential Commands
@@ -68,20 +73,48 @@ Planned once Phase 1 starts (confirm when scaffolding):
 All commands are run via [mise](https://mise.jdx.dev/) from the repo root:
 
 ```bash
+# Setup & development
+mise run setup              # Install dependencies (bun) + git hooks
+mise run dev                # Vite dev server for the frontend
+mise run build              # Production build of the frontend
+
+# Quality
+mise run format             # Format + auto-fix (biome)
+mise run check              # Lint, format check, type check (read-only, for CI)
+mise run typecheck          # Type check only (subset of check)
+mise run test               # Unit + component tests (vitest)
+mise run test:watch         # Vitest in watch mode
+mise run test:e2e           # Playwright e2e tests (builds + previews the app)
+
+# AI config
 mise run rules:sync         # Regenerate AI config files from .rulesync/
 mise run rules:check        # Verify AI config files are in sync (CI)
 ```
 
-## Planned Stack
+In an Amp orb, run `amp orb services ensure` to start the dev server from `.amp/services.yaml`
+and get a portal URL.
 
-| Layer    | Tech                                              |
-| -------- | ------------------------------------------------- |
-| Frontend | React + Vite + TypeScript + Tailwind CSS          |
-| Charts   | Chart.js or Plotly.js (decide in Phase 1)         |
-| Physics  | Pure TypeScript module (interpolation, E-M maths) |
-| Data     | Version-controlled JSON; Python datamine parser later |
-| Tooling  | mise + bun                                        |
-| CI       | GitHub Actions                                    |
+## Stack
+
+| Layer     | Tech                                                  |
+| --------- | ----------------------------------------------------- |
+| Frontend  | React 19 + Vite 8 + TypeScript 7 + Tailwind CSS 4     |
+| Charts    | Plotly.js (planned)                                   |
+| Physics   | Pure TypeScript module (interpolation, E-M maths)     |
+| Data      | Version-controlled JSON; Python datamine parser later |
+| Tests     | Vitest + Testing Library (jsdom); Playwright (e2e)    |
+| Lint      | Biome                                                 |
+| Tooling   | mise + bun workspaces                                 |
+| CI        | GitHub Actions                                        |
+
+## Testing
+
+- **Unit tests** (`*.test.ts`) — colocated with the code. Physics and data code must be covered
+  here.
+- **Component tests** (`*.test.tsx`) — Testing Library; query by role/label as a user would and
+  assert visible behaviour, not implementation details.
+- **E2E tests** (`apps/e2e/tests/`) — Playwright against the production build; cover the main
+  user flows and fail on console errors.
 
 ## Domain Glossary
 
@@ -134,5 +167,6 @@ Physics reference formulas (level turn, SI units):
   baseline performance markers instead.
 - Don't start the data pipeline before the UI and interactions are settled (UI-first).
 - Don't mix unit systems inside the physics layer.
-- Don't install JS deps with npm/yarn — use `bun add`.
+- Don't install JS deps with npm/yarn — use `bun add` in the relevant `apps/*` package (root
+  `package.json` is for repo-wide tooling only).
 - Don't edit generated AI config files directly — edit `.rulesync/` and run `mise run rules:sync`.
