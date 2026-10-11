@@ -10,6 +10,10 @@ export default defineConfig({
     // Allow Amp portal / tunnel hostnames in development.
     allowedHosts: true,
   },
+  build: {
+    // Plotly (basic bundle) alone is ~1.2 MB minified / ~400 kB gzip.
+    chunkSizeWarningLimit: 1600,
+  },
   test: {
     environment: 'jsdom',
     globals: true,
