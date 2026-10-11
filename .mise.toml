@@ -1,0 +1,21 @@
+[tools]
+bun = "1.3"
+node = "24"
+
+[tasks."rules:sync"]
+description = "Regenerate AI config files from .rulesync/"
+run = "npx -y rulesync@32.0.0 generate"
+
+[tasks."rules:check"]
+description = "Check AI config files are in sync with .rulesync/"
+run = """
+bash scripts/check-mise-docs-sync.sh
+npx -y rulesync@32.0.0 generate
+if ! git diff --quiet || [ -n "$(git ls-files --others --exclude-standard)" ]; then
+  echo "ERROR: AI config files are out of sync with .rulesync/"
+  echo "Run: mise run rules:sync"
+  git status --short
+  exit 1
+fi
+echo "AI config files are in sync"
+"""

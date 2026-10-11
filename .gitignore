@@ -1,0 +1,48 @@
+# Build output
+dist
+tmp
+out-tsc
+*.tsbuildinfo
+vite.config.*.timestamp*
+
+# Dependencies
+node_modules
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Environment variables (secrets)
+.env
+.env.local
+.env*.local
+
+# IDEs and editors
+/.idea
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/mcp.json
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Test output
+/coverage
+test-results/
+playwright-report/
+
+# Rulesync / agent local overrides (never commit)
+.rulesync/skills/.curated/
+.rulesync/rules/*.local.md
+rulesync.local.jsonc
+**/CLAUDE.local.md
+**/AGENTS.local.md
+.claude/worktrees
+.claude/settings.local.json
+.claude/memories/
+
+# Amp orb scratch output
+.amp/in/

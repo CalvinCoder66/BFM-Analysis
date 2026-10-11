@@ -20,3 +20,8 @@ There would be ways to configure aircraft states on both sides. Parameters such 
 2: The 2-Circle (Rate) Verdict: Who wins the sustained rate war? Compares Sustained Turn Rate ($STR$) and rate of turn over time without excessive speed loss.Card
 3: Energy State & $P_s$ (Specific Excess Power) Overlay: Interactive scatter plot or chart showing turn rate vs. airspeed, clearly indicating where each aircraft bleeds or gains energy.
 
+
+## Project plan & contributing
+
+- The full product plan and phased roadmap live in [docs/PROJECT-PLAN.md](docs/PROJECT-PLAN.md).
+- AI agent guidance (Amp, Claude Code, Copilot, Cursor, Codex) is generated from `.rulesync/` by [rulesync](https://github.com/dyoshikawa/rulesync). Edit `.rulesync/rules/overview.md`, then run `mise run rules:sync`. CI fails if the generated files are out of date.
