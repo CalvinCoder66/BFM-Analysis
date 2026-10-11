@@ -101,61 +101,74 @@ export function AircraftControls({
         accent={colour}
       />
 
-      <Segmented
-        legend={`${label} G limiter`}
-        showLegend
-        value={config.limiter}
-        options={[
-          { value: 'instructor', label: `Instructor ${gLimits.instructor.toFixed(1)} g` },
-          { value: 'off', label: `Off ${gLimits.manual.toFixed(1)} g` },
-        ]}
-        onChange={(limiter) => onChange({ ...config, limiter })}
-      />
-      <p className="-mt-2 text-[11px] text-slate-500">
-        {aircraft.gLimits.fcs !== null
-          ? `Fly-by-wire limits to ${aircraft.gLimits.fcs} g either way. `
-          : ''}
-        Wings fail at {gLimits.wingBreak.toFixed(1)} g at this weight.
-      </p>
+      <details className="group space-y-3 rounded border border-slate-800 bg-slate-950/40 px-2 py-1.5">
+        <summary className="cursor-pointer select-none list-none text-xs text-slate-400 hover:text-slate-200">
+          <span className="mr-1 inline-block transition-transform group-open:rotate-90">›</span>
+          <span className="uppercase tracking-wider">Pilot &amp; limits</span>
+          <span className="mt-0.5 block font-mono text-slate-300">
+            {config.limiter === 'off' ? 'Off' : 'Instructor'} {ceiling.toFixed(1)} g ·{' '}
+            {config.pilotG === null
+              ? 'yanks'
+              : `smooth ${Math.min(config.pilotG, ceiling).toFixed(1)} g`}{' '}
+            · {config.turnPlane_deg}° plane
+          </span>
+        </summary>
+        <Segmented
+          legend={`${label} G limiter`}
+          showLegend
+          value={config.limiter}
+          options={[
+            { value: 'instructor', label: `Instructor ${gLimits.instructor.toFixed(1)} g` },
+            { value: 'off', label: `Off ${gLimits.manual.toFixed(1)} g` },
+          ]}
+          onChange={(limiter) => onChange({ ...config, limiter })}
+        />
+        <p className="-mt-2 text-[11px] text-slate-500">
+          {aircraft.gLimits.fcs !== null
+            ? `Fly-by-wire limits to ${aircraft.gLimits.fcs} g either way. `
+            : ''}
+          Wings fail at {gLimits.wingBreak.toFixed(1)} g at this weight.
+        </p>
 
-      <Segmented
-        legend={`${label} pilot`}
-        showLegend
-        value={config.pilotG === null ? 'yank' : 'smooth'}
-        options={[
-          { value: 'yank', label: 'Yanks to limit' },
-          { value: 'smooth', label: 'Smooth' },
-        ]}
-        onChange={(style) =>
-          onChange({
-            ...config,
-            pilotG: style === 'yank' ? null : Math.min(SMOOTH_PILOT_G, pilotMax),
-          })
-        }
-      />
-      {config.pilotG !== null && (
+        <Segmented
+          legend={`${label} pilot`}
+          showLegend
+          value={config.pilotG === null ? 'yank' : 'smooth'}
+          options={[
+            { value: 'yank', label: 'Yanks to limit' },
+            { value: 'smooth', label: 'Smooth' },
+          ]}
+          onChange={(style) =>
+            onChange({
+              ...config,
+              pilotG: style === 'yank' ? null : Math.min(SMOOTH_PILOT_G, pilotMax),
+            })
+          }
+        />
+        {config.pilotG !== null && (
+          <Slider
+            label={`${label} pilot G`}
+            value={Math.min(config.pilotG, pilotMax)}
+            min={3}
+            max={pilotMax}
+            step={0.5}
+            display={`${Math.min(config.pilotG, ceiling).toFixed(1)} g`}
+            onChange={(pilotG) => onChange({ ...config, pilotG })}
+            accent={colour}
+          />
+        )}
+
         <Slider
-          label={`${label} pilot G`}
-          value={Math.min(config.pilotG, pilotMax)}
-          min={3}
-          max={pilotMax}
-          step={0.5}
-          display={`${Math.min(config.pilotG, ceiling).toFixed(1)} g`}
-          onChange={(pilotG) => onChange({ ...config, pilotG })}
+          label={`${label} turn plane`}
+          value={config.turnPlane_deg}
+          min={0}
+          max={90}
+          step={5}
+          display={planeLabel(config.turnPlane_deg)}
+          onChange={(turnPlane_deg) => onChange({ ...config, turnPlane_deg })}
           accent={colour}
         />
-      )}
-
-      <Slider
-        label={`${label} turn plane`}
-        value={config.turnPlane_deg}
-        min={0}
-        max={90}
-        step={5}
-        display={planeLabel(config.turnPlane_deg)}
-        onChange={(turnPlane_deg) => onChange({ ...config, turnPlane_deg })}
-        accent={colour}
-      />
+      </details>
 
       {aircraft.source === 'mock' && (
         <p className="text-[11px] text-amber-400/80">Mock data, not War Thunder values</p>

@@ -183,3 +183,9 @@ export function turnRateDelta(m: Matchup, altitude_m: number, points = 120): Del
 export function casAtTas(f: Flight, tas: number): number {
   return f.curve.find((p) => p.tas === tas)?.cas ?? tas;
 }
+
+/** Energy retention: who has more airspeed left after the turn from the merge, as flown. */
+export function energyVerdict(m: Matchup): Verdict {
+  const speed = (r: SideResult) => r.flown.timeline.at(-1)?.cas ?? 0;
+  return compareMetric(speed(m.attacker), speed(m.defender), true);
+}

@@ -30,7 +30,7 @@ export function Segmented<T extends string>({
         {options.map((option) => (
           <label
             key={option.value}
-            className={`flex-1 cursor-pointer px-2 py-1 text-center transition-colors ${
+            className={`flex-1 cursor-pointer whitespace-nowrap px-2 py-1 text-center transition-colors ${
               option.value === value
                 ? 'bg-slate-700 text-white'
                 : 'text-slate-400 hover:bg-slate-800'

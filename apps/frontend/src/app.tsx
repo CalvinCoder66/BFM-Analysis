@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
-import { ChartPanel } from './features/charts/ChartPanel';
-import { MatchupTable } from './features/comparison/MatchupTable';
 import { computeMatchup, type Scenario } from './features/comparison/matchup';
-import { VerdictCards } from './features/comparison/VerdictCards';
+import { FocusView } from './features/focus/FocusView';
+import { type FocusId, fightResults, getFocus } from './features/focus/focus';
+import { Hotbar } from './features/focus/Hotbar';
 import { SMOOTH_PILOT_G } from './features/scenario/AircraftControls';
 import { ScenarioPanel } from './features/scenario/ScenarioPanel';
 import { kmhToMs } from './physics/units';
@@ -33,7 +33,9 @@ export const DEFAULT_SCENARIO: Scenario = {
 export function App() {
   const [scenario, setScenario] = useState<Scenario>(DEFAULT_SCENARIO);
   const [unit, setUnit] = useState<SpeedUnit>('kmh');
+  const [focusId, setFocusId] = useState<FocusId>('summary');
   const matchup = useMemo(() => computeMatchup(scenario), [scenario]);
+  const results = fightResults(matchup, scenario, unit);
   const mergeLabel = formatSpeed(scenario.mergeCas, unit);
 
   return (
@@ -63,16 +65,15 @@ export function App() {
           />
         </aside>
         <main className="flex min-w-0 flex-col gap-4">
-          <VerdictCards matchup={matchup} unit={unit} turnDuration_s={scenario.turnDuration_s} />
-          <div className="grid min-w-0 gap-4 2xl:grid-cols-[minmax(0,1fr)_400px]">
-            <ChartPanel matchup={matchup} scenario={scenario} unit={unit} />
-            <MatchupTable
-              matchup={matchup}
-              unit={unit}
-              mergeLabel={mergeLabel}
-              turnDuration_s={scenario.turnDuration_s}
-            />
-          </div>
+          <Hotbar matchup={matchup} results={results} active={focusId} onSelect={setFocusId} />
+          <FocusView
+            focus={getFocus(focusId)}
+            matchup={matchup}
+            scenario={scenario}
+            unit={unit}
+            results={results}
+            onSelect={setFocusId}
+          />
         </main>
       </div>
     </div>

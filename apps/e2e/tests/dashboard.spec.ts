@@ -9,67 +9,88 @@ function collectErrors(page: Page) {
   return errors;
 }
 
-const chart = (page: Page) => page.getByRole('tabpanel');
-const metricCell = (page: Page, label: string, column = 0) =>
+const chartArea = (page: Page) => page.getByRole('region', { name: 'Chart' });
+const focusTab = (page: Page, name: RegExp) => page.getByRole('tab', { name });
+const statCell = (page: Page, label: string, column = 0) =>
   page
     .getByRole('row')
     .filter({ has: page.getByRole('rowheader', { name: label, exact: true }) })
     .getByRole('cell')
     .nth(column);
-const numberIn = async (page: Page, label: string, column = 0) =>
-  Number.parseFloat((await metricCell(page, label, column).textContent()) ?? '');
+const statNumber = async (page: Page, label: string, column = 0) =>
+  Number.parseFloat((await statCell(page, label, column).textContent()) ?? '');
+const openPilotAndLimits = (page: Page, side: 'Attacker' | 'Defender') =>
+  page.getByRole('group', { name: side }).getByText('Pilot & limits').click();
 
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 1600, height: 1000 });
 });
 
-test('renders the default matchup with turn circles and no console errors', async ({ page }) => {
+test('opens on a compact summary with no console errors', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/');
 
   await expect(page.getByRole('heading', { name: /bfm analysis/i })).toBeVisible();
-  await expect(page.getByRole('article', { name: '1-circle · radius fight' })).toBeVisible();
-  await expect(page.getByRole('article', { name: 'Turn from merge · 20 s' })).toBeVisible();
-
-  const circles = chart(page).getByRole('img', { name: 'Turn circles, 2-circle fight' });
-  await expect(circles).toBeVisible();
-  await expect(circles.locator('polyline')).toHaveCount(2);
-
-  await page.getByText('1-circle · full pull').click();
-  await expect(
-    chart(page).getByRole('img', { name: 'Turn circles, 1-circle fight' }),
-  ).toBeVisible();
+  await expect(focusTab(page, /^Summary/)).toHaveAttribute('aria-selected', 'true');
+  await expect(focusTab(page, /^1-circle/)).toContainText('tighter');
+  await expect(focusTab(page, /^2-circle/)).toContainText('sustained');
+  await expect(chartArea(page).getByText('Turn rate (°/s)')).toBeVisible();
+  // The full stats table stays hidden until asked for.
+  await expect(page.getByRole('rowheader', { name: 'Wing loading' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Show all stats' }).click();
+  await expect(page.getByRole('rowheader', { name: 'Wing loading' })).toBeVisible();
 
   expect(errors).toEqual([]);
 });
 
-test('renders every Plotly view', async ({ page }) => {
+test('fits the turn circles within the screen on an ultrawide', async ({ page }) => {
+  await page.setViewportSize({ width: 3440, height: 1440 });
+  await page.goto('/');
+  await focusTab(page, /^2-circle/).click();
+  const circles = chartArea(page).getByRole('img', { name: 'Turn circles, 2-circle fight' });
+  await expect(circles.locator('polyline')).toHaveCount(2);
+  // The square drawing is capped by height, not stretched to the full page width.
+  const box = await circles.boundingBox();
+  expect(box?.height ?? Number.POSITIVE_INFINITY).toBeLessThan(950);
+  // Hotbar and chart fit above the fold.
+  const chartBox = await chartArea(page).boundingBox();
+  expect((chartBox?.y ?? 0) + (chartBox?.height ?? 0)).toBeLessThan(1440);
+});
+
+test('drills into each fight with its own charts and stats', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/');
-  for (const [tab, axis] of [
-    ['E-M diagram', 'Turn rate (°/s)'],
-    ['Turn timeline', 'Heading turned (°)'],
-    ['Advantage', 'Turn-rate advantage (°/s)'],
-    ['Turn radius', 'Turn radius (m)'],
-    ['Energy (Ps)', 'Specific excess power Ps (m/s)'],
-  ] as const) {
-    await page.getByRole('tab', { name: tab }).click();
-    await expect(page.getByRole('tab', { name: tab })).toHaveAttribute('aria-selected', 'true');
-    await expect(chart(page).getByText(axis)).toBeVisible();
-    expect(await chart(page).locator('.scatterlayer .trace').count()).toBeGreaterThanOrEqual(4);
+  const views = [
+    [/^1-circle/, ['Turn circles', 'Turn radius'], 'Min radius'],
+    [/^2-circle/, ['Turn circles', 'Turn timeline', 'Rate advantage'], 'Best STR'],
+    [/^Energy/, ['Energy (Ps)', 'Turn timeline'], 'Airspeed left'],
+  ] as const;
+  for (const [tab, charts, stat] of views) {
+    await focusTab(page, tab).click();
+    await expect(page.getByRole('rowheader', { name: stat, exact: true })).toBeVisible();
+    for (const chart of charts) {
+      const picker = chartArea(page).getByRole('group', { name: 'Chart' });
+      if ((await picker.count()) > 0) await picker.getByText(chart, { exact: true }).click();
+      if (chart === 'Turn circles') {
+        await expect(chartArea(page).locator('svg[role=img] polyline')).toHaveCount(2);
+      } else {
+        expect(
+          await chartArea(page).locator('.scatterlayer .trace').count(),
+        ).toBeGreaterThanOrEqual(2);
+      }
+    }
   }
-  await page.getByRole('tab', { name: 'E-M diagram' }).click();
-  await expect(chart(page).getByText('F-16C Block 50 · pilot 7.0 g')).toBeVisible();
   expect(errors).toEqual([]);
 });
 
 test('updates the comparison when the scenario changes', async ({ page }) => {
   await page.goto('/');
-  const before = await numberIn(page, 'Sustained turn rate');
+  await focusTab(page, /^2-circle/).click();
+  const before = await statNumber(page, 'Best STR');
 
   await page.getByLabel('Altitude').fill('9000');
   await expect(page.getByText('9,000 m · 29,528 ft')).toBeVisible();
-  await expect.poll(() => numberIn(page, 'Sustained turn rate')).toBeLessThan(before);
+  await expect.poll(() => statNumber(page, 'Best STR')).toBeLessThan(before);
 
   await page.getByLabel('Defender aircraft').selectOption('su-27');
   await expect(page.getByRole('columnheader', { name: 'Su-27S' })).toBeVisible();
@@ -77,24 +98,27 @@ test('updates the comparison when the scenario changes', async ({ page }) => {
 
 test('models the G limiter and pilot style', async ({ page }) => {
   await page.goto('/');
+  await focusTab(page, /^Energy/).click();
   // The smooth 7 g F-16C pilot keeps more speed than when yanking to the limiter.
-  const smoothSpeed = await numberIn(page, 'Airspeed left');
-  await expect(metricCell(page, 'Pilot G (as flown)')).toHaveText('7.0 g');
+  const smoothSpeed = await statNumber(page, 'Airspeed left');
 
-  const attackerPilot = page.getByRole('group', { name: 'Attacker pilot' });
-  await attackerPilot.getByText('Yanks to limit').click();
-  await expect(metricCell(page, 'Pilot G (as flown)')).toHaveText('10.0 g');
-  await expect.poll(() => numberIn(page, 'Airspeed left')).toBeLessThan(smoothSpeed);
+  await openPilotAndLimits(page, 'Attacker');
+  await page.getByRole('group', { name: 'Attacker pilot' }).getByText('Yanks to limit').click();
+  await expect(page.getByText(/Instructor 10\.0 g · yanks/)).toBeVisible();
+  await expect.poll(() => statNumber(page, 'Airspeed left')).toBeLessThan(smoothSpeed);
 
   // MiG-29 has no fly-by-wire: turning the instructor off raises its G limit.
-  const instructorG = await numberIn(page, 'G limit in use', 1);
+  await openPilotAndLimits(page, 'Defender');
   await page.getByRole('group', { name: 'Defender G limiter' }).getByText(/^Off/).click();
-  await expect.poll(() => numberIn(page, 'G limit in use', 1)).toBeGreaterThan(instructorG);
+  await expect(page.getByText(/^Off 14\.\d g · yanks/)).toBeVisible();
 });
 
 test('shows top and bottom turn rates for an inclined turn plane', async ({ page }) => {
   await page.goto('/');
+  await focusTab(page, /^2-circle/).click();
+  await page.getByRole('button', { name: 'Show more stats' }).click();
   await expect(page.getByRole('rowheader', { name: 'Over the top of the plane' })).toHaveCount(0);
+  await openPilotAndLimits(page, 'Attacker');
   await page.getByLabel('Attacker turn plane').fill('90');
   await expect(page.getByText('90° · vertical')).toBeVisible();
   await expect(page.getByRole('rowheader', { name: 'Over the top of the plane' })).toBeVisible();
@@ -103,7 +127,6 @@ test('shows top and bottom turn rates for an inclined turn plane', async ({ page
 test('switches the whole dashboard to knots', async ({ page }) => {
   await page.goto('/');
   await page.getByText('kts', { exact: true }).click();
-  await expect(page.getByText(/At merge · 432 kts/)).toBeVisible();
-  await page.getByRole('tab', { name: 'E-M diagram' }).click();
-  await expect(chart(page).getByText('Indicated airspeed (kts)')).toBeVisible();
+  await expect(page.getByText(/432 kts merge/)).toBeVisible();
+  await expect(chartArea(page).getByText('Indicated airspeed (kts)')).toBeVisible();
 });
