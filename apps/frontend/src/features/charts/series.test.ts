@@ -6,6 +6,8 @@ import {
   type ChartOptions,
   emDiagram,
   energyChart,
+  HOVER_LABEL,
+  MIN_RADIUS_G,
   PS_CONTOURS,
   RADIUS_LINES,
   radiusChart,
@@ -95,13 +97,48 @@ describe('advantageChart', () => {
 });
 
 describe('radiusChart', () => {
-  it('replaces infinite radii (no sustained turn) with gaps', () => {
-    const { data } = radiusChart(matchup, scenario, opts);
+  const { data, layout } = radiusChart(matchup, scenario, opts);
+  const f16 = matchup.attacker;
+
+  it('only plots radii where the jet can pull at least 2 g', () => {
+    const minRadius = named(data, 'F-16C Block 50 · min radius')[0]?.y as (number | null)[];
+    const sustained = named(data, 'F-16C Block 50 · sustained radius')[0]?.y as (number | null)[];
+    f16.curve.forEach((p, i) => {
+      expect(minRadius[i] === null).toBe(p.maxG < MIN_RADIUS_G);
+      expect(sustained[i] === null).toBe(p.sustainedG < MIN_RADIUS_G);
+    });
     for (const trace of traces(data)) {
       expect((trace.y as (number | null)[]).every((v) => v === null || Number.isFinite(v))).toBe(
         true,
       );
     }
+  });
+
+  it('has no near-stall spike below corner speed', () => {
+    // Lift-limited radius tends to Vs²/g well above stall; at 2 g it is only 2/√3 ≈ 1.155× that.
+    const minRadius = named(data, 'F-16C Block 50 · min radius')[0]?.y as (number | null)[];
+    const cornerTas = f16.summary.limits.cornerTas ?? 0;
+    const belowCorner = minRadius.filter(
+      (v, i) => v !== null && (f16.curve[i]?.tas ?? 0) < cornerTas,
+    );
+    expect(belowCorner.length).toBeGreaterThan(10);
+    expect(Math.max(...(belowCorner as number[]))).toBeLessThan(1.2 * f16.summary.minRadius.value);
+  });
+
+  it('frames the y-axis around the minimum radii', () => {
+    const top = (layout.yaxis?.range as number[] | undefined)?.[1] ?? 0;
+    const larger = Math.max(f16.summary.minRadius.value, matchup.defender.summary.minRadius.value);
+    expect(top).toBeGreaterThanOrEqual(4 * larger);
+    expect(top).toBeLessThan(4 * larger + 500);
+  });
+});
+
+describe('hover labels', () => {
+  it('use a dark box on every chart', () => {
+    for (const build of [emDiagram, advantageChart, radiusChart, energyChart]) {
+      expect(build(matchup, scenario, opts).layout.hoverlabel).toEqual(HOVER_LABEL);
+    }
+    expect(HOVER_LABEL.bgcolor).toBe('#0f172a');
   });
 });
 

@@ -37,7 +37,7 @@ export const VIEWS: readonly View[] = [
     id: 'radius',
     label: 'Turn radius',
     description:
-      '1-circle view: turn radius at max G (solid) and at sustained G (dashed). Lower is tighter. In a nose-to-nose fight the smaller circle wins.',
+      '1-circle view: turn radius at max G (solid) and at sustained G (dashed). Lower is tighter. In a nose-to-nose fight the smaller circle wins. Curves start where the jet can pull 2 g; closer to stall speed the radius heads to infinity.',
     build: radiusChart,
   },
   {
