@@ -18,6 +18,14 @@ import {
 export const SIDE_COLOURS: Record<Side, string> = { attacker: '#38bdf8', defender: '#f87171' };
 /** Ps contour levels drawn on the E-M diagram, m/s (Ps = 0 is the sustained line). */
 export const PS_CONTOURS = [-100, -50, 50] as const;
+/**
+ * Radius chart cut-off. A level turn's radius goes to infinity as available G falls to 1 at the
+ * 1 g stall speed, which tells you nothing about a turning fight and flattens the chart. Points
+ * below 2 g (60° bank) are hidden. The cut-off is in G rather than speed so it follows each jet's
+ * own model: an aircraft that can pull more G at low speed (e.g. thrust vectoring) keeps more of
+ * its curve.
+ */
+export const MIN_RADIUS_G = 2;
 /** Constant-radius reference lines on the E-M diagram, metres. */
 export const RADIUS_LINES = [300, 500, 750, 1000, 1500, 2500] as const;
 
@@ -33,6 +41,13 @@ export interface Figure {
 }
 
 const AXIS = { gridcolor: '#1e293b', zerolinecolor: '#334155', linecolor: '#334155' };
+const FONT_FAMILY = 'ui-monospace, SFMono-Regular, Menlo, monospace';
+/** Dark hover boxes; Plotly's default unified hover box is white. */
+export const HOVER_LABEL: Partial<Layout['hoverlabel']> = {
+  bgcolor: '#0f172a',
+  bordercolor: '#475569',
+  font: { color: '#e2e8f0', family: FONT_FAMILY, size: 12 },
+};
 
 function speedAxisTitle(unit: SpeedUnit) {
   return `Indicated airspeed (${SPEED_UNITS[unit].label})`;
@@ -74,10 +89,11 @@ function baseLayout(scenario: Scenario, unit: SpeedUnit, yTitle: string): Partia
   return {
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor: '#0b1222',
-    font: { color: '#cbd5e1', family: 'ui-monospace, SFMono-Regular, Menlo, monospace', size: 12 },
+    font: { color: '#cbd5e1', family: FONT_FAMILY, size: 12 },
+    hoverlabel: HOVER_LABEL,
     margin: { l: 60, r: 20, t: 20, b: 50 },
     legend: { orientation: 'h', x: 0, y: 1.02, yanchor: 'bottom', font: { size: 11 } },
-    xaxis: { ...AXIS, title: { text: speedAxisTitle(unit) } },
+    xaxis: { ...AXIS, title: { text: speedAxisTitle(unit) }, hoverformat: '.0f' },
     yaxis: { ...AXIS, title: { text: yTitle } },
     shapes: [merge.shape],
     annotations: [merge.label],
@@ -203,7 +219,7 @@ export function emDiagram(m: Matchup, scenario: Scenario, opts: ChartOptions): F
 /** Turn radius at max G (instantaneous) and sustained G vs speed — the 1-circle view. */
 export function radiusChart(m: Matchup, scenario: Scenario, opts: ChartOptions): Figure {
   const x = SPEED_UNITS[opts.unit].fromMs;
-  const finite = (v: number) => (Number.isFinite(v) ? v : null);
+  const shown = (g: number, radius: number) => (g >= MIN_RADIUS_G ? radius : null);
   const data: Data[] = SIDES.flatMap((side): Data[] => {
     const r = m[side];
     const xs = r.curve.map((p) => x(p.cas));
@@ -214,7 +230,8 @@ export function radiusChart(m: Matchup, scenario: Scenario, opts: ChartOptions):
         name: `${label(m, side)} · min radius (max G)`,
         legendgroup: side,
         x: xs,
-        y: r.curve.map((p) => finite(p.itrRadius)),
+        y: r.curve.map((p) => shown(p.maxG, p.itrRadius)),
+        connectgaps: false,
         line: { color: SIDE_COLOURS[side], width: 3 },
         hovertemplate: '%{y:.0f} m<extra>%{fullData.name}</extra>',
       },
@@ -224,17 +241,20 @@ export function radiusChart(m: Matchup, scenario: Scenario, opts: ChartOptions):
         name: `${label(m, side)} · sustained radius`,
         legendgroup: side,
         x: xs,
-        y: r.curve.map((p) => finite(p.strRadius)),
+        y: r.curve.map((p) => shown(p.sustainedG, p.strRadius)),
         connectgaps: false,
         line: { color: SIDE_COLOURS[side], width: 2, dash: 'dash' },
         hovertemplate: '%{y:.0f} m<extra>%{fullData.name}</extra>',
       },
     ];
   });
+  // Frame the fight-relevant region: a few times the larger of the two minimum radii.
+  const largerMinRadius = Math.max(...SIDES.map((s) => m[s].summary.minRadius.value));
+  const yMax = Math.max(1_500, Math.ceil((4 * largerMinRadius) / 500) * 500);
   const layout = baseLayout(scenario, opts.unit, 'Turn radius (m)');
   return {
     data,
-    layout: { ...layout, hovermode: 'x unified', yaxis: { ...layout.yaxis, range: [0, 3000] } },
+    layout: { ...layout, hovermode: 'x unified', yaxis: { ...layout.yaxis, range: [0, yMax] } },
   };
 }
 
