@@ -26,6 +26,15 @@ describe('aircraft data files', () => {
       expect(s.maxStr.value).toBeGreaterThan(12);
       expect(s.maxStr.value).toBeLessThan(s.maxItr.value);
       expect(s.limits.cornerTas).not.toBeNull();
+      // War Thunder-style G limits: instructor below wing-break, in a plausible 4th-gen range.
+      const { gLimits } = resolveCondition(aircraft, {
+        altitude_m: 0,
+        fuelFraction: 0.5,
+        loadoutId: 'clean',
+      });
+      expect(gLimits.instructor).toBeGreaterThanOrEqual(8);
+      expect(gLimits.instructor).toBeLessThan(gLimits.wingBreak);
+      expect(gLimits.wingBreak).toBeLessThan(18);
     },
   );
 

@@ -2,6 +2,7 @@ import { getAircraft } from '../data/aircraft';
 import type { Aircraft } from '../data/aircraft-schema';
 import {
   envelope,
+  gLimitsFor,
   pointPerformance,
   resolveCondition,
   speedLimits,
@@ -10,11 +11,12 @@ import {
   turnRadius,
   turnRate,
   turnRateAtPs,
+  turnRateExtremes,
 } from './performance';
 
 /**
  * Synthetic aircraft with constant tables so expected values can be worked out by hand:
- * W = 10 000 kg × g, S = 30 m², CLmax 1.5, CD = 0.02 + 0.1·CL², T = 60 kN, 8 g limit.
+ * W = 10 000 kg × g, S = 30 m², CLmax 1.5, CD = 0.02 + 0.1·CL², T = 60 kN, 8 g fly-by-wire limit.
  * Expected numbers below were computed independently from the textbook formulas.
  */
 const fixture: Aircraft = {
@@ -27,7 +29,8 @@ const fixture: Aircraft = {
   wingArea_m2: 30,
   emptyMass_kg: 9_000,
   internalFuel_kg: 2_000,
-  gLimit: 8,
+  // Wing-break 20.4 g at 10 t; the fly-by-wire limiter caps everything at 8 g.
+  gLimits: { wingBreakLoad_N: 2_000_000, fcs: 8, instructorFraction: 0.85 },
   maxIas_kmh: 1_200,
   maxMach: 2,
   aero: { mach: [0, 2], clMax: [1.5, 1.5], cd0: [0.02, 0.02], k: [0.1, 0.1] },
@@ -80,6 +83,92 @@ describe('resolveCondition', () => {
   });
 });
 
+describe('G limits (War Thunder model)', () => {
+  // 1 176 798 N of wing-break load is exactly 12 g at 10 t.
+  const noFbw: Aircraft = {
+    ...fixture,
+    gLimits: { wingBreakLoad_N: 1_176_798, fcs: null, instructorFraction: 0.85 },
+  };
+
+  it('derives wing-break, instructor and manual G from the wing-break force and weight', () => {
+    const limits = gLimitsFor(noFbw, 10_000 * 9.80665);
+    expect(limits.wingBreak).toBeCloseTo(12, 6);
+    expect(limits.instructor).toBeCloseTo(10.2, 6);
+    expect(limits.manual).toBeCloseTo(12, 6);
+  });
+
+  it('lowers the wing-break G as the jet gets heavier', () => {
+    expect(gLimitsFor(noFbw, 12_000 * 9.80665).wingBreak).toBeCloseTo(10, 6);
+  });
+
+  it('lets a fly-by-wire limiter cap both instructor and manual G', () => {
+    const limits = gLimitsFor(fixture, 10_000 * 9.80665);
+    expect(limits.instructor).toBe(8);
+    expect(limits.manual).toBe(8);
+  });
+
+  it('uses the instructor by default, the manual limit when it is off, and the pilot G if lower', () => {
+    const base = { altitude_m: 0, fuelFraction: 0.5, loadoutId: 'clean' };
+    expect(resolveCondition(noFbw, base).gLimit).toBeCloseTo(10.2, 6);
+    expect(resolveCondition(noFbw, { ...base, limiter: 'off' }).gLimit).toBeCloseTo(12, 6);
+    expect(resolveCondition(noFbw, { ...base, pilotG: 7 }).gLimit).toBe(7);
+    // A pilot G above the limiter cannot exceed it.
+    expect(resolveCondition(noFbw, { ...base, pilotG: 11 }).gLimit).toBeCloseTo(10.2, 6);
+  });
+});
+
+describe('pilot G cap', () => {
+  const smooth = resolveCondition(fixture, {
+    altitude_m: 0,
+    fuelFraction: 0.5,
+    loadoutId: 'clean',
+    pilotG: 6,
+  });
+
+  it('caps turn rate and moves corner speed down', () => {
+    const p = pointPerformance(smooth, 200);
+    expect(p.maxG).toBe(6);
+    expect(p.limitedBy).toBe('g-limit');
+    expect(p.itr).toBeCloseTo(16.621, 2);
+    expect(speedLimits(smooth).cornerTas).toBeCloseTo(146.109, 2);
+  });
+
+  it('bleeds less energy than pulling to the limiter', () => {
+    expect(pointPerformance(smooth, 200).psAtMaxG).toBeGreaterThan(
+      pointPerformance(seaLevel, 200).psAtMaxG,
+    );
+  });
+});
+
+describe('turn plane', () => {
+  it('uses g·√(n² − cos²θ) for the circle-average rate', () => {
+    // Vertical loop: cos θ = 0, so ω = g·n / V.
+    expect(turnRate(5, 200, Math.PI / 2)).toBeCloseTo((9.80665 * 5) / 200, 9);
+    // 60° plane: cos²θ = 0.25.
+    expect(turnRate(Math.SQRT2, 100, Math.PI / 3)).toBeCloseTo(0.12973, 5);
+  });
+
+  it('turns slower at the bottom of a loop and faster over the top', () => {
+    const { bottom, top } = turnRateExtremes(5, 200, Math.PI / 2);
+    expect(bottom).toBeCloseTo(0.196133, 6);
+    expect(top).toBeCloseTo(0.2942, 4);
+  });
+
+  it('raises turn rate but not sustained G in a vertical turn', () => {
+    const vertical = resolveCondition(fixture, {
+      altitude_m: 0,
+      fuelFraction: 0.5,
+      loadoutId: 'clean',
+      turnPlane_deg: 90,
+    });
+    const level = pointPerformance(seaLevel, 200);
+    const loop = pointPerformance(vertical, 200);
+    expect(loop.sustainedG).toBeCloseTo(level.sustainedG, 9);
+    expect(level.str).toBeCloseTo(16.29, 2);
+    expect(loop.str).toBeCloseTo(16.53, 2);
+  });
+});
+
 describe('turnRate / turnRadius', () => {
   it('uses the level-turn formulas', () => {
     // n = √2 → √(n² − 1) = 1, so ω = g / V and r = V² / g.
@@ -109,7 +198,7 @@ describe('pointPerformance', () => {
 
   it('is G-limited above corner speed', () => {
     const p = pointPerformance(seaLevel, 200);
-    expect(p.limitedBy).toBe('structure');
+    expect(p.limitedBy).toBe('g-limit');
     expect(p.liftLimitG).toBeCloseTo(11.242, 2);
     expect(p.maxG).toBe(8);
     expect(p.itr).toBeCloseTo(22.299, 2);

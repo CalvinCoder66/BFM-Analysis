@@ -1,17 +1,17 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
-import { kmhToMs, knotsToMs } from '../../physics/units';
+import { knotsToMs } from '../../physics/units';
 import type { SpeedUnit } from '../../shared/format';
+import { sideConfig, testScenario } from '../../test/scenarios';
 import type { Scenario } from '../comparison/matchup';
 import { ScenarioPanel } from './ScenarioPanel';
 
-const initial: Scenario = {
-  altitude_m: 1_000,
-  mergeCas: kmhToMs(800),
-  attacker: { aircraftId: 'f-16c', fuelFraction: 0.5, loadoutId: '2xfox2' },
-  defender: { aircraftId: 'mig-29', fuelFraction: 0.5, loadoutId: '2xfox2' },
-};
+const initial = testScenario({
+  attacker: sideConfig('f-16c', { loadoutId: '2xfox2' }),
+  defender: sideConfig('mig-29', { loadoutId: '2xfox2' }),
+});
+const group = (name: string) => screen.getByRole('group', { name });
 
 /** Stateful harness so the panel behaves as it does inside the app. */
 function renderPanel() {
@@ -58,7 +58,7 @@ describe('ScenarioPanel', () => {
   it('resets the loadout to one the new aircraft has when the aircraft changes', async () => {
     const { last } = renderPanel();
     await userEvent.selectOptions(screen.getByLabelText('Defender aircraft'), 'su-27');
-    expect(last().defender).toEqual({ aircraftId: 'su-27', fuelFraction: 0.5, loadoutId: 'clean' });
+    expect(last().defender).toMatchObject({ aircraftId: 'su-27', loadoutId: 'clean' });
 
     const loadouts = within(screen.getByLabelText('Defender loadout')).getAllByRole('option');
     expect(loadouts.map((o) => o.textContent)).toContain('2× R-73 + 6× R-27ER (+2500 kg)');
@@ -70,5 +70,53 @@ describe('ScenarioPanel', () => {
     expect(last().attacker.fuelFraction).toBeCloseTo(0.2, 9);
     // F-16C mock internal fuel is 3 175 kg.
     expect(screen.getByText('20% · 635 kg')).toBeInTheDocument();
+  });
+
+  it('shows the instructor and manual G limits and switches the limiter', async () => {
+    const { last } = renderPanel();
+    // F-16C: fly-by-wire caps both at 10 g.
+    const f16 = group('Attacker G limiter');
+    expect(within(f16).getByLabelText('Instructor 10.0 g')).toBeChecked();
+    expect(within(f16).getByLabelText('Off 10.0 g')).toBeInTheDocument();
+    expect(screen.getByText(/Fly-by-wire limits to 10 g either way/)).toBeInTheDocument();
+
+    // MiG-29: no fly-by-wire, so switching the instructor off allows more G.
+    await userEvent.click(within(group('Defender G limiter')).getByLabelText(/^Off/));
+    expect(last().defender.limiter).toBe('off');
+  });
+
+  it('lowers the G limits as the jet gets heavier', () => {
+    renderPanel();
+    const limiterLabel = () =>
+      within(group('Defender G limiter'))
+        .getByLabelText(/^Instructor/)
+        .closest('label')?.textContent ?? '';
+    const light = Number.parseFloat(limiterLabel().replace('Instructor', ''));
+    fireEvent.change(screen.getByLabelText('Defender fuel'), { target: { value: '100' } });
+    expect(Number.parseFloat(limiterLabel().replace('Instructor', ''))).toBeLessThan(light);
+  });
+
+  it('switches between a yanking and a smooth pilot with a 7 g default', async () => {
+    const { last } = renderPanel();
+    expect(screen.queryByLabelText('Attacker pilot G')).not.toBeInTheDocument();
+
+    await userEvent.click(within(group('Attacker pilot')).getByLabelText('Smooth'));
+    expect(last().attacker.pilotG).toBe(7);
+    fireEvent.change(screen.getByLabelText('Attacker pilot G'), { target: { value: '5.5' } });
+    expect(last().attacker.pilotG).toBe(5.5);
+    expect(screen.getByText('5.5 g')).toBeInTheDocument();
+
+    await userEvent.click(within(group('Attacker pilot')).getByLabelText('Yanks to limit'));
+    expect(last().attacker.pilotG).toBeNull();
+  });
+
+  it('sets the turn plane and the turn duration', () => {
+    const { last } = renderPanel();
+    fireEvent.change(screen.getByLabelText('Defender turn plane'), { target: { value: '90' } });
+    expect(last().defender.turnPlane_deg).toBe(90);
+    expect(screen.getByText('90° · vertical')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Turn duration'), { target: { value: '45' } });
+    expect(last().turnDuration_s).toBe(45);
   });
 });

@@ -1,9 +1,14 @@
 /**
- * Point-performance model for level turns (flight path angle 0°).
+ * Quasi-steady point-performance model for turns.
  *
  * Drag polar: CD = (CD0 + ΔCD0_stores) + k·CL², with CL = n·W / (q·S).
- * Turn rate ω = g·√(n² − 1) / V,  radius r = V² / (g·√(n² − 1)),
- * specific excess power Ps = V·(T − D) / W.
+ * Specific excess power Ps = V·(T − D) / W.
+ *
+ * Turns happen in a plane inclined θ from the horizontal (0° = level turn, 90° = vertical loop).
+ * Lift must cancel the out-of-plane part of gravity, g·cos θ, leaving g·√(n² − cos²θ) to turn.
+ * The in-plane part of gravity, g·sin θ, helps over the top and hurts at the bottom; over a whole
+ * circle it averages out, so the turn rate reported is the circle average
+ * ω = g·√(n² − cos²θ) / V (the level-turn formula when θ = 0), with radius r = V / ω.
  *
  * Everything is SI internally; turn rates are returned in deg/s for convenience because every
  * consumer (charts, cards) displays them that way.
@@ -12,13 +17,31 @@
 import type { Aircraft } from '../data/aircraft-schema';
 import { type Atmosphere, casToTas, G0, isa, tasToCas } from './atmosphere';
 import { interp1, interp2 } from './interpolate';
-import { radToDeg } from './units';
+import { degToRad, radToDeg } from './units';
+
+/** War Thunder instructor on, or off (manual control up to the wing-break limit). */
+export type Limiter = 'instructor' | 'off';
 
 export interface Configuration {
   altitude_m: number;
   /** Internal fuel as a fraction of capacity, 0–1. */
   fuelFraction: number;
   loadoutId: string;
+  /** Defaults to the instructor. */
+  limiter?: Limiter;
+  /** G the pilot chooses to fly at (smooth flying), capped by the limiter. Omit to pull to the limit. */
+  pilotG?: number | null;
+  /** Turn-plane inclination, degrees: 0 = level turn, 90 = vertical loop. Defaults to 0. */
+  turnPlane_deg?: number;
+}
+
+export interface GLimits {
+  /** Load factor at which the wings fail at the current weight. */
+  wingBreak: number;
+  /** Highest G the War Thunder instructor allows. */
+  instructor: number;
+  /** Highest G with the instructor off (fly-by-wire limiter, else wing-break). */
+  manual: number;
 }
 
 export interface FlightCondition {
@@ -28,6 +51,22 @@ export interface FlightCondition {
   weight_N: number;
   cd0Delta: number;
   atmosphere: Atmosphere;
+  gLimits: GLimits;
+  /** G ceiling for this condition: the limiter, or the pilot's chosen G if lower. */
+  gLimit: number;
+  /** Turn-plane inclination, radians. */
+  turnPlane: number;
+}
+
+export function gLimitsFor(aircraft: Aircraft, weight_N: number): GLimits {
+  const { wingBreakLoad_N, fcs, instructorFraction } = aircraft.gLimits;
+  const wingBreak = wingBreakLoad_N / weight_N;
+  const fbw = fcs ?? Number.POSITIVE_INFINITY;
+  return {
+    wingBreak,
+    instructor: Math.min(fbw, wingBreak * instructorFraction),
+    manual: Math.min(fbw, wingBreak),
+  };
 }
 
 export interface PointPerformance {
@@ -36,10 +75,11 @@ export interface PointPerformance {
   mach: number;
   /** Load factor the wing can generate at CLmax. */
   liftLimitG: number;
-  /** Available load factor: min(lift limit, G limit). */
+  /** Available load factor: min(lift limit, condition G limit). */
   maxG: number;
-  limitedBy: 'lift' | 'structure';
-  /** Instantaneous turn rate at max available G, deg/s. */
+  /** What caps maxG: CLmax, or the G limit (limiter or pilot). */
+  limitedBy: 'lift' | 'g-limit';
+  /** Instantaneous turn rate at max available G, deg/s (circle average in an inclined plane). */
   itr: number;
   /** Turn radius at max available G, m. */
   itrRadius: number;
@@ -61,24 +101,39 @@ export function resolveCondition(aircraft: Aircraft, config: Configuration): Fli
   if (!loadout) throw new Error(`Unknown loadout "${config.loadoutId}" for ${aircraft.id}`);
   const fuelFraction = Math.min(Math.max(config.fuelFraction, 0), 1);
   const mass_kg = aircraft.emptyMass_kg + fuelFraction * aircraft.internalFuel_kg + loadout.mass_kg;
+  const weight_N = mass_kg * G0;
+  const gLimits = gLimitsFor(aircraft, weight_N);
+  const ceiling = config.limiter === 'off' ? gLimits.manual : gLimits.instructor;
   return {
     aircraft,
     altitude_m: config.altitude_m,
     mass_kg,
-    weight_N: mass_kg * G0,
+    weight_N,
     cd0Delta: loadout.cd0Delta,
     atmosphere: isa(config.altitude_m),
+    gLimits,
+    gLimit: Math.min(ceiling, config.pilotG ?? Number.POSITIVE_INFINITY),
+    turnPlane: degToRad(config.turnPlane_deg ?? 0),
   };
 }
 
-/** Level-turn rate in rad/s for load factor n at true airspeed v. */
-export function turnRate(n: number, v: number): number {
-  return n > 1 ? (G0 * Math.sqrt(n * n - 1)) / v : 0;
+/** Circle-average turn rate in rad/s for load factor n at true airspeed v in a plane inclined θ. */
+export function turnRate(n: number, v: number, plane = 0): number {
+  const cos = Math.cos(plane);
+  return n > cos ? (G0 * Math.sqrt(n * n - cos * cos)) / v : 0;
 }
 
-/** Level-turn radius in metres for load factor n at true airspeed v. */
-export function turnRadius(n: number, v: number): number {
-  return n > 1 ? (v * v) / (G0 * Math.sqrt(n * n - 1)) : Number.POSITIVE_INFINITY;
+/** Circle-average turn radius in metres (V / ω). */
+export function turnRadius(n: number, v: number, plane = 0): number {
+  const omega = turnRate(n, v, plane);
+  return omega > 0 ? v / omega : Number.POSITIVE_INFINITY;
+}
+
+/** Turn rate (rad/s) at the bottom and top of an inclined turn, where gravity hurts and helps most. */
+export function turnRateExtremes(n: number, v: number, plane: number) {
+  const average = turnRate(n, v, plane);
+  const gravity = (G0 * Math.sin(plane)) / v;
+  return { bottom: Math.max(average - gravity, 0), top: average + gravity };
 }
 
 function aeroAt(cond: FlightCondition, mach: number) {
@@ -109,7 +164,8 @@ function speedForLiftLimit(cond: FlightCondition, n: number): number {
 
 export function pointPerformance(cond: FlightCondition, tas: number): PointPerformance {
   const { density, speedOfSound } = cond.atmosphere;
-  const { wingArea_m2: s, gLimit } = cond.aircraft;
+  const { wingArea_m2: s } = cond.aircraft;
+  const { gLimit, turnPlane } = cond;
   const w = cond.weight_N;
   const mach = tas / speedOfSound;
   const q = 0.5 * density * tas * tas;
@@ -131,13 +187,13 @@ export function pointPerformance(cond: FlightCondition, tas: number): PointPerfo
     mach,
     liftLimitG,
     maxG,
-    limitedBy: liftLimitG < gLimit ? 'lift' : 'structure',
-    itr: radToDeg(turnRate(maxG, tas)),
-    itrRadius: turnRadius(maxG, tas),
+    limitedBy: liftLimitG < gLimit ? 'lift' : 'g-limit',
+    itr: radToDeg(turnRate(maxG, tas, turnPlane)),
+    itrRadius: turnRadius(maxG, tas, turnPlane),
     thrust_N: thrust,
     sustainedG,
-    str: radToDeg(turnRate(sustainedG, tas)),
-    strRadius: turnRadius(sustainedG, tas),
+    str: radToDeg(turnRate(sustainedG, tas, turnPlane)),
+    strRadius: turnRadius(sustainedG, tas, turnPlane),
     psAt1g: ps(1),
     psAtMaxG: ps(maxG),
   };
@@ -155,9 +211,9 @@ export function turnRateAtPs(cond: FlightCondition, tas: number, ps: number): nu
   const { clMax, cd0, k } = aeroAt(cond, mach);
   const thrust = thrustAt(cond.aircraft, cond.altitude_m, mach);
   const nSq = ((thrust - qs * cd0 - (ps * w) / tas) * qs) / (k * w * w);
-  const maxG = Math.min((qs * clMax) / w, cond.aircraft.gLimit);
+  const maxG = Math.min((qs * clMax) / w, cond.gLimit);
   if (nSq < 1 || Math.sqrt(nSq) > maxG + 1e-9) return null;
-  return radToDeg(turnRate(Math.sqrt(nSq), tas));
+  return radToDeg(turnRate(Math.sqrt(nSq), tas, cond.turnPlane));
 }
 
 export interface SpeedLimits {
@@ -170,12 +226,12 @@ export interface SpeedLimits {
 }
 
 export function speedLimits(cond: FlightCondition): SpeedLimits {
-  const { maxIas_kmh, maxMach, gLimit } = cond.aircraft;
+  const { maxIas_kmh, maxMach } = cond.aircraft;
   const maxTas = Math.min(
     casToTas(maxIas_kmh / 3.6, cond.altitude_m),
     maxMach * cond.atmosphere.speedOfSound,
   );
-  const corner = speedForLiftLimit(cond, gLimit);
+  const corner = speedForLiftLimit(cond, cond.gLimit);
   return {
     stallTas: speedForLiftLimit(cond, 1),
     maxTas,

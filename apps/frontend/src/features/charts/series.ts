@@ -113,33 +113,45 @@ export function emDiagram(m: Matchup, scenario: Scenario, opts: ChartOptions): F
   let yMax = 0;
 
   for (const side of SIDES) {
-    const r = m[side];
+    const { pull, flown } = m[side];
     const colour = SIDE_COLOURS[side];
-    const xs = r.curve.map((p) => x(p.cas));
-    yMax = Math.max(yMax, r.summary.maxItr.value);
+    const xs = pull.curve.map((p) => x(p.cas));
+    yMax = Math.max(yMax, pull.summary.maxItr.value);
 
     data.push({
       type: 'scatter',
       mode: 'lines',
-      name: `${label(m, side)} · max turn`,
+      name: `${label(m, side)} · max turn (${pull.condition.gLimit.toFixed(1)} g limit)`,
       legendgroup: side,
       x: xs,
-      y: r.curve.map((p) => p.itr),
+      y: pull.curve.map((p) => p.itr),
       line: { color: colour, width: 3 },
       hovertemplate: '%{y:.1f}°/s @ %{x:.0f}<extra>%{fullData.name}</extra>',
     });
+    if (flown !== pull) {
+      data.push({
+        type: 'scatter',
+        mode: 'lines',
+        name: `${label(m, side)} · pilot ${flown.condition.gLimit.toFixed(1)} g`,
+        legendgroup: side,
+        x: flown.curve.map((p) => x(p.cas)),
+        y: flown.curve.map((p) => p.itr),
+        line: { color: colour, width: 2, dash: 'dashdot' },
+        hovertemplate: '%{y:.1f}°/s @ %{x:.0f}<extra>%{fullData.name}</extra>',
+      });
+    }
     data.push({
       type: 'scatter',
       mode: 'lines',
       name: `${label(m, side)} · sustained (Ps 0)`,
       legendgroup: side,
-      x: xs,
-      y: r.curve.map((p) => p.str),
+      x: flown.curve.map((p) => x(p.cas)),
+      y: flown.curve.map((p) => p.str),
       line: { color: colour, width: 2, dash: 'dash' },
       hovertemplate: '%{y:.1f}°/s @ %{x:.0f}<extra>%{fullData.name}</extra>',
     });
 
-    const corner = r.curve.find((p) => p.tas === r.summary.limits.cornerTas);
+    const corner = pull.curve.find((p) => p.tas === pull.summary.limits.cornerTas);
     if (corner) {
       data.push({
         type: 'scatter',
@@ -168,7 +180,7 @@ export function emDiagram(m: Matchup, scenario: Scenario, opts: ChartOptions): F
           legendgroup: side,
           showlegend: false,
           x: xs,
-          y: r.curve.map((p) => turnRateAtPs(r.condition, p.tas, ps)),
+          y: pull.curve.map((p) => turnRateAtPs(pull.condition, p.tas, ps)),
           connectgaps: false,
           line: { color: colour, width: 1, dash: 'dot' },
           opacity: 0.55,
@@ -181,7 +193,7 @@ export function emDiagram(m: Matchup, scenario: Scenario, opts: ChartOptions): F
   const yRange: [number, number] = [0, Math.ceil(yMax * 1.15)];
 
   if (opts.showRadiusLines) {
-    const maxCas = Math.max(...SIDES.map((s) => m[s].curve.at(-1)?.cas ?? 0));
+    const maxCas = Math.max(...SIDES.map((s) => m[s].pull.curve.at(-1)?.cas ?? 0));
     const grid = Array.from({ length: 60 }, (_, i) => 20 + ((maxCas - 20) * i) / 59);
     for (const radius of RADIUS_LINES) {
       const ys = grid.map((cas) => radToDeg(casToTas(cas, scenario.altitude_m) / radius));
@@ -221,7 +233,7 @@ export function radiusChart(m: Matchup, scenario: Scenario, opts: ChartOptions):
   const x = SPEED_UNITS[opts.unit].fromMs;
   const shown = (g: number, radius: number) => (g >= MIN_RADIUS_G ? radius : null);
   const data: Data[] = SIDES.flatMap((side): Data[] => {
-    const r = m[side];
+    const r = m[side].pull;
     const xs = r.curve.map((p) => x(p.cas));
     return [
       {
@@ -249,7 +261,7 @@ export function radiusChart(m: Matchup, scenario: Scenario, opts: ChartOptions):
     ];
   });
   // Frame the fight-relevant region: a few times the larger of the two minimum radii.
-  const largerMinRadius = Math.max(...SIDES.map((s) => m[s].summary.minRadius.value));
+  const largerMinRadius = Math.max(...SIDES.map((s) => m[s].pull.summary.minRadius.value));
   const yMax = Math.max(1_500, Math.ceil((4 * largerMinRadius) / 500) * 500);
   const layout = baseLayout(scenario, opts.unit, 'Turn radius (m)');
   return {
@@ -258,20 +270,20 @@ export function radiusChart(m: Matchup, scenario: Scenario, opts: ChartOptions):
   };
 }
 
-/** Specific excess power vs speed: acceleration at 1 g and energy bleed at max G. */
+/** Specific excess power vs speed: acceleration at 1 g and energy bleed when turning hard. */
 export function energyChart(m: Matchup, scenario: Scenario, opts: ChartOptions): Figure {
   const x = SPEED_UNITS[opts.unit].fromMs;
   const data: Data[] = SIDES.flatMap((side): Data[] => {
-    const r = m[side];
-    const xs = r.curve.map((p) => x(p.cas));
-    return [
+    const { pull, flown } = m[side];
+    const xs = pull.curve.map((p) => x(p.cas));
+    const traces: Data[] = [
       {
         type: 'scatter',
         mode: 'lines',
         name: `${label(m, side)} · Ps at 1 g (accelerate)`,
         legendgroup: side,
         x: xs,
-        y: r.curve.map((p) => p.psAt1g),
+        y: pull.curve.map((p) => p.psAt1g),
         line: { color: SIDE_COLOURS[side], width: 2, dash: 'dash' },
         hovertemplate: '%{y:.0f} m/s<extra>%{fullData.name}</extra>',
       },
@@ -281,11 +293,24 @@ export function energyChart(m: Matchup, scenario: Scenario, opts: ChartOptions):
         name: `${label(m, side)} · Ps at max G (bleed)`,
         legendgroup: side,
         x: xs,
-        y: r.curve.map((p) => p.psAtMaxG),
+        y: pull.curve.map((p) => p.psAtMaxG),
         line: { color: SIDE_COLOURS[side], width: 3 },
         hovertemplate: '%{y:.0f} m/s<extra>%{fullData.name}</extra>',
       },
     ];
+    if (flown !== pull) {
+      traces.push({
+        type: 'scatter',
+        mode: 'lines',
+        name: `${label(m, side)} · Ps at pilot ${flown.condition.gLimit.toFixed(1)} g`,
+        legendgroup: side,
+        x: flown.curve.map((p) => x(p.cas)),
+        y: flown.curve.map((p) => p.psAtMaxG),
+        line: { color: SIDE_COLOURS[side], width: 2, dash: 'dashdot' },
+        hovertemplate: '%{y:.0f} m/s<extra>%{fullData.name}</extra>',
+      });
+    }
+    return traces;
   });
   const layout = baseLayout(scenario, opts.unit, 'Specific excess power Ps (m/s)');
   return {
@@ -294,6 +319,64 @@ export function energyChart(m: Matchup, scenario: Scenario, opts: ChartOptions):
       ...layout,
       hovermode: 'x unified',
       yaxis: { ...layout.yaxis, zerolinecolor: '#94a3b8', zerolinewidth: 2 },
+    },
+  };
+}
+
+/**
+ * Sustained hard turn from the merge, as each pilot flies it: heading turned (solid, left axis)
+ * and airspeed (dashed, right axis) against time. Shows who gets their nose around first and
+ * what it costs in speed.
+ */
+export function timelineChart(m: Matchup, scenario: Scenario, opts: ChartOptions): Figure {
+  const speed = SPEED_UNITS[opts.unit];
+  const data: Data[] = SIDES.flatMap((side): Data[] => {
+    const points = m[side].flown.timeline;
+    const ts = points.map((p) => p.t);
+    return [
+      {
+        type: 'scatter',
+        mode: 'lines',
+        name: `${label(m, side)} · heading turned`,
+        legendgroup: side,
+        x: ts,
+        y: points.map((p) => p.heading),
+        line: { color: SIDE_COLOURS[side], width: 3 },
+        hovertemplate: '%{y:.0f}°<extra>%{fullData.name}</extra>',
+      },
+      {
+        type: 'scatter',
+        mode: 'lines',
+        name: `${label(m, side)} · airspeed`,
+        legendgroup: side,
+        x: ts,
+        y: points.map((p) => speed.fromMs(p.cas)),
+        yaxis: 'y2',
+        line: { color: SIDE_COLOURS[side], width: 2, dash: 'dash' },
+        hovertemplate: `%{y:.0f} ${speed.label}<extra>%{fullData.name}</extra>`,
+      },
+    ];
+  });
+  const base = baseLayout(scenario, opts.unit, 'Heading turned (°)');
+  return {
+    data,
+    layout: {
+      ...base,
+      shapes: [],
+      annotations: [],
+      hovermode: 'x unified',
+      margin: { ...base.margin, r: 70 },
+      xaxis: { ...AXIS, title: { text: 'Time since merge (s)' }, hoverformat: '.1f' },
+      yaxis: { ...base.yaxis, rangemode: 'tozero', dtick: 90 },
+      yaxis2: {
+        ...AXIS,
+        title: { text: `Indicated airspeed (${speed.label})` },
+        overlaying: 'y',
+        side: 'right',
+        showgrid: false,
+        tickmode: 'auto',
+        rangemode: 'tozero',
+      },
     },
   };
 }

@@ -1,13 +1,23 @@
 import { useId } from 'react';
 import { AIRCRAFT, getAircraft } from '../../data/aircraft';
+import { resolveCondition } from '../../physics/performance';
+import { Segmented } from '../../shared/ui/Segmented';
 import { Slider } from '../../shared/ui/Slider';
 import { SIDE_COLOURS } from '../charts/series';
 import type { Side, SideConfig } from '../comparison/matchup';
 
 const SIDE_LABEL: Record<Side, string> = { attacker: 'Attacker', defender: 'Defender' };
+/** Default G for a pilot who flies smoothly instead of yanking. */
+export const SMOOTH_PILOT_G = 7;
 
 const selectClass =
   'w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-100 focus:border-slate-500 focus:outline-none';
+
+function planeLabel(deg: number) {
+  if (deg === 0) return '0° · level';
+  if (deg === 90) return '90° · vertical';
+  return `${deg}° · oblique`;
+}
 
 export function AircraftControls({
   side,
@@ -22,22 +32,28 @@ export function AircraftControls({
   const loadoutId = useId();
   const aircraft = getAircraft(config.aircraftId);
   const colour = SIDE_COLOURS[side];
+  const label = SIDE_LABEL[side];
+  // G limits depend only on weight, so altitude does not matter here.
+  const { gLimits } = resolveCondition(aircraft, {
+    altitude_m: 0,
+    fuelFraction: config.fuelFraction,
+    loadoutId: config.loadoutId,
+  });
+  const ceiling = config.limiter === 'off' ? gLimits.manual : gLimits.instructor;
+  const pilotMax = Math.floor(ceiling * 2) / 2;
 
   return (
-    <fieldset
-      className="space-y-3 rounded-lg border border-slate-800 bg-slate-900/60 p-3"
-      style={{ borderLeft: `3px solid ${colour}` }}
-    >
+    <fieldset className="hud-panel space-y-3 p-3" style={{ borderLeft: `3px solid ${colour}` }}>
       <legend
         className="px-1 text-xs font-semibold uppercase tracking-widest"
         style={{ color: colour }}
       >
-        {SIDE_LABEL[side]}
+        {label}
       </legend>
 
       <div className="space-y-1">
         <label htmlFor={aircraftId} className="text-xs uppercase tracking-wider text-slate-400">
-          {SIDE_LABEL[side]} aircraft
+          {label} aircraft
         </label>
         <select
           id={aircraftId}
@@ -58,7 +74,7 @@ export function AircraftControls({
 
       <div className="space-y-1">
         <label htmlFor={loadoutId} className="text-xs uppercase tracking-wider text-slate-400">
-          {SIDE_LABEL[side]} loadout
+          {label} loadout
         </label>
         <select
           id={loadoutId}
@@ -75,13 +91,69 @@ export function AircraftControls({
       </div>
 
       <Slider
-        label={`${SIDE_LABEL[side]} fuel`}
+        label={`${label} fuel`}
         value={Math.round(config.fuelFraction * 100)}
         min={0}
         max={100}
         step={5}
         display={`${Math.round(config.fuelFraction * 100)}% · ${Math.round(config.fuelFraction * aircraft.internalFuel_kg).toLocaleString('en-GB')} kg`}
         onChange={(pct) => onChange({ ...config, fuelFraction: pct / 100 })}
+        accent={colour}
+      />
+
+      <Segmented
+        legend={`${label} G limiter`}
+        showLegend
+        value={config.limiter}
+        options={[
+          { value: 'instructor', label: `Instructor ${gLimits.instructor.toFixed(1)} g` },
+          { value: 'off', label: `Off ${gLimits.manual.toFixed(1)} g` },
+        ]}
+        onChange={(limiter) => onChange({ ...config, limiter })}
+      />
+      <p className="-mt-2 text-[11px] text-slate-500">
+        {aircraft.gLimits.fcs !== null
+          ? `Fly-by-wire limits to ${aircraft.gLimits.fcs} g either way. `
+          : ''}
+        Wings fail at {gLimits.wingBreak.toFixed(1)} g at this weight.
+      </p>
+
+      <Segmented
+        legend={`${label} pilot`}
+        showLegend
+        value={config.pilotG === null ? 'yank' : 'smooth'}
+        options={[
+          { value: 'yank', label: 'Yanks to limit' },
+          { value: 'smooth', label: 'Smooth' },
+        ]}
+        onChange={(style) =>
+          onChange({
+            ...config,
+            pilotG: style === 'yank' ? null : Math.min(SMOOTH_PILOT_G, pilotMax),
+          })
+        }
+      />
+      {config.pilotG !== null && (
+        <Slider
+          label={`${label} pilot G`}
+          value={Math.min(config.pilotG, pilotMax)}
+          min={3}
+          max={pilotMax}
+          step={0.5}
+          display={`${Math.min(config.pilotG, ceiling).toFixed(1)} g`}
+          onChange={(pilotG) => onChange({ ...config, pilotG })}
+          accent={colour}
+        />
+      )}
+
+      <Slider
+        label={`${label} turn plane`}
+        value={config.turnPlane_deg}
+        min={0}
+        max={90}
+        step={5}
+        display={planeLabel(config.turnPlane_deg)}
+        onChange={(turnPlane_deg) => onChange({ ...config, turnPlane_deg })}
         accent={colour}
       />
 

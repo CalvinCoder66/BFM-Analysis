@@ -14,6 +14,7 @@ import {
   oneCircleVerdict,
   SIDES,
   type SideResult,
+  timelineVerdict,
   twoCircleVerdict,
   type Verdict,
 } from './matchup';
@@ -61,10 +62,7 @@ function Card({
   children: ReactNode;
 }) {
   return (
-    <article
-      className="space-y-2 rounded-lg border border-slate-800 bg-slate-900/60 p-3"
-      aria-label={title}
-    >
+    <article className="hud-panel space-y-2 p-3" aria-label={title}>
       <header>
         <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-300">{title}</h3>
         <p className="text-[11px] text-slate-500">{subtitle}</p>
@@ -79,19 +77,33 @@ const pair = <T,>(m: Matchup, pick: (r: SideResult) => T): [T, T] =>
 
 const orDash = (v: number | undefined, f: (n: number) => string) => (v === undefined ? '—' : f(v));
 
-export function VerdictCards({ matchup, unit }: { matchup: Matchup; unit: SpeedUnit }) {
+export function VerdictCards({
+  matchup,
+  unit,
+  turnDuration_s,
+}: {
+  matchup: Matchup;
+  unit: SpeedUnit;
+  turnDuration_s: number;
+}) {
   const one = oneCircleVerdict(matchup);
   const two = twoCircleVerdict(matchup);
+  const turn = timelineVerdict(matchup);
   const bleed = (() => {
-    const [a, d] = pair(matchup, (r) => r.atMerge?.psAtMaxG);
+    const [a, d] = pair(matchup, (r) => r.flown.atMerge?.psAtMaxG);
     return a === undefined || d === undefined
       ? ({ winner: 'even', margin: 0 } as Verdict)
       : compareMetric(a, d, true);
   })();
+  const end = (r: SideResult) => r.flown.timeline.at(-1);
+  const g = (v: number) => `${v.toFixed(1)} g`;
 
   return (
-    <div className="grid gap-3 md:grid-cols-3">
-      <Card title="1-circle · radius fight" subtitle="Nose-to-nose: the tighter circle wins">
+    <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
+      <Card
+        title="1-circle · radius fight"
+        subtitle="Nose-to-nose, both pull to the limiter: the tighter circle wins"
+      >
         <Headline
           verdict={one}
           matchup={matchup}
@@ -99,43 +111,72 @@ export function VerdictCards({ matchup, unit }: { matchup: Matchup; unit: SpeedU
         />
         <Row
           label="Min radius"
-          values={pair(matchup, (r) => formatDistance(r.summary.minRadius.value))}
+          values={pair(matchup, (r) => formatDistance(r.pull.summary.minRadius.value))}
         />
         <Row
           label="…at speed"
-          values={pair(matchup, (r) => formatSpeed(casAtTas(r, r.summary.minRadius.tas), unit))}
+          values={pair(matchup, ({ pull }) =>
+            formatSpeed(casAtTas(pull, pull.summary.minRadius.tas), unit),
+          )}
         />
         <Row
           label="Radius at merge"
-          values={pair(matchup, (r) => orDash(r.atMerge?.itrRadius, formatDistance))}
+          values={pair(matchup, (r) => orDash(r.pull.atMerge?.itrRadius, formatDistance))}
         />
       </Card>
-      <Card title="2-circle · rate fight" subtitle="Nose-to-tail: the higher sustained rate wins">
+      <Card
+        title="2-circle · rate fight"
+        subtitle="Nose-to-tail, as flown: the higher sustained rate wins"
+      >
         <Headline verdict={two} matchup={matchup} detail={`+${formatRate(two.margin)} sustained`} />
-        <Row label="Best STR" values={pair(matchup, (r) => formatRate(r.summary.maxStr.value))} />
+        <Row
+          label="Best STR"
+          values={pair(matchup, (r) => formatRate(r.flown.summary.maxStr.value))}
+        />
         <Row
           label="…at speed"
-          values={pair(matchup, (r) => formatSpeed(casAtTas(r, r.summary.maxStr.tas), unit))}
+          values={pair(matchup, ({ flown }) =>
+            formatSpeed(casAtTas(flown, flown.summary.maxStr.tas), unit),
+          )}
+        />
+        <Row label="Pilot G" values={pair(matchup, (r) => g(r.flown.condition.gLimit))} />
+      </Card>
+      <Card
+        title={`Turn from merge · ${turnDuration_s} s`}
+        subtitle="Sustained hard turn as flown: who gets the nose round further"
+      >
+        <Headline
+          verdict={turn}
+          matchup={matchup}
+          detail={`${Math.round(turn.margin)}° further round`}
         />
         <Row
-          label="ITR at merge"
-          values={pair(matchup, (r) => orDash(r.atMerge?.itr, formatRate))}
+          label="Heading turned"
+          values={pair(matchup, (r) => orDash(end(r)?.heading, (v) => `${Math.round(v)}°`))}
         />
+        <Row
+          label="Speed left"
+          values={pair(matchup, (r) => orDash(end(r)?.cas, (v) => formatSpeed(v, unit)))}
+        />
+        <Row label="Pulling at end" values={pair(matchup, (r) => orDash(end(r)?.g, g))} />
       </Card>
-      <Card title="Energy at merge" subtitle="Ps while pulling max G: who bleeds less">
+      <Card title="Energy at merge" subtitle="Ps while turning as flown: who bleeds less">
         <Headline
           verdict={bleed}
           matchup={matchup}
           detail={`bleeds ${Math.round(bleed.margin)} m/s less`}
         />
         <Row
-          label="Ps at max G"
-          values={pair(matchup, (r) => orDash(r.atMerge?.psAtMaxG, formatPs))}
+          label="Ps as flown"
+          values={pair(matchup, (r) => orDash(r.flown.atMerge?.psAtMaxG, formatPs))}
         />
-        <Row label="Ps at 1 g" values={pair(matchup, (r) => orDash(r.atMerge?.psAt1g, formatPs))} />
         <Row
-          label="Available G"
-          values={pair(matchup, (r) => orDash(r.atMerge?.maxG, (g) => `${g.toFixed(1)} g`))}
+          label="Ps at full pull"
+          values={pair(matchup, (r) => orDash(r.pull.atMerge?.psAtMaxG, formatPs))}
+        />
+        <Row
+          label="Ps at 1 g"
+          values={pair(matchup, (r) => orDash(r.pull.atMerge?.psAt1g, formatPs))}
         />
       </Card>
     </div>

@@ -35,8 +35,18 @@ export const aircraftSchema = z
     /** Empty mass including pilot, gun and ammunition. */
     emptyMass_kg: z.number().positive(),
     internalFuel_kg: z.number().positive(),
-    /** Structural / G-limiter load factor. */
-    gLimit: z.number().min(1),
+    /**
+     * G limits, following War Thunder's model. The wing-break load is a force, so the wing-break
+     * load factor falls as the aircraft gets heavier.
+     */
+    gLimits: z.object({
+      /** Total lift at which the wings fail (WT `Strength.CritOverload`). */
+      wingBreakLoad_N: z.number().positive(),
+      /** Fly-by-wire G limiter that applies with or without the instructor, or null if none. */
+      fcs: z.number().min(1).nullable(),
+      /** Fraction of wing-break G the WT instructor allows (`overloadMult`, about 0.85–0.92). */
+      instructorFraction: z.number().gt(0).max(1),
+    }),
     /** Placard limits: whichever is reached first caps the speed range. */
     maxIas_kmh: z.number().positive(),
     maxMach: z.number().positive(),

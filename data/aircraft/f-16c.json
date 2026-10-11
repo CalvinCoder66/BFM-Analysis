@@ -4,11 +4,15 @@
   "nation": "USA",
   "source": "mock",
   "gamePatch": null,
-  "notes": "Mock values loosely based on public F-16C figures (F110/F100-229 class engine). Not War Thunder data.",
+  "notes": "Mock values loosely based on public F-16C figures (F110/F100-229 class engine). Not War Thunder data. G limits follow the War Thunder model: wing-break load is a force (datamine Strength.CritOverload, assumed per wing so doubled here), the instructor holds 85% of wing-break G (overloadMult 0.85\u20130.92), and only the F-16 has a fly-by-wire limiter (RateMaxLoadFactorMax 10). To be verified against the datamine in the data pipeline phase.",
   "wingArea_m2": 27.87,
   "emptyMass_kg": 8900,
   "internalFuel_kg": 3175,
-  "gLimit": 9,
+  "gLimits": {
+    "wingBreakLoad_N": 1540000,
+    "fcs": 10,
+    "instructorFraction": 0.85
+  },
   "maxIas_kmh": 1480,
   "maxMach": 2.0,
   "aero": {

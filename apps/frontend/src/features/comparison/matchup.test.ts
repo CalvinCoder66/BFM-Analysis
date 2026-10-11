@@ -1,23 +1,17 @@
 import { kmhToMs } from '../../physics/units';
+import { testScenario as scenario, sideConfig } from '../../test/scenarios';
 import {
   compareMetric,
   computeMatchup,
   computeSide,
   oneCircleVerdict,
-  type Scenario,
+  timelineVerdict,
   turnRateDelta,
   twoCircleVerdict,
 } from './matchup';
 
-const f16 = { aircraftId: 'f-16c', fuelFraction: 0.5, loadoutId: 'clean' };
-const mig = { aircraftId: 'mig-29', fuelFraction: 0.5, loadoutId: 'clean' };
-const scenario = (overrides: Partial<Scenario> = {}): Scenario => ({
-  altitude_m: 1_000,
-  mergeCas: kmhToMs(800),
-  attacker: f16,
-  defender: mig,
-  ...overrides,
-});
+const f16 = sideConfig('f-16c');
+const mig = sideConfig('mig-29');
 
 describe('compareMetric', () => {
   it('picks the higher value when higher is better and the lower otherwise', () => {
@@ -39,13 +33,38 @@ describe('compareMetric', () => {
 describe('computeSide', () => {
   it('evaluates the merge point at the merge speed converted from IAS', () => {
     const side = computeSide(f16, 6_000, kmhToMs(700));
-    expect(side.atMerge?.cas).toBeCloseTo(kmhToMs(700), 3);
+    expect(side.pull.atMerge?.cas).toBeCloseTo(kmhToMs(700), 3);
     // TAS is well above IAS at 6 km.
-    expect(side.atMerge?.tas).toBeGreaterThan(kmhToMs(700) * 1.25);
+    expect(side.pull.atMerge?.tas).toBeGreaterThan(kmhToMs(700) * 1.25);
+    expect(side.pull.timeline[0]?.cas).toBeCloseTo(kmhToMs(700), 3);
   });
 
   it('has no merge point when the merge speed is below stall speed', () => {
-    expect(computeSide(f16, 1_000, kmhToMs(100)).atMerge).toBeNull();
+    expect(computeSide(f16, 1_000, kmhToMs(100)).pull.atMerge).toBeNull();
+  });
+
+  it('flies the same as full pull when the pilot yanks', () => {
+    const side = computeSide(mig, 1_000, kmhToMs(800));
+    expect(side.flown).toBe(side.pull);
+    expect(side.pull.condition.gLimit).toBeCloseTo(side.pull.condition.gLimits.instructor, 9);
+  });
+
+  it('keeps full pull at the limiter but flies at the pilot G when smooth', () => {
+    const side = computeSide({ ...mig, pilotG: 7 }, 1_000, kmhToMs(800));
+    expect(side.flown.condition.gLimit).toBe(7);
+    expect(side.pull.condition.gLimit).toBeGreaterThan(7);
+    expect(side.flown.atMerge?.psAtMaxG).toBeGreaterThan(side.pull.atMerge?.psAtMaxG ?? 0);
+  });
+
+  it('raises the G limit and best ITR when the instructor is off', () => {
+    const on = computeSide(mig, 1_000, kmhToMs(800));
+    const off = computeSide({ ...mig, limiter: 'off' }, 1_000, kmhToMs(800));
+    expect(off.pull.condition.gLimit).toBeGreaterThan(on.pull.condition.gLimit);
+    expect(off.pull.summary.maxItr.value).toBeGreaterThan(on.pull.summary.maxItr.value);
+  });
+
+  it('simulates the turn for the requested duration', () => {
+    expect(computeSide(f16, 1_000, kmhToMs(800), 30).flown.timeline.at(-1)?.t).toBeCloseTo(30, 6);
   });
 
   it('falls back to the first loadout when the loadout id does not exist on the aircraft', () => {
@@ -71,10 +90,31 @@ describe('verdicts', () => {
 
   it('favours the lighter, cleaner jet in a mirror matchup', () => {
     const m = computeMatchup(
-      scenario({ defender: { aircraftId: 'f-16c', fuelFraction: 1, loadoutId: '2xfox2-4xfox3' } }),
+      scenario({ defender: sideConfig('f-16c', { fuelFraction: 1, loadoutId: '2xfox2-4xfox3' }) }),
     );
     expect(oneCircleVerdict(m).winner).toBe('attacker');
     expect(twoCircleVerdict(m).winner).toBe('attacker');
+    expect(timelineVerdict(m).winner).toBe('attacker');
+  });
+
+  it('judges the 1-circle fight at full pull, whatever the pilot style', () => {
+    const yanking = computeMatchup(scenario());
+    const smooth = computeMatchup(scenario({ attacker: { ...f16, pilotG: 5 } }));
+    expect(oneCircleVerdict(smooth)).toEqual(oneCircleVerdict(yanking));
+  });
+
+  it('judges the 2-circle fight as flown, so a timid pilot can lose it', () => {
+    // Holding only 4 g, the F-16C cannot use its sustained-rate advantage.
+    expect(twoCircleVerdict(computeMatchup(scenario())).winner).toBe('attacker');
+    const timid = computeMatchup(scenario({ attacker: { ...f16, pilotG: 4 } }));
+    expect(twoCircleVerdict(timid).winner).toBe('defender');
+  });
+
+  it('gives the yanking pilot more heading early in the turn', () => {
+    const m = computeMatchup(
+      scenario({ turnDuration_s: 5, attacker: { ...f16, pilotG: 5 }, defender: f16 }),
+    );
+    expect(timelineVerdict(m).winner).toBe('defender');
   });
 });
 
@@ -89,7 +129,7 @@ describe('turnRateDelta', () => {
 
   it('is positive where the attacker is the better-configured jet', () => {
     const m = computeMatchup(
-      scenario({ defender: { aircraftId: 'f-16c', fuelFraction: 1, loadoutId: '2xfox2-4xfox3' } }),
+      scenario({ defender: sideConfig('f-16c', { fuelFraction: 1, loadoutId: '2xfox2-4xfox3' }) }),
     );
     const strDeltas = turnRateDelta(m, 1_000)
       .map((p) => p.str)
@@ -103,7 +143,7 @@ describe('turnRateDelta', () => {
     const m = computeMatchup(
       scenario({
         attacker: { ...f16, fuelFraction: 0 },
-        defender: { aircraftId: 'su-27', fuelFraction: 1, loadoutId: '2xfox2-6xfox1' },
+        defender: sideConfig('su-27', { fuelFraction: 1, loadoutId: '2xfox2-6xfox1' }),
       }),
     );
     const points = turnRateDelta(m, 1_000);
