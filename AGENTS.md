@@ -11,8 +11,9 @@ Built by Calvin Cheung as a portfolio/learning project. The full plan lives in
 
 ## Current Status
 
-**Scaffolded, Phase 1 in progress.** The frontend toolchain (Vite, React, Tailwind, Vitest,
-Playwright, Biome) is in place. The app is built in phases:
+**Phases 1–2 first pass done.** Dashboard with scenario sliders, verdict cards, comparison table and
+four chart views (E-M diagram, turn-rate advantage, turn radius, Ps) over mock data for three jets.
+The UI is still being iterated to find the clearest representation. The app is built in phases:
 
 1. **Foundation & mock data** — React + Tailwind dashboard, charting library, 2–3 hardcoded
    matchups (e.g. F-16C vs. MiG-29) with mock E-M curves in JSON.
@@ -37,9 +38,12 @@ BFM-Analysis/
 │   │   ├── src/
 │   │   │   ├── app.tsx        # Root component
 │   │   │   ├── data/          # Aircraft JSON loader + zod schema (validated at load)
-│   │   │   ├── features/      # Feature modules with colocated tests (planned)
+│   │   │   ├── features/
+│   │   │   │   ├── scenario/   # Sidebar: altitude, merge speed, unit, per-side aircraft/loadout/fuel
+│   │   │   │   ├── comparison/ # matchup.ts (pure: computeMatchup, verdicts, deltas) + cards/table
+│   │   │   │   └── charts/     # series.ts (pure Plotly figure builders) + ChartPanel/PlotlyChart
 │   │   │   ├── physics/       # Pure TS: ISA atmosphere, interpolation, E-M performance model
-│   │   │   ├── shared/        # Cross-feature UI and utils (planned)
+│   │   │   ├── shared/        # format.ts (display units), ui/ (Slider)
 │   │   │   └── test/setup.ts  # Vitest + Testing Library setup
 │   │   └── vite.config.ts     # Vite + Vitest config
 │   └── e2e/                   # Playwright tests against the production build
@@ -91,7 +95,7 @@ and get a portal URL.
 | Layer     | Tech                                                  |
 | --------- | ----------------------------------------------------- |
 | Frontend  | React 19 + Vite 8 + TypeScript 7 + Tailwind CSS 4     |
-| Charts    | Plotly.js (planned)                                   |
+| Charts    | Plotly.js basic bundle via a thin `PlotlyChart` wrapper |
 | Physics   | Pure TypeScript module (interpolation, E-M maths)     |
 | Data      | Version-controlled JSON validated with zod; Python datamine parser later |
 | Tests     | Vitest + Testing Library (jsdom); Playwright (e2e)    |
@@ -120,7 +124,9 @@ schema rejects malformed tables.
 - **Unit tests** (`*.test.ts`) — colocated with the code. Physics and data code must be covered
   here.
 - **Component tests** (`*.test.tsx`) — Testing Library; query by role/label as a user would and
-  assert visible behaviour, not implementation details.
+  assert visible behaviour, not implementation details. Plotly does not run in jsdom: mock
+  `PlotlyChart` and assert on the figure it receives; chart logic belongs in pure builders in
+  `features/charts/series.ts`, which are unit-tested directly.
 - **E2E tests** (`apps/e2e/tests/`) — Playwright against the production build; cover the main
   user flows and fail on console errors.
 

@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 @theme {
+  /* No emoji fonts in the stack: on Linux they can otherwise supply digit glyphs. */
+  --font-sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --color-attacker: #38bdf8;
   --color-defender: #f87171;
