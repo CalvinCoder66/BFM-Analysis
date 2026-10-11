@@ -20,9 +20,11 @@ Built by Calvin Cheung as a portfolio/learning project. The full plan lives in
 
 ## Current Status
 
-**Phases 1–2 first pass done.** Dashboard with scenario sliders, verdict cards, comparison table and
-four chart views (E-M diagram, turn-rate advantage, turn radius, Ps) over mock data for three jets.
-The UI is still being iterated to find the clearest representation. The app is built in phases:
+**UI design complete (phases 1–3 and the phase 4 HUD polish); the data is still mock.** The dashboard has
+scenario controls (altitude, merge speed, turn duration; per side aircraft, loadout, fuel,
+G limiter, pilot style, turn plane), four verdict cards, a comparison table and six views (turn
+circles, E-M diagram, turn timeline, turn-rate advantage, turn radius, Ps). What remains is phase 4's
+real data, which means replacing mock JSON with datamined values. The app is built in phases:
 
 1. **Foundation & mock data** — React + Tailwind dashboard, charting library, 2–3 hardcoded
    matchups (e.g. F-16C vs. MiG-29) with mock E-M curves in JSON.
@@ -31,7 +33,7 @@ The UI is still being iterated to find the clearest representation. The app is b
 3. **1-circle vs. 2-circle visualiser** — scorecards, turn-circle graphics, flight path angle and
    G-limiter modifiers.
 4. **Real data** — replace mock values with community datamine data; dark-mode aviation HUD
-   polish.
+   polish. HUD styling lives in `styles.css` (`.hud-panel`, background grid).
 
 UI-first: build the layout and interactions against mock data before any data pipeline.
 
@@ -50,10 +52,10 @@ BFM-Analysis/
 │   │   │   ├── features/
 │   │   │   │   ├── scenario/   # Sidebar: altitude, merge speed, unit, per-side aircraft/loadout/fuel
 │   │   │   │   ├── comparison/ # matchup.ts (pure: computeMatchup, verdicts, deltas) + cards/table
-│   │   │   │   └── charts/     # series.ts (pure Plotly figure builders) + ChartPanel/PlotlyChart
-│   │   │   ├── physics/       # Pure TS: ISA atmosphere, interpolation, E-M performance model
-│   │   │   ├── shared/        # format.ts (display units), ui/ (Slider)
-│   │   │   └── test/setup.ts  # Vitest + Testing Library setup
+│   │   │   │   └── charts/     # series.ts (Plotly figures), circles.ts (merge geometry) + components
+│   │   │   ├── physics/       # Pure TS: ISA atmosphere, interpolation, performance model, turn timeline
+│   │   │   ├── shared/        # format.ts (display units), ui/ (Slider, Segmented)
+│   │   │   └── test/          # Vitest setup + shared scenario fixtures (sideConfig, testScenario)
 │   │   └── vite.config.ts     # Vite + Vitest config
 │   └── e2e/                   # Playwright tests against the production build
 ├── data/aircraft/             # Version-controlled aircraft performance JSON (one file per aircraft)
@@ -114,16 +116,27 @@ and get a portal URL.
 
 ## Physics Model
 
-`apps/frontend/src/physics/performance.ts` is an algebraic point-performance model for level turns,
-not a time-stepping simulator:
+`apps/frontend/src/physics/performance.ts` is an algebraic, quasi-steady point-performance model:
 
-- Inputs per aircraft (`data/aircraft/*.json`): wing area, empty mass, internal fuel, G limit,
+- Inputs per aircraft (`data/aircraft/*.json`): wing area, empty mass, internal fuel, G limits,
   placard limits (max IAS, max Mach), Mach tables for CLmax / CD0 / k, an altitude × Mach
   afterburner thrust table, and loadouts (mass + ΔCD0).
-- Scenario inputs: altitude, fuel fraction, loadout → mass, weight, ISA atmosphere.
+- **G limits follow War Thunder:** the wing-break load is a force (`wingBreakLoad_N`, WT
+  `Strength.CritOverload`), so wing-break G = force / weight and falls with mass. The instructor
+  allows `instructorFraction` of that (WT `overloadMult`, ~0.85). A fly-by-wire limit (`fcs`, F-16
+  only) caps both instructor-on and instructor-off.
+- Scenario inputs: altitude, fuel, loadout, limiter (instructor/off), optional pilot G (smooth
+  flying; null = yank to the limiter), turn-plane inclination θ.
+- Turn rate is the circle average in the turn plane: ω = g·√(n² − cos²θ) / V (level turn when θ = 0).
+  `turnRateExtremes` gives the top/bottom of an inclined turn (± g·sin θ / V).
 - Outputs per speed: lift-limited and available G, ITR, STR (thrust = drag), radii, Ps at 1 g and
   at max G; plus stall / corner / placard speeds and Ps contours for E-M diagrams.
+- `timeline.ts` integrates a sustained hard turn from the merge (dV/dt = g·Ps / V, altitude held)
+  for the turn timeline and turn-circle views.
 - Tables are interpolated linearly and clamped at the edges (`interpolate.ts`).
+
+The matchup layer computes two flights per side: `pull` (to the limiter, used for 1-circle /
+radius results) and `flown` (at the pilot's G, used for 2-circle / rate, energy and the timeline).
 
 Adding an aircraft = adding one JSON file; the loader picks it up via `import.meta.glob` and the
 schema rejects malformed tables.

@@ -1,6 +1,7 @@
 import type { PlotData } from 'plotly.js';
 import { kmhToMs, msToKnots } from '../../physics/units';
-import { computeMatchup, type Scenario } from '../comparison/matchup';
+import { sideConfig, testScenario } from '../../test/scenarios';
+import { computeMatchup } from '../comparison/matchup';
 import {
   advantageChart,
   type ChartOptions,
@@ -12,14 +13,10 @@ import {
   RADIUS_LINES,
   radiusChart,
   SIDE_COLOURS,
+  timelineChart,
 } from './series';
 
-const scenario: Scenario = {
-  altitude_m: 1_000,
-  mergeCas: kmhToMs(800),
-  attacker: { aircraftId: 'f-16c', fuelFraction: 0.5, loadoutId: 'clean' },
-  defender: { aircraftId: 'mig-29', fuelFraction: 0.5, loadoutId: 'clean' },
-};
+const scenario = testScenario();
 const matchup = computeMatchup(scenario);
 const opts: ChartOptions = { unit: 'kmh', showPsContours: true, showRadiusLines: true };
 
@@ -70,8 +67,8 @@ describe('emDiagram', () => {
     const { layout } = emDiagram(matchup, scenario, opts);
     expect(layout.shapes?.[0]?.x0).toBeCloseTo(800, 6);
     const best = Math.max(
-      matchup.attacker.summary.maxItr.value,
-      matchup.defender.summary.maxItr.value,
+      matchup.attacker.pull.summary.maxItr.value,
+      matchup.defender.pull.summary.maxItr.value,
     );
     const range = layout.yaxis?.range as [number, number];
     expect(range[1]).toBeGreaterThan(best);
@@ -98,7 +95,7 @@ describe('advantageChart', () => {
 
 describe('radiusChart', () => {
   const { data, layout } = radiusChart(matchup, scenario, opts);
-  const f16 = matchup.attacker;
+  const f16 = matchup.attacker.pull;
 
   it('only plots radii where the jet can pull at least 2 g', () => {
     const minRadius = named(data, 'F-16C Block 50 · min radius')[0]?.y as (number | null)[];
@@ -127,15 +124,51 @@ describe('radiusChart', () => {
 
   it('frames the y-axis around the minimum radii', () => {
     const top = (layout.yaxis?.range as number[] | undefined)?.[1] ?? 0;
-    const larger = Math.max(f16.summary.minRadius.value, matchup.defender.summary.minRadius.value);
+    const larger = Math.max(
+      f16.summary.minRadius.value,
+      matchup.defender.pull.summary.minRadius.value,
+    );
     expect(top).toBeGreaterThanOrEqual(4 * larger);
     expect(top).toBeLessThan(4 * larger + 500);
   });
 });
 
+describe('pilot G overlays', () => {
+  const smooth = computeMatchup(testScenario({ attacker: sideConfig('f-16c', { pilotG: 7 }) }));
+
+  it('adds a pilot-G line to the E-M diagram and energy chart only for a smooth pilot', () => {
+    expect(named(emDiagram(matchup, scenario, opts).data, 'pilot')).toHaveLength(0);
+    const em = named(emDiagram(smooth, scenario, opts).data, 'F-16C Block 50 · pilot 7.0 g');
+    expect(em).toHaveLength(1);
+    // The pilot line never exceeds 7 g worth of turn rate; full pull exceeds it at corner speed.
+    const maxTurn = named(emDiagram(smooth, scenario, opts).data, 'F-16C Block 50 · max turn')[0];
+    expect(Math.max(...numbers(em[0]?.y))).toBeLessThan(Math.max(...numbers(maxTurn?.y)));
+    expect(named(energyChart(smooth, scenario, opts).data, 'Ps at pilot 7.0 g')).toHaveLength(1);
+  });
+
+  it('labels the max-turn line with the limiter G', () => {
+    const names = traces(emDiagram(matchup, scenario, opts).data).map((t) => t.name);
+    expect(names).toContain('F-16C Block 50 · max turn (10.0 g limit)');
+  });
+});
+
+describe('timelineChart', () => {
+  it('plots heading on the left axis and airspeed on the right against time', () => {
+    const { data, layout } = timelineChart(matchup, scenario, opts);
+    const heading = named(data, 'F-16C Block 50 · heading turned')[0];
+    const speed = named(data, 'F-16C Block 50 · airspeed')[0];
+    expect(numbers(heading?.x).at(-1)).toBeCloseTo(20, 6);
+    expect(numbers(speed?.y)[0]).toBeCloseTo(800, 0);
+    expect(speed?.yaxis).toBe('y2');
+    expect(layout.yaxis2?.overlaying).toBe('y');
+    const headings = numbers(heading?.y);
+    expect(headings.every((h, i) => i === 0 || h >= (headings[i - 1] ?? 0))).toBe(true);
+  });
+});
+
 describe('hover labels', () => {
   it('use a dark box on every chart', () => {
-    for (const build of [emDiagram, advantageChart, radiusChart, energyChart]) {
+    for (const build of [emDiagram, advantageChart, radiusChart, energyChart, timelineChart]) {
       expect(build(matchup, scenario, opts).layout.hoverlabel).toEqual(HOVER_LABEL);
     }
     expect(HOVER_LABEL.bgcolor).toBe('#0f172a');

@@ -1,3 +1,7 @@
+import { Fragment } from 'react';
+import { turnRateExtremes } from '../../physics/performance';
+import type { TimelinePoint } from '../../physics/timeline';
+import { radToDeg } from '../../physics/units';
 import {
   formatDistance,
   formatPs,
@@ -6,7 +10,14 @@ import {
   type SpeedUnit,
 } from '../../shared/format';
 import { SIDE_COLOURS } from '../charts/series';
-import { casAtTas, compareMetric, type Matchup, SIDES, type SideResult } from './matchup';
+import {
+  casAtTas,
+  compareMetric,
+  type Flight,
+  type Matchup,
+  SIDES,
+  type SideResult,
+} from './matchup';
 
 interface Metric {
   label: string;
@@ -14,99 +25,174 @@ interface Metric {
   format: (v: number, unit: SpeedUnit) => string;
   /** null = informational, no winner highlighted. */
   higherIsBetter: boolean | null;
+  /** Hide the row unless this returns true. */
+  visible?: (m: Matchup) => boolean;
 }
 
 const atMerge =
-  (pick: (p: NonNullable<SideResult['atMerge']>) => number) =>
-  (r: SideResult): number | null =>
-    r.atMerge ? pick(r.atMerge) : null;
+  (flight: 'pull' | 'flown', pick: (p: NonNullable<Flight['atMerge']>) => number) =>
+  (r: SideResult): number | null => {
+    const p = r[flight].atMerge;
+    return p ? pick(p) : null;
+  };
+const endOfTurn =
+  (pick: (p: TimelinePoint) => number) =>
+  (r: SideResult): number | null => {
+    const p = r.flown.timeline.at(-1);
+    return p ? pick(p) : null;
+  };
+const gFormat = (v: number) => `${v.toFixed(1)} g`;
+/** As-flown turn rate at the top or bottom of an inclined turn, at the merge. */
+const inclined =
+  (where: 'top' | 'bottom') =>
+  (r: SideResult): number | null => {
+    const p = r.flown.atMerge;
+    return p ? radToDeg(turnRateExtremes(p.maxG, p.tas, r.flown.condition.turnPlane)[where]) : null;
+  };
+const anyInclined = (m: Matchup) => SIDES.some((s) => m[s].config.turnPlane_deg > 0);
+
+export const LIMIT_METRICS: readonly Metric[] = [
+  {
+    label: 'G limit in use',
+    value: (r) => r.pull.condition.gLimit,
+    format: gFormat,
+    higherIsBetter: true,
+  },
+  {
+    label: 'Pilot G (as flown)',
+    value: (r) => r.flown.condition.gLimit,
+    format: gFormat,
+    higherIsBetter: null,
+  },
+  {
+    label: 'Wing-break G',
+    value: (r) => r.pull.condition.gLimits.wingBreak,
+    format: gFormat,
+    higherIsBetter: null,
+  },
+];
 
 export const MERGE_METRICS: readonly Metric[] = [
   {
-    label: 'Max turn rate (ITR)',
-    value: atMerge((p) => p.itr),
+    label: 'Max turn rate (full pull)',
+    value: atMerge('pull', (p) => p.itr),
     format: formatRate,
     higherIsBetter: true,
   },
   {
-    label: 'Sustained turn rate',
-    value: atMerge((p) => p.str),
-    format: formatRate,
-    higherIsBetter: true,
-  },
-  {
-    label: 'Radius at max G',
-    value: atMerge((p) => p.itrRadius),
+    label: 'Radius at full pull',
+    value: atMerge('pull', (p) => p.itrRadius),
     format: formatDistance,
     higherIsBetter: false,
   },
   {
-    label: 'Available G',
-    value: atMerge((p) => p.maxG),
-    format: (v) => `${v.toFixed(1)} g`,
+    label: 'Turn rate as flown',
+    value: atMerge('flown', (p) => p.itr),
+    format: formatRate,
     higherIsBetter: true,
   },
   {
-    label: 'Ps at max G (bleed)',
-    value: atMerge((p) => p.psAtMaxG),
+    label: 'Over the top of the plane',
+    value: inclined('top'),
+    format: formatRate,
+    higherIsBetter: true,
+    visible: anyInclined,
+  },
+  {
+    label: 'At the bottom of the plane',
+    value: inclined('bottom'),
+    format: formatRate,
+    higherIsBetter: true,
+    visible: anyInclined,
+  },
+  {
+    label: 'Sustained turn rate',
+    value: atMerge('flown', (p) => p.str),
+    format: formatRate,
+    higherIsBetter: true,
+  },
+  {
+    label: 'Ps as flown (bleed)',
+    value: atMerge('flown', (p) => p.psAtMaxG),
     format: formatPs,
     higherIsBetter: true,
   },
   {
     label: 'Ps at 1 g (accel)',
-    value: atMerge((p) => p.psAt1g),
+    value: atMerge('pull', (p) => p.psAt1g),
     format: formatPs,
     higherIsBetter: true,
+  },
+];
+
+export const TIMELINE_METRICS: readonly Metric[] = [
+  {
+    label: 'Heading turned',
+    value: endOfTurn((p) => p.heading),
+    format: (v) => `${Math.round(v)}°`,
+    higherIsBetter: true,
+  },
+  {
+    label: 'Airspeed left',
+    value: endOfTurn((p) => p.cas),
+    format: formatSpeed,
+    higherIsBetter: true,
+  },
+  {
+    label: 'Pulling',
+    value: endOfTurn((p) => p.g),
+    format: gFormat,
+    higherIsBetter: null,
   },
 ];
 
 export const ENVELOPE_METRICS: readonly Metric[] = [
   {
     label: 'Corner speed',
-    value: (r) =>
-      r.summary.limits.cornerTas === null ? null : casAtTas(r, r.summary.limits.cornerTas),
+    value: ({ pull }) =>
+      pull.summary.limits.cornerTas === null ? null : casAtTas(pull, pull.summary.limits.cornerTas),
     format: formatSpeed,
     higherIsBetter: null,
   },
   {
     label: 'Best ITR',
-    value: (r) => r.summary.maxItr.value,
+    value: (r) => r.pull.summary.maxItr.value,
     format: formatRate,
     higherIsBetter: true,
   },
   {
     label: 'Best STR',
-    value: (r) => r.summary.maxStr.value,
+    value: (r) => r.flown.summary.maxStr.value,
     format: formatRate,
     higherIsBetter: true,
   },
   {
     label: 'Best STR speed',
-    value: (r) => casAtTas(r, r.summary.maxStr.tas),
+    value: ({ flown }) => casAtTas(flown, flown.summary.maxStr.tas),
     format: formatSpeed,
     higherIsBetter: null,
   },
   {
     label: 'Min radius',
-    value: (r) => r.summary.minRadius.value,
+    value: (r) => r.pull.summary.minRadius.value,
     format: formatDistance,
     higherIsBetter: false,
   },
   {
     label: 'Thrust / weight',
-    value: (r) => r.summary.thrustToWeight,
+    value: (r) => r.pull.summary.thrustToWeight,
     format: (v) => v.toFixed(2),
     higherIsBetter: true,
   },
   {
     label: 'Wing loading',
-    value: (r) => r.summary.wingLoading_kgm2,
+    value: (r) => r.pull.summary.wingLoading_kgm2,
     format: (v) => `${Math.round(v)} kg/m²`,
     higherIsBetter: false,
   },
   {
     label: 'Mass',
-    value: (r) => r.summary.mass_kg,
+    value: (r) => r.pull.summary.mass_kg,
     format: (v) => `${Math.round(v).toLocaleString('en-GB')} kg`,
     higherIsBetter: null,
   },
@@ -121,54 +207,58 @@ function MetricRows({
   matchup: Matchup;
   unit: SpeedUnit;
 }) {
-  return metrics.map((metric) => {
-    const values = SIDES.map((s) => metric.value(matchup[s]));
-    const [a, d] = values;
-    const winner =
-      metric.higherIsBetter === null || a == null || d == null
-        ? 'even'
-        : compareMetric(a, d, metric.higherIsBetter).winner;
-    return (
-      <tr key={metric.label} className="border-t border-slate-800/70">
-        <th scope="row" className="py-1.5 pr-3 text-left font-normal text-slate-400">
-          {metric.label}
-        </th>
-        {SIDES.map((side, i) => {
-          const v = values[i];
-          const best = winner === side;
-          return (
-            <td
-              key={side}
-              data-best={best || undefined}
-              className={`py-1.5 text-right font-mono ${best ? 'font-semibold' : 'text-slate-300'}`}
-              style={best ? { color: SIDE_COLOURS[side] } : undefined}
-            >
-              {v == null ? '—' : metric.format(v, unit)}
-              {best && (
-                <>
-                  <span aria-hidden="true"> ▲</span>
-                  <span className="sr-only"> (advantage)</span>
-                </>
-              )}
-            </td>
-          );
-        })}
-      </tr>
-    );
-  });
+  return metrics
+    .filter((metric) => metric.visible?.(matchup) ?? true)
+    .map((metric) => {
+      const values = SIDES.map((s) => metric.value(matchup[s]));
+      const [a, d] = values;
+      const winner =
+        metric.higherIsBetter === null || a == null || d == null
+          ? 'even'
+          : compareMetric(a, d, metric.higherIsBetter).winner;
+      return (
+        <tr key={metric.label} className="border-t border-slate-800/70">
+          <th scope="row" className="py-1.5 pr-3 text-left font-normal text-slate-400">
+            {metric.label}
+          </th>
+          {SIDES.map((side, i) => {
+            const v = values[i];
+            const best = winner === side;
+            return (
+              <td
+                key={side}
+                data-best={best || undefined}
+                className={`py-1.5 pl-3 text-right font-mono ${best ? 'font-semibold' : 'text-slate-300'}`}
+                style={best ? { color: SIDE_COLOURS[side] } : undefined}
+              >
+                {v == null ? '—' : metric.format(v, unit)}
+                {best && (
+                  <>
+                    <span aria-hidden="true"> ▲</span>
+                    <span className="sr-only"> (advantage)</span>
+                  </>
+                )}
+              </td>
+            );
+          })}
+        </tr>
+      );
+    });
 }
 
 export function MatchupTable({
   matchup,
   unit,
   mergeLabel,
+  turnDuration_s,
 }: {
   matchup: Matchup;
   unit: SpeedUnit;
   mergeLabel: string;
+  turnDuration_s: number;
 }) {
   return (
-    <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-3">
+    <section className="hud-panel p-3">
       <table className="w-full text-sm">
         <caption className="sr-only">Matchup comparison</caption>
         <thead>
@@ -189,26 +279,37 @@ export function MatchupTable({
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <th
-              colSpan={3}
-              scope="colgroup"
-              className="pt-1 pb-1 text-left text-[11px] font-semibold uppercase tracking-widest text-amber-300/80"
-            >
-              At merge · {mergeLabel}
-            </th>
-          </tr>
-          <MetricRows metrics={MERGE_METRICS} matchup={matchup} unit={unit} />
-          <tr>
-            <th
-              colSpan={3}
-              scope="colgroup"
-              className="pt-4 pb-1 text-left text-[11px] font-semibold uppercase tracking-widest text-slate-400"
-            >
-              Best case · whole envelope
-            </th>
-          </tr>
-          <MetricRows metrics={ENVELOPE_METRICS} matchup={matchup} unit={unit} />
+          {[
+            { title: 'G limits', metrics: LIMIT_METRICS, tone: 'text-slate-400' },
+            {
+              title: `At merge · ${mergeLabel}`,
+              metrics: MERGE_METRICS,
+              tone: 'text-amber-300/80',
+            },
+            {
+              title: `After ${turnDuration_s} s turning · as flown`,
+              metrics: TIMELINE_METRICS,
+              tone: 'text-slate-400',
+            },
+            {
+              title: 'Best case · whole envelope',
+              metrics: ENVELOPE_METRICS,
+              tone: 'text-slate-400',
+            },
+          ].map((section) => (
+            <Fragment key={section.title}>
+              <tr>
+                <th
+                  colSpan={3}
+                  scope="colgroup"
+                  className={`pt-3 pb-1 text-left text-[11px] font-semibold uppercase tracking-widest ${section.tone}`}
+                >
+                  {section.title}
+                </th>
+              </tr>
+              <MetricRows metrics={section.metrics} matchup={matchup} unit={unit} />
+            </Fragment>
+          ))}
         </tbody>
       </table>
     </section>

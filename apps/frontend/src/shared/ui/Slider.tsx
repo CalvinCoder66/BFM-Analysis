@@ -16,11 +16,11 @@ export function Slider({ label, value, min, max, step, onChange, display, accent
   const id = useId();
   return (
     <div className="space-y-1">
-      <div className="flex items-baseline justify-between text-xs">
+      <div className="flex items-baseline justify-between gap-2 text-xs">
         <label htmlFor={id} className="uppercase tracking-wider text-slate-400">
           {label}
         </label>
-        <output htmlFor={id} className="font-mono text-sm text-slate-100">
+        <output htmlFor={id} className="whitespace-nowrap font-mono text-sm text-slate-100">
           {display}
         </output>
       </div>

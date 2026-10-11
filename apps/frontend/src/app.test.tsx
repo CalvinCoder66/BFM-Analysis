@@ -16,7 +16,10 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: /bfm analysis/i })).toBeInTheDocument();
     expect(screen.getByLabelText('Attacker aircraft')).toHaveValue('f-16c');
     expect(screen.getByLabelText('Defender aircraft')).toHaveValue('mig-29');
-    expect(screen.getByRole('img', { name: 'E-M diagram chart' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Turn circles, 2-circle fight' })).toBeInTheDocument();
+    // Default contrast: a smooth 7 g F-16C pilot against a MiG-29 pilot who yanks.
+    expect(screen.getByLabelText('Attacker pilot G')).toHaveValue('7');
+    expect(screen.queryByLabelText('Defender pilot G')).not.toBeInTheDocument();
   });
 
   it('recomputes the comparison when the scenario changes', async () => {
