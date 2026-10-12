@@ -1,4 +1,4 @@
-import { axisTicks, backWalls, boxFrame, gridSpacing } from './box';
+import { axisTicks, backWalls, boxFrame, gridSpacing, panLimits } from './box';
 import { type Point3, VIEWS } from './camera';
 
 describe('box frame and distance scales', () => {
@@ -64,5 +64,13 @@ describe('gridSpacing', () => {
     expect(gridSpacing(2_000)).toBe(500);
     expect(gridSpacing(2_600)).toBe(1_000);
     expect(gridSpacing(450)).toBe(100);
+  });
+});
+
+describe('panLimits', () => {
+  it('lets the camera look up to half the largest side past each wall', () => {
+    const box = { spacing: 500, minX: 0, maxX: 2_000, minY: 0, maxY: 1_000, minZ: 0, maxZ: 500 };
+    // Half of each side, plus half of the largest (2 000 m).
+    expect(panLimits(box)).toEqual({ x: 2_000, y: 1_500, z: 1_250 });
   });
 });

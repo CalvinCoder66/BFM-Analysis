@@ -68,7 +68,7 @@ Terms used in the dashboard, the code and the docs. Grouped by topic, alphabetic
 - **E-M diagram (energy-manoeuvrability diagram)**: turn rate against airspeed, showing the max-turn boundary, the sustained (Ps = 0) line, Ps contours and constant-radius lines. Also called a **doghouse plot** after its shape.
 - **Hotbar**: the bar of four focus views (Summary, 1-circle, 2-circle, Energy). Each slot shows that view's winner.
 - **Rate advantage chart**: attacker minus defender turn rate at each speed.
-- **Turn circles**: a to-scale 3D drawing of both aircraft's flight paths from the merge, each in its own turn plane, inside a gridded box with distance scales (east, north and height above the merge, in metres). Drag to look around, scroll to zoom; Top and Side give flat views.
+- **Turn circles**: a to-scale 3D drawing of both aircraft's flight paths from the merge, each in its own turn plane, inside a gridded box with distance scales (east, north and height above the merge, in metres). Drag to look around, right-drag to move, scroll to zoom; Top and Side give flat views.
 - **Turn timeline**: heading turned and airspeed against time for the turn from the merge.
 
 ## Data

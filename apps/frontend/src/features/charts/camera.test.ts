@@ -1,4 +1,14 @@
-import { DEFAULT_FRAMING, orbit, project, screenAxes, VIEWS, ZOOM_LIMITS, zoomAt } from './camera';
+import {
+  clampPan,
+  DEFAULT_FRAMING,
+  orbit,
+  panBy,
+  project,
+  screenAxes,
+  VIEWS,
+  ZOOM_LIMITS,
+  zoomAt,
+} from './camera';
 
 describe('project', () => {
   const p = { x: 300, y: 500, z: 200 };
@@ -75,5 +85,32 @@ describe('zoomAt', () => {
     expect(zoomAt(DEFAULT_FRAMING, VIEWS.top, 0.1).zoom).toBe(ZOOM_LIMITS.min);
     // Zooming about the centre never pans.
     expect(zoomAt(DEFAULT_FRAMING, VIEWS['3d'], 4).pan).toEqual({ x: 0, y: 0, z: 0 });
+  });
+});
+
+describe('panBy', () => {
+  const roomy = { x: 1e6, y: 1e6, z: 1e6 };
+
+  it('drags the scene with the cursor by moving where the camera looks the other way', () => {
+    // From the top, screen right is east and up is north: dragging 100 m right and 50 m up
+    // moves the look-at point 100 m west and 50 m south.
+    expect(panBy(DEFAULT_FRAMING, VIEWS.top, 100, 50, roomy).pan).toEqual({
+      x: expect.closeTo(-100, 9),
+      y: expect.closeTo(-50, 9),
+      z: expect.closeTo(0, 9),
+    });
+    // From the side (looking west, north to the right), dragging up lowers the look-at point.
+    expect(panBy(DEFAULT_FRAMING, VIEWS.side, 0, 30, roomy).pan.z).toBeCloseTo(-30, 9);
+  });
+
+  it('keeps the zoom and stops at the limits', () => {
+    const framing = { zoom: 3, pan: { x: 0, y: 0, z: 0 } };
+    const panned = panBy(framing, VIEWS.top, -5_000, 5_000, { x: 800, y: 600, z: 400 });
+    expect(panned).toEqual({ zoom: 3, pan: { x: 800, y: -600, z: expect.closeTo(0, 9) } });
+    expect(clampPan({ x: -900, y: 10, z: 500 }, { x: 800, y: 600, z: 400 })).toEqual({
+      x: -800,
+      y: 10,
+      z: 400,
+    });
   });
 });

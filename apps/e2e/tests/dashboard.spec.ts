@@ -81,8 +81,31 @@ test('turns the 3D turn circles by dragging and shows them full screen', async (
   await page.mouse.wheel(0, -300);
   await expect.poll(viewWidth).toBeLessThan(wide / 1.5);
   expect(await page.evaluate(() => window.scrollY)).toBe(scrollY);
-  await chartArea(page).getByRole('button', { name: 'Reset zoom' }).click();
+  await chartArea(page).getByRole('button', { name: 'Reset view' }).click();
   await expect.poll(viewWidth).toBeCloseTo(wide, 6);
+
+  // Right-drag moves where the camera looks, without opening the browser menu.
+  const viewOrigin = async () => (await circles.getAttribute('viewBox'))?.split(' ').slice(0, 2);
+  const centred = await viewOrigin();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down({ button: 'right' });
+  await page.mouse.move(box.x + box.width / 2 - 80, box.y + box.height / 2 + 60, { steps: 5 });
+  await page.mouse.up({ button: 'right' });
+  await expect.poll(viewOrigin).not.toEqual(centred);
+  expect(await viewWidth()).toBeCloseTo(wide, 6);
+
+  // Time and merge labels never sit on top of each other.
+  const labelBoxes = await circles
+    .locator('[data-labels] text')
+    .evaluateAll((texts) => texts.map((t) => t.getBoundingClientRect().toJSON()));
+  expect(labelBoxes.length).toBeGreaterThan(4);
+  for (const [i, a] of labelBoxes.entries()) {
+    for (const b of labelBoxes.slice(i + 1)) {
+      const apart =
+        a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top;
+      expect(apart, `labels ${i} and ${labelBoxes.indexOf(b)} overlap`).toBe(true);
+    }
+  }
 
   await chartArea(page).getByLabel('Box').uncheck();
   await expect(circles.locator('[data-box]')).toHaveCount(0);

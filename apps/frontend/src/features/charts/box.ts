@@ -41,6 +41,16 @@ export function boxAround(points: Point3[]): Box {
   };
 }
 
+/**
+ * How far the camera may be panned from the centre of the box on each axis: to the box's walls
+ * plus half its largest side, so there is room to look past the edges without losing the fight.
+ */
+export function panLimits(box: Box): Point3 {
+  const sizes = { x: box.maxX - box.minX, y: box.maxY - box.minY, z: box.maxZ - box.minZ };
+  const slack = Math.max(sizes.x, sizes.y, sizes.z) / 2;
+  return { x: sizes.x / 2 + slack, y: sizes.y / 2 + slack, z: sizes.z / 2 + slack };
+}
+
 export type Segment = [Point3, Point3];
 
 /** Grid steps from min to max inclusive. */
