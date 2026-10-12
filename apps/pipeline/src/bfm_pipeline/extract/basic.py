@@ -151,7 +151,8 @@ def _instructor(fm: dict[str, Any], unit: dict[str, Any]) -> Sourced[Instructor]
         ),
         source=', '.join(s for s in sources if s) or 'none (game default unknown)',
         confidence='low',
-        note='How overloadMult maps to steady and peak G is to be confirmed by test card D.',
+        note='Not yet mapped: the Typhoon (0.90 / 1.05) held about 1.0 × the wing-break load '
+        'for up to 8 s, matching neither fraction. A second aircraft is needed.',
     )
 
 
@@ -249,8 +250,10 @@ def extract_basic(fm: dict[str, Any], unit: dict[str, Any], label: str) -> Basic
         wing_break_load_N=Sourced(
             value=2 * float(crit.value[1]),
             source=f'2 × {crit.source}[1]',
-            confidence='low',
-            note='Assumes CritOverload is per wing; to be confirmed by test card D.',
+            confidence='medium',
+            note='Typhoon FGR.4 flights: with the instructor on, the load held at maximum G was '
+            '0.98–1.04 × this value (1.59–1.68 MN) across masses of 12.9–15.6 t, so G limit = '
+            'this load / weight. One aircraft so far.',
         ),
         vne_kmh=vne,
         mne=mne,

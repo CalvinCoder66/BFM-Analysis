@@ -85,7 +85,7 @@ def test_component_format_reads_the_wing_plane() -> None:
     assert data.internal_fuel_kg.value == 6398
     assert data.crit_overload_N.value == (-400000.0, 770000.0)
     assert data.wing_break_load_N.value == 1_540_000
-    assert data.wing_break_load_N.confidence == 'low'
+    assert data.wing_break_load_N.confidence == 'medium'
     assert (data.vne_kmh.value, data.mne.value) == (1555, 2.2)
 
 

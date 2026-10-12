@@ -89,11 +89,13 @@ def render_extraction_markdown(extraction: Extraction) -> str:
         'Columns marked † rest on interpretations that the in-game validation flights must '
         'confirm:',
         '',
-        '- **Wing-break G** assumes `CritOverload` is per wing (so the total is twice the stored '
-        'value), at 50% internal fuel without ammunition or stores.',
+        '- **Wing-break G** is twice the stored `CritOverload` divided by the weight at 50% '
+        'internal fuel, without ammunition or stores. In the Typhoon FGR.4 flights the instructor '
+        'held the load at 0.98–1.04 × this value at every weight tested.',
         '- **Instructor** shows the steady and brief-peak fractions read from `overloadMult`, and '
-        'the G they give if they apply to the wing-break load. Values above 1.0 suggest they apply '
-        'to something else, which test card D will settle. "?" means the files give no value.',
+        'the G they give if they apply to the wing-break load. The Typhoon (0.90 / 1.05) held '
+        'about 1.0 × the wing-break load, matching neither, so how they map is still open. "?" '
+        'means the files give no value.',
         '- **Pitch limiter** is the game\'s `Autopilot.Pitch` load-factor limit: "hard" when its '
         'strength is ≥ 0.99, otherwise "soft" with the strength in brackets.',
         '',
