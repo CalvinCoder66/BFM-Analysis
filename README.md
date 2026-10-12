@@ -102,13 +102,15 @@ How the code in `apps/frontend/src` is organised:
 
 ### Backend (planned)
 
+The detailed implementation plan is in [docs/plans/backend-pipeline.md](docs/plans/backend-pipeline.md).
+
 The backend's job is to replace the mock values with real War Thunder flight-model data and keep it up to date as Gaijin patches the game. The frontend stays a static site; the backend produces data rather than serving requests.
 
 **Phase A: data pipeline (next)**
 
 | Concern | Choice | Why |
 | --- | --- | --- |
-| Language | Python 3.12, managed by [uv](https://docs.astral.sh/uv/) | The datamine community tooling is Python, and it matches our other project |
+| Language | Python 3.14, managed by [uv](https://docs.astral.sh/uv/) | The datamine community tooling is Python, and it matches our other project; every tool we use supports 3.14 |
 | Location | `apps/pipeline/`, run through mise (e.g. `mise run data:update -- --patch <version>`) | Same workflow as the frontend |
 | Source | [gszabi99/War-Thunder-Datamine](https://github.com/gszabi99/War-Thunder-Datamine) flight-model files (`gamedata/flightmodels/fm/*.blkx`) for a chosen game patch | The community-standard datamine, already in JSON |
 | Parsing and validation | Pydantic v2 models, mirroring the frontend's aircraft schema | Bad or changed datamine fields fail loudly instead of producing wrong charts |
