@@ -29,11 +29,39 @@ def test_roster_writes_json_and_markdown(datamine: Path, tmp_path: Path) -> None
     assert '## Excluded' in markdown
 
 
+def test_extract_writes_a_report_and_fails_on_broken_flight_models(
+    datamine: Path, tmp_path: Path
+) -> None:
+    out = tmp_path / 'out'
+    args = ['extract', '--datamine', str(datamine), '--out', str(out), '--scratch', str(out)]
+    result = runner.invoke(app, args)
+    assert result.exit_code == 0, result.output
+    assert '5 aircraft extracted, 0 failed' in result.output
+    report = (out / 'EXTRACTION.md').read_text()
+    f16c = next(line for line in report.splitlines() if 'F-16CM Block 50' in line)
+    # 27.9 m², 9,151 kg empty, wing-break G at half fuel = 1.54 MN / (12,350 kg × g) = 12.7.
+    assert '| 27.9 |' in f16c
+    assert '| 9,151 |' in f16c
+    assert '| 12.7 |' in f16c
+
+    fm = datamine / 'aces.vromfs.bin_u/gamedata/flightmodels/fm/f-4s.blkx'
+    fm.write_text(json.dumps({'Aerodynamics': {}, 'Areas': {}}))
+    broken = runner.invoke(app, args)
+    assert broken.exit_code == 1
+    assert 'f-4s' in broken.output
+    assert '## Failed' in (out / 'EXTRACTION.md').read_text()
+    assert (out / 'extraction.json').is_file()
+
+
 def test_inspect_prints_a_dotted_path(datamine: Path) -> None:
     args = ['inspect', 'f_16c_block_50', '--path', 'Mass', '--datamine', str(datamine)]
     result = runner.invoke(app, args)
     assert result.exit_code == 0, result.output
-    assert json.loads(result.output) == {'EmptyMass': 9031.0, 'MaxFuelMass0': 6398.0}
+    assert json.loads(result.output) == {
+        'EmptyMass': 9031.0,
+        'MaxFuelMass0': 6398.0,
+        'OilMass': 30.0,
+    }
 
     unit = runner.invoke(app, [*args[:2], '--unit', '--path', 'autopilotImpl', *args[4:]])
     assert json.loads(unit.output) == 'FBW'

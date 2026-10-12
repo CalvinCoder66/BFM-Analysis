@@ -7,10 +7,11 @@ from typing import Annotated
 import typer
 
 from .blkx import get_path
-from .config import CACHE_DIR, DATA_DIR, load_config
+from .config import CACHE_DIR, DATA_DIR, SCRATCH_DIR, load_config
 from .datamine import Datamine
+from .extract import extract_all
 from .fetch import Checkout, DatamineError, fetch, open_checkout
-from .report import write_roster
+from .report import write_extraction, write_roster
 from .roster import build_roster
 
 app = typer.Typer(no_args_is_help=True, help='War Thunder datamine pipeline for BFM Analysis.')
@@ -59,6 +60,26 @@ def roster(
         f'from War Thunder {checkout.provenance.game_version}'
     )
     typer.echo(f'wrote {json_path} and {md_path}')
+
+
+@app.command()
+def extract(
+    ref: RefOption = None,
+    datamine: DatamineOption = None,
+    out: Annotated[Path, typer.Option(help='Folder for the EXTRACTION.md report.')] = DATA_DIR,
+    scratch: Annotated[Path, typer.Option(help='Folder for extraction.json.')] = SCRATCH_DIR,
+) -> None:
+    """Extract basic fields for every roster aircraft and write EXTRACTION.md."""
+    checkout = _checkout(ref, datamine)
+    dm = Datamine(checkout.path)
+    result = extract_all(dm, build_roster(dm, load_config().roster, checkout.provenance))
+    report = write_extraction(result, out, scratch)
+    typer.echo(f'{len(result.aircraft)} aircraft extracted, {len(result.failures)} failed')
+    typer.echo(f'wrote {report} and {scratch / "extraction.json"}')
+    for failure in result.failures:
+        typer.secho(f'  {failure.entry_id}: {failure.error}', fg='red', err=True)
+    if result.failures:
+        raise typer.Exit(1)
 
 
 @app.command()

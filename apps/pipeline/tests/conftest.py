@@ -34,6 +34,25 @@ def wpcost(rank: int, unit_class: str = 'exp_fighter', country: str = 'usa', **e
     }
 
 
+def component_fm(name: str) -> dict:
+    """A minimal component-format flight model with F-16C-like numbers."""
+    return {
+        'Crew': 1,
+        'Aerodynamics': {
+            'WingPlane': {
+                'Span': 9.44,
+                'Areas': {
+                    'LeftIn': 3.65, 'LeftMid': 4.65, 'LeftOut': 5.65,
+                    'RightIn': 3.65, 'RightMid': 4.65, 'RightOut': 5.65,
+                },
+                'Strength': {'CritOverload': [-400000.0, 770000.0], 'VNE': 1555.0, 'MNE': 2.2},
+            }
+        },
+        'Mass': {'EmptyMass': 9031.0, 'MaxFuelMass0': 6398.0, 'OilMass': 30.0},
+        'Passport': {'name': name},
+    }  # fmt: skip
+
+
 @pytest.fixture
 def datamine(tmp_path: Path) -> Path:
     root = tmp_path / 'datamine'
@@ -86,10 +105,7 @@ def datamine(tmp_path: Path) -> Path:
     for unit_id, unit in units.items():
         write_json(root / FM_DIR / f'{unit_id}.blkx', {'model': unit_id, **unit})
     for fm in ('f_16a_block_20_mlu', 'f_16c_block_50', 'f-4s', 'f_4e', 'rafale_c_f3', 'su_57'):
-        write_json(
-            root / FM_DIR / 'fm' / f'{fm}.blkx',
-            {'Mass': {'EmptyMass': 9031.0, 'MaxFuelMass0': 6398.0}, 'Passport': {'name': fm}},
-        )
+        write_json(root / FM_DIR / 'fm' / f'{fm}.blkx', component_fm(fm))
 
     names = {
         'f_16a_block_20_mlu': 'F-16A Block 20 MLU Fighting Falcon',

@@ -66,6 +66,10 @@ run = "cd apps/e2e && bunx playwright test"
 description = "Build the aircraft roster from the pinned datamine (data/ROSTER.md, data/roster.json)"
 run = "uv --directory apps/pipeline run bfm-pipeline roster"
 
+[tasks."data:extract"]
+description = "Extract basic fields for every roster aircraft (data/EXTRACTION.md)"
+run = "uv --directory apps/pipeline run bfm-pipeline extract"
+
 [tasks."data:inspect"]
 description = "Print raw datamine fields, e.g. mise run data:inspect -- f_16c_block_50 --path Mass"
 run = "uv --directory apps/pipeline run bfm-pipeline inspect"

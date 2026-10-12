@@ -9,6 +9,8 @@ PIPELINE_DIR = Path(__file__).resolve().parents[2]
 REPO_ROOT = PIPELINE_DIR.parents[1]
 CONFIG_PATH = PIPELINE_DIR / 'pipeline.toml'
 CACHE_DIR = REPO_ROOT / '.cache' / 'datamine'
+#: Intermediate output that is useful to look at but not committed.
+SCRATCH_DIR = REPO_ROOT / '.cache' / 'out'
 DATA_DIR = REPO_ROOT / 'data'
 
 
