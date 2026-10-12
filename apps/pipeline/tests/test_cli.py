@@ -74,3 +74,19 @@ def test_inspect_reports_unknown_units_and_paths(datamine: Path) -> None:
         app, ['inspect', 'f_16c_block_50', '--path', 'Mass.Nope', '--datamine', str(datamine)]
     )
     assert bad_path.exit_code == 1
+
+
+def test_analyse_explains_a_missing_log(tmp_path: Path) -> None:
+    result = runner.invoke(app, ['analyse', str(tmp_path / 'A-0.jsonl.gz')])
+    assert result.exit_code == 1
+    assert 'no flight log at' in result.output
+    assert 'Traceback' not in result.output
+
+
+def test_record_explains_a_refused_connection(tmp_path: Path) -> None:
+    args = ['record', '--aircraft', 'ef_2000_fgr4', '--card', 'A', '--run', '0', '--duration', '1']
+    result = runner.invoke(app, [*args, '--url', 'http://127.0.0.1:9', '--out', str(tmp_path)])
+    assert result.exit_code == 1
+    assert 'Connection refused' in result.output
+    assert 'mirrored' in result.output
+    assert not any(tmp_path.iterdir())  # no half-written run left behind

@@ -106,6 +106,11 @@ def inspect(
 
 
 CARDS = ('A', 'B', 'C', 'D', 'E')
+TELEMETRY_HINT = """Nothing is answering on that address. Check:
+  - War Thunder is running on this machine and you have spawned into a flight;
+  - `curl http://localhost:8111/state` answers from this same terminal;
+  - on WSL with the game on Windows, localhost points at WSL, not Windows: enable mirrored
+    networking or run the recorder from Windows (see validation/protocol.md, Troubleshooting)."""
 
 
 @app.command('record')
@@ -141,6 +146,8 @@ def record_command(
         path, samples = record(meta, out, duration_s=duration)
     except (TelemetryUnavailable, FileExistsError) as error:
         typer.secho(f'error: {error}', fg='red', err=True)
+        if isinstance(error, TelemetryUnavailable) and 'refused' in str(error).lower():
+            typer.echo(TELEMETRY_HINT, err=True)
         raise typer.Exit(1) from error
     typer.echo(f'wrote {samples} samples to {path}')
 
@@ -151,8 +158,20 @@ def analyse(
 ) -> None:
     """Analyse recorded flights: steady segments, peak pull, Ps, with spread across runs."""
     peaks: list[float] = []
+    missing = [log for log in logs if not log.is_file()]
+    if missing:
+        for log in missing:
+            typer.secho(
+                f'error: no flight log at {log} (did the recording start?)', fg='red', err=True
+            )
+        raise typer.Exit(1)
     for log in logs:
-        result = analyse_run(load_run(log))
+        try:
+            run = load_run(log)
+        except FileNotFoundError as error:
+            typer.secho(f'error: {log} has no matching .meta.json ({error})', fg='red', err=True)
+            raise typer.Exit(1) from error
+        result = analyse_run(run)
         summary_path = log.with_name(log.name.removesuffix('.jsonl.gz') + '.summary.json')
         summary_path.write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
         peak = result['peak_pull']

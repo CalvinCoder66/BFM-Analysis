@@ -71,6 +71,29 @@ steady; the analysis finds the steady parts itself, so small wobbles are fine.
 - **Fly:** hold maximum pull, level, for **10 s**.
 - **Gives:** Ps at maximum G against speed: how fast the jet bleeds energy.
 
+## Troubleshooting
+
+**`Connection refused` on `localhost:8111`.** Nothing is serving telemetry where the recorder is
+looking.
+
+1. Make sure War Thunder is running **and you have spawned into a flight**, then check from the
+   same terminal: `curl http://localhost:8111/state`. You should get JSON with `"valid": true`.
+2. **WSL with the game on Windows:** inside WSL 2, `localhost` is the Linux VM, not Windows, and
+   the game only listens on Windows' own `localhost`. Either:
+   - turn on mirrored networking: add the lines below to `%UserProfile%\.wslconfig` on Windows,
+     then run `wsl --shutdown` in PowerShell and reopen the WSL terminal:
+
+     ```ini
+     [wsl2]
+     networkingMode=mirrored
+     ```
+
+   - or run the recorder from Windows itself: install [uv](https://docs.astral.sh/uv/) in
+     PowerShell, clone the repo there and run the same `uv run --project apps/pipeline ...`
+     command. Commit the logs from either side.
+3. **Game on Linux (native or Proton):** the address should be `localhost`. Check that no firewall
+   blocks port 8111. If the game runs on another machine, pass `--url http://<that-machine>:8111`.
+
 ## What counts as agreement
 
 For each figure, the model has to land within the larger of **3%** or **twice the run-to-run
