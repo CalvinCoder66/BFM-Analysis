@@ -102,7 +102,7 @@ How the code in `apps/frontend/src` is organised:
 
 ### Backend (planned)
 
-The detailed implementation plan is in [docs/plans/backend-pipeline.md](docs/plans/backend-pipeline.md).
+The detailed implementation plan is in [docs/plans/backend-pipeline.md](docs/plans/backend-pipeline.md). Scope: Realistic Battles only, covering every fixed-wing aircraft at BR 12.0–14.7 with a unique flight model.
 
 The backend's job is to replace the mock values with real War Thunder flight-model data and keep it up to date as Gaijin patches the game. The frontend stays a static site; the backend produces data rather than serving requests.
 
@@ -129,3 +129,7 @@ We'll only add a FastAPI service if a feature needs a server. Examples are compa
 - The full product plan and phased roadmap live in [docs/PROJECT-PLAN.md](docs/PROJECT-PLAN.md).
 - Terms used throughout the project are defined in [docs/GLOSSARY.md](docs/GLOSSARY.md).
 - AI agent guidance (Amp, Claude Code, Copilot, Cursor, Codex) is generated from `.rulesync/` by [rulesync](https://github.com/dyoshikawa/rulesync). Edit `.rulesync/rules/overview.md`, then run `mise run rules:sync`. CI fails if the generated files are out of date.
+
+## Credits
+
+- Flight-model data comes from War Thunder © Gaijin Entertainment, as extracted by the community [War-Thunder-Datamine](https://github.com/gszabi99/War-Thunder-Datamine) project. This project is not affiliated with or endorsed by Gaijin Entertainment.
