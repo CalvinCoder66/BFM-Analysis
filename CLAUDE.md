@@ -54,7 +54,8 @@ BFM-Analysis/
 │   └── e2e/                   # Playwright tests against the production build
 ├── data/aircraft/             # Version-controlled aircraft performance JSON (one file per aircraft)
 ├── docs/
-│   └── PROJECT-PLAN.md        # Product plan, feature blueprint, phased roadmap
+│   ├── PROJECT-PLAN.md        # Product plan, feature blueprint, phased roadmap
+│   └── GLOSSARY.md            # Definitions of every domain and project term
 ├── .rulesync/                 # AI config source of truth → generates AGENTS.md, CLAUDE.md, etc.
 │   ├── rules/overview.md      # This file
 │   └── mcp.json               # MCP servers shared by all agents
@@ -147,6 +148,8 @@ schema rejects malformed tables.
   user flows and fail on console errors.
 
 ## Domain Glossary
+
+Key terms below; the full list is in `docs/GLOSSARY.md`. Add new terms there.
 
 - **BFM** — Basic Fighter Manoeuvres: close-range, within-visual-range manoeuvring after the merge.
 - **Merge** — The moment two aircraft pass each other head-on; the fight starts here.
