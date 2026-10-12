@@ -10,6 +10,7 @@
       "**",
       "!**/dist",
       "!bun.lock",
+      "!data/roster.json",
       "!AGENTS.md",
       "!CLAUDE.md",
       "!.amp/plugins/rulesync-hooks.ts",

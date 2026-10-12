@@ -24,7 +24,7 @@ New to the jargon? See the [glossary](docs/GLOSSARY.md).
 
 ### Prerequisites
 
-- [mise](https://mise.jdx.dev/getting-started.html): installs the right tool versions (Bun 1.3, Node 24) and runs every project task.
+- [mise](https://mise.jdx.dev/getting-started.html): installs the right tool versions (Bun 1.3, Node 24, Python 3.14, uv) and runs every project task.
 - Git.
 
 ### First run
@@ -33,7 +33,7 @@ New to the jargon? See the [glossary](docs/GLOSSARY.md).
 git clone https://github.com/CalvinCoder66/BFM-Analysis.git
 cd BFM-Analysis
 mise trust          # allow this repo's .mise.toml
-mise install        # install Bun and Node at the pinned versions
+mise install        # install Bun, Node, Python and uv at the pinned versions
 mise run setup      # install dependencies and the pre-commit hook
 mise run dev        # start the dashboard at http://localhost:5173
 ```
@@ -50,6 +50,7 @@ The dev server hot-reloads as you edit files in `apps/frontend/src` or `data/air
 | `mise run test:e2e` | Browser tests (Playwright) against a production build |
 | `mise run check` | Lint, format check and type check, as CI runs them |
 | `mise run format` | Auto-format and fix lint issues |
+| `mise run data:roster` | Rebuild the aircraft roster ([data/ROSTER.md](data/ROSTER.md)) from the pinned War Thunder datamine |
 
 Before the first `mise run test:e2e`, install the test browser once:
 

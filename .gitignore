@@ -49,3 +49,9 @@ rulesync.local.jsonc
 
 # Amp generated portal state
 .amp/portals/
+
+# Datamine checkouts and Python tooling
+.cache/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
