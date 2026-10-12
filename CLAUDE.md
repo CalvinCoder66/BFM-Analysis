@@ -55,7 +55,8 @@ BFM-Analysis/
 ├── data/aircraft/             # Version-controlled aircraft performance JSON (one file per aircraft)
 ├── docs/
 │   ├── PROJECT-PLAN.md        # Product plan, feature blueprint, phased roadmap
-│   └── GLOSSARY.md            # Definitions of every domain and project term
+│   ├── GLOSSARY.md            # Definitions of every domain and project term
+│   └── plans/                 # Implementation plans (e.g. backend-pipeline.md)
 ├── .rulesync/                 # AI config source of truth → generates AGENTS.md, CLAUDE.md, etc.
 │   ├── rules/overview.md      # This file
 │   └── mcp.json               # MCP servers shared by all agents
