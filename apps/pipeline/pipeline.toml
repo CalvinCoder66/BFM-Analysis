@@ -1,0 +1,18 @@
+# Pipeline configuration. Changing `source.ref` and running `mise run data:roster` (later
+# `data:update`) is how the data moves to a new War Thunder patch.
+
+[source]
+repo = "https://github.com/gszabi99/War-Thunder-Datamine.git"
+# A game-version tag in the datamine repo. Pin a tag, never a branch, so output is reproducible.
+ref = "2.59.0.65"
+
+[roster]
+# Realistic Battles battle-rating range (inclusive). BR = 1.0 + economicRankHistorical / 3.
+br_min = 12.0
+br_max = 14.7
+# Fixed-wing classes only: the physics model does not cover helicopters.
+unit_classes = ["exp_fighter", "exp_assault", "exp_bomber"]
+# Datamine unit ids to drop even though they match the rules above.
+deny = []
+# Units to keep as their own entry even if they share a flight model and fingerprint with others.
+force_separate = []

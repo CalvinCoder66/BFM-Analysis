@@ -1,6 +1,6 @@
 # Plan: datamine pipeline (backend phase A)
 
-**Status:** final, agreed 2026-10-12 · **Owner:** Calvin
+**Status:** final, agreed 2026-10-12 · **Owner:** Calvin · **Progress:** milestone 1 in review
 
 ## Goal
 
@@ -45,7 +45,7 @@ Layout:
 ```
 apps/pipeline/
 ├── pyproject.toml            # uv project, requires-python >= 3.14
-├── roster.toml               # scope rules: BR range, classes, deny-list, manual merges/splits
+├── pipeline.toml             # pinned datamine tag and roster rules (BR range, classes, deny, force_separate)
 ├── src/bfm_pipeline/
 │   ├── cli.py                # update, check, roster, inspect, record, analyse
 │   ├── fetch.py              # pinned sparse clone of the datamine + provenance
@@ -93,8 +93,8 @@ I checked these against version `2.59.0.64`:
     to files under `gamedata/weapons/`.
 - **Battle rating.** `wpcost.blkx`: `economicRankHistorical` is RB, and BR = 1.0 + rank / 3.
   BR 12.0–14.7 is ranks 33–41. `unitClass` gives the type (`exp_fighter`, `exp_assault`,
-  `exp_bomber`, `exp_helicopter`, …). Today's `master` copy of `wpcost.blkx` is empty, so we pin
-  a known-good tag and fail loudly if the file is empty.
+  `exp_bomber`, `exp_helicopter`, …). `wpcost.blkx` has been published empty at least once, so the
+  pipeline fails loudly if it, `units.csv` or `version` is missing or implausibly small.
 - **Names.** `units.csv` is semicolon-delimited, keyed `<id>_0` (e.g. `f_16c_block_50_0` →
   "F-16C Block 50").
 - **Shared flight models.** These are common: the Norwegian and Dutch F-16AM share
@@ -111,19 +111,28 @@ learn from it; we don't depend on it.
 
 ## Roster: which aircraft, and deduplication
 
+*Built in milestone 1. At War Thunder 2.59.0.65 this gives **113 aircraft** with a unique flight
+model, covering 138 in-game units (see `data/ROSTER.md`).*
+
 1. **Filter:** `economicRankHistorical` 33–41, and `unitClass` is fixed-wing (`exp_fighter`,
    `exp_assault`, `exp_bomber`). Helicopters are excluded because the physics model is
-   fixed-wing only. A deny-list in `roster.toml` removes non-player units (killstreak, mission-only
-   and test entries). We don't filter on "researchable", because event and premium aircraft count.
+   fixed-wing only. Killstreak and missile-test copies are excluded through the economy file's
+   `isPresentInShop: false` flag. In range, that flag marks exactly those copies, so event and
+   premium aircraft stay in. A `deny` list in `pipeline.toml` covers anything else.
 2. **Group by flight model:** resolve each unit's `fmFile`.
-3. **Split groups where performance differs.** Within a group, compare a fingerprint of the
-   performance-relevant top-level settings: instructor multipliers, FBW/autopilot type and
-   overrides, built-in weapons and ammunition mass, and the available weapon presets. Units with
-   identical fingerprints merge into one entry. Avionics-only differences don't split.
-4. **Output** one aircraft file per entry, with `variants` (every merged unit's id, name and
-   nation). The roster report (`mise run data:update` prints it, and a generated
-   `data/aircraft/ROSTER.md` lists it) shows what was merged and why. `roster.toml` can force a
-   merge or split if the fingerprint gets it wrong.
+3. **Split groups where performance differs.** Units sharing a flight model merge unless the
+   unit file changes how the jet flies: instructor multipliers (`instructorCritMult`,
+   `instructorOverloadMult`, `advancedInstructor`) or the autopilot/FBW type (`autopilotImpl`).
+   Weapon options and avionics don't split. Nation copies of the same airframe mostly differ only
+   in which missiles they carry, and you asked for those to be merged. Loadouts are handled per
+   variant in milestone 6.
+4. **We model fully upgraded aircraft.** In War Thunder, performance modifications are penalties
+   applied while a part is *not* researched (`invertEnableLogic` in `modifications.blkx`, e.g.
+   `new_compressor_jet` = thrust × 0.96 until researched). The flight-model files therefore
+   describe the spaded aircraft, and modifications don't affect the fingerprint.
+5. **Output:** `data/roster.json` (read by later stages) and `data/ROSTER.md`, a table per BR of
+   each aircraft, its nations, the merged copies and its flight model, plus the excluded units and
+   why. `force_separate` in `pipeline.toml` can override a merge.
 
 When a patch moves an aircraft into or out of 12.0–14.7, it shows up in the change summary of the
 update PR.

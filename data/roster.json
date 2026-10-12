@@ -1,0 +1,2455 @@
+{
+  "provenance": {
+    "repo": "https://github.com/gszabi99/War-Thunder-Datamine.git",
+    "ref": "2.59.0.65",
+    "commit": "95071962947ba68093e0cbdca0dacc743e1ec176",
+    "game_version": "2.59.0.65"
+  },
+  "rules": {
+    "br_min": 12.0,
+    "br_max": 14.7,
+    "unit_classes": [
+      "exp_fighter",
+      "exp_assault",
+      "exp_bomber"
+    ],
+    "deny": [],
+    "force_separate": []
+  },
+  "entries": [
+    {
+      "id": "f-4j",
+      "name": "F-4J Phantom II",
+      "short_name": "F-4J Phantom II",
+      "representative": "f-4j",
+      "fm_file": "fm/f-4j",
+      "fingerprint": "8edc9d228612",
+      "variants": [
+        {
+          "unit_id": "f-4j",
+          "name": "F-4J Phantom II",
+          "short_name": "F-4J Phantom II",
+          "nation": "usa",
+          "br": 12.0,
+          "unit_class": "exp_fighter"
+        },
+        {
+          "unit_id": "f-4jk",
+          "name": "F-4J(UK) Phantom II",
+          "short_name": "F-4J(UK) Phantom II",
+          "nation": "britain",
+          "br": 12.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-4s",
+      "name": "F-4S Phantom II",
+      "short_name": "F-4S Phantom II",
+      "representative": "f-4s",
+      "fm_file": "fm/f-4s",
+      "fingerprint": "18795a4944c9",
+      "variants": [
+        {
+          "unit_id": "f-4s",
+          "name": "F-4S Phantom II",
+          "short_name": "F-4S Phantom II",
+          "nation": "usa",
+          "br": 12.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "saab-ja37d",
+      "name": "JA37D Viggen",
+      "short_name": "JA37D",
+      "representative": "saab_ja37d",
+      "fm_file": "fm/saab_ja37",
+      "fingerprint": "12f90c5d2784",
+      "variants": [
+        {
+          "unit_id": "saab_ja37d",
+          "name": "JA37D Viggen",
+          "short_name": "JA37D",
+          "nation": "sweden",
+          "br": 12.0,
+          "unit_class": "exp_fighter"
+        },
+        {
+          "unit_id": "saab_ja37di",
+          "name": "JA37DI Viggen",
+          "short_name": "JA37DI",
+          "nation": "sweden",
+          "br": 13.0,
+          "unit_class": "exp_fighter"
+        },
+        {
+          "unit_id": "saab_ja37di_f21",
+          "name": "JA37DI Viggen F21",
+          "short_name": "JA37DI F21",
+          "nation": "sweden",
+          "br": 13.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "kfir-c7",
+      "name": "Kfir C.7",
+      "short_name": "Kfir C.7",
+      "representative": "kfir_c7",
+      "fm_file": "fm/kfir_c7",
+      "fingerprint": "98a0e87b7b2f",
+      "variants": [
+        {
+          "unit_id": "kfir_c7",
+          "name": "Kfir C.7",
+          "short_name": "Kfir C.7",
+          "nation": "israel",
+          "br": 12.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "mirage-f1c",
+      "name": "Mirage F1C",
+      "short_name": "Mirage F1C",
+      "representative": "mirage_f1c",
+      "fm_file": "fm/mirage_f1c",
+      "fingerprint": "fdf5eafc3e7c",
+      "variants": [
+        {
+          "unit_id": "mirage_f1c",
+          "name": "Mirage F1C",
+          "short_name": "Mirage F1C",
+          "nation": "france",
+          "br": 12.0,
+          "unit_class": "exp_fighter"
+        },
+        {
+          "unit_id": "mirage_f1ct",
+          "name": "Mirage F1CT",
+          "short_name": "Mirage F1CT",
+          "nation": "france",
+          "br": 12.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "mirage-f1c-200",
+      "name": "Mirage F1C-200",
+      "short_name": "Mirage F1C-200",
+      "representative": "mirage_f1c_200",
+      "fm_file": "fm/mirage_f1c_200",
+      "fingerprint": "b2f11c207817",
+      "variants": [
+        {
+          "unit_id": "mirage_f1c_200",
+          "name": "Mirage F1C-200",
+          "short_name": "Mirage F1C-200",
+          "nation": "france",
+          "br": 12.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-4k",
+      "name": "Phantom FG.1",
+      "short_name": "Phantom FG.1",
+      "representative": "f-4k",
+      "fm_file": "fm/f-4k",
+      "fingerprint": "58a33155327e",
+      "variants": [
+        {
+          "unit_id": "f-4k",
+          "name": "Phantom FG.1",
+          "short_name": "Phantom FG.1",
+          "nation": "britain",
+          "br": 12.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-4m-fgr2",
+      "name": "Phantom FGR.2",
+      "short_name": "Phantom FGR.2",
+      "representative": "f-4m_fgr2",
+      "fm_file": "fm/f-4m_fgr2",
+      "fingerprint": "52f89867ed2f",
+      "variants": [
+        {
+          "unit_id": "f-4m_fgr2",
+          "name": "Phantom FGR.2",
+          "short_name": "Phantom FGR.2",
+          "nation": "britain",
+          "br": 12.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "tornado-adv",
+      "name": "Tornado ADV",
+      "short_name": "Tornado ADV",
+      "representative": "tornado_adv",
+      "fm_file": "fm/tornado_adv",
+      "fingerprint": "3a09e616cd3e",
+      "variants": [
+        {
+          "unit_id": "tornado_adv",
+          "name": "Tornado ADV",
+          "short_name": "Tornado ADV",
+          "nation": "italy",
+          "br": 12.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "tornado-f3",
+      "name": "Tornado F.3",
+      "short_name": "Tornado F.3",
+      "representative": "tornado_f3",
+      "fm_file": "fm/tornado_f3",
+      "fingerprint": "cacfdf20770d",
+      "variants": [
+        {
+          "unit_id": "tornado_f3",
+          "name": "Tornado F.3",
+          "short_name": "Tornado F.3",
+          "nation": "britain",
+          "br": 12.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-16a-block-10",
+      "name": "F-16A Block 10 Fighting Falcon",
+      "short_name": "F-16A",
+      "representative": "f_16a_block_10",
+      "fm_file": "fm/f_16a_block_10",
+      "fingerprint": "a79f8ce5aa34",
+      "variants": [
+        {
+          "unit_id": "f_16a_block_10",
+          "name": "F-16A Block 10 Fighting Falcon",
+          "short_name": "F-16A",
+          "nation": "usa",
+          "br": 12.3,
+          "unit_class": "exp_fighter"
+        },
+        {
+          "unit_id": "f_16a_block_10_iaf",
+          "name": "F-16A Block 10 Netz",
+          "short_name": "Netz",
+          "nation": "israel",
+          "br": 12.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-16a-block-10-norway",
+      "name": "F-16A Block 10 Fighting Falcon",
+      "short_name": "F-16A",
+      "representative": "f_16a_block_10_norway",
+      "fm_file": "fm/f_16a_block_10_norway",
+      "fingerprint": "f5c0cabc4225",
+      "variants": [
+        {
+          "unit_id": "f_16a_block_10_norway",
+          "name": "F-16A Block 10 Fighting Falcon",
+          "short_name": "F-16A",
+          "nation": "sweden",
+          "br": 12.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-16a-block-10-netz-mod",
+      "name": "F-16A Block 10 Netz (Mod)",
+      "short_name": "Netz (Mod)",
+      "representative": "f_16a_block_10_netz_mod",
+      "fm_file": "fm/f_16a_block_10_mod",
+      "fingerprint": "ee1e0e003802",
+      "variants": [
+        {
+          "unit_id": "f_16a_block_10_netz_mod",
+          "name": "F-16A Block 10 Netz (Mod)",
+          "short_name": "Netz (Mod)",
+          "nation": "israel",
+          "br": 12.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-16a-block-5-netherlands",
+      "name": "F-16A Block 5 Fighting Falcon",
+      "short_name": "F-16A",
+      "representative": "f_16a_block_5_netherlands",
+      "fm_file": "fm/f_16a_block_5_netherlands",
+      "fingerprint": "fc73d85e662c",
+      "variants": [
+        {
+          "unit_id": "f_16a_block_5_netherlands",
+          "name": "F-16A Block 5 Fighting Falcon",
+          "short_name": "F-16A",
+          "nation": "france",
+          "br": 12.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-20a",
+      "name": "F-20A Tigershark",
+      "short_name": "F-20A",
+      "representative": "f_20a",
+      "fm_file": "fm/f_20a",
+      "fingerprint": "671e6254089b",
+      "variants": [
+        {
+          "unit_id": "f_20a",
+          "name": "F-20A Tigershark",
+          "short_name": "F-20A",
+          "nation": "usa",
+          "br": 12.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-4e-kurnass-2000",
+      "name": "F-4E Kurnass 2000",
+      "short_name": "Kurnass 2000",
+      "representative": "f-4e_kurnass_2000",
+      "fm_file": "fm/f-4e_iaf",
+      "fingerprint": "54d8df67b152",
+      "variants": [
+        {
+          "unit_id": "f-4e_kurnass_2000",
+          "name": "F-4E Kurnass 2000",
+          "short_name": "Kurnass 2000",
+          "nation": "israel",
+          "br": 12.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-4ej-kai",
+      "name": "F-4EJ Kai Phantom II",
+      "short_name": "F-4EJ Kai Phantom II",
+      "representative": "f-4ej_kai",
+      "fm_file": "fm/f-4ej",
+      "fingerprint": "2dcd047baf08",
+      "variants": [
+        {
+          "unit_id": "f-4ej_kai",
+          "name": "F-4EJ Kai Phantom II",
+          "short_name": "F-4EJ Kai Phantom II",
+          "nation": "japan",
+          "br": 12.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "fa-18a",
+      "name": "F/A-18A Hornet",
+      "short_name": "F/A-18A",
+      "representative": "fa_18a",
+      "fm_file": "fm/fa_18a",
+      "fingerprint": "a503570ae5e6",
+      "variants": [
+        {
+          "unit_id": "fa_18a",
+          "name": "F/A-18A Hornet",
+          "short_name": "F/A-18A",
+          "nation": "usa",
+          "br": 12.3,
+          "unit_class": "exp_fighter"
+        },
+        {
+          "unit_id": "fa_18a_raaf",
+          "name": "F/A-18A Hornet",
+          "short_name": "F/A-18A",
+          "nation": "britain",
+          "br": 12.3,
+          "unit_class": "exp_fighter"
+        },
+        {
+          "unit_id": "cf_188a_canada",
+          "name": "CF-188A Hornet",
+          "short_name": "CF-188A",
+          "nation": "britain",
+          "br": 12.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "harrier-gr7",
+      "name": "Harrier GR.7",
+      "short_name": "Harrier GR.7",
+      "representative": "harrier_gr7",
+      "fm_file": "fm/harrier_gr7",
+      "fingerprint": "c77f4aa5326c",
+      "variants": [
+        {
+          "unit_id": "harrier_gr7",
+          "name": "Harrier GR.7",
+          "short_name": "Harrier GR.7",
+          "nation": "britain",
+          "br": 12.3,
+          "unit_class": "exp_assault"
+        }
+      ]
+    },
+    {
+      "id": "jh-7a",
+      "name": "JH-7A Flying Leopard",
+      "short_name": "JH-7A",
+      "representative": "jh_7a",
+      "fm_file": "fm/jh_7a",
+      "fingerprint": "997f7b7bba1d",
+      "variants": [
+        {
+          "unit_id": "jh_7a",
+          "name": "JH-7A Flying Leopard",
+          "short_name": "JH-7A",
+          "nation": "china",
+          "br": 12.3,
+          "unit_class": "exp_assault"
+        },
+        {
+          "unit_id": "jh_7a_prototype",
+          "name": "JH-7A (Prototype) Flying Leopard",
+          "short_name": "JH-7A Prototype",
+          "nation": "china",
+          "br": 12.3,
+          "unit_class": "exp_assault"
+        }
+      ]
+    },
+    {
+      "id": "mig-21-bison",
+      "name": "MiG-21 Bison",
+      "short_name": "MiG-21 Bison",
+      "representative": "mig-21_bison",
+      "fm_file": "fm/mig-21_bison",
+      "fingerprint": "194d82bc367f",
+      "variants": [
+        {
+          "unit_id": "mig-21_bison",
+          "name": "MiG-21 Bison",
+          "short_name": "MiG-21 Bison",
+          "nation": "britain",
+          "br": 12.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "mirage-2000c-s5",
+      "name": "Mirage 2000C-S5",
+      "short_name": "Mirage 2000C-S5",
+      "representative": "mirage_2000c_s5",
+      "fm_file": "fm/mirage_2000c_s5",
+      "fingerprint": "14f6fe5a40c6",
+      "variants": [
+        {
+          "unit_id": "mirage_2000c_s5",
+          "name": "Mirage 2000C-S5",
+          "short_name": "Mirage 2000C-S5",
+          "nation": "france",
+          "br": 12.3,
+          "unit_class": "exp_fighter"
+        },
+        {
+          "unit_id": "mirage_2000c_s4",
+          "name": "Mirage 2000C-S4",
+          "short_name": "Mirage 2000C-S4",
+          "nation": "france",
+          "br": 12.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "mirage-2000d-r1",
+      "name": "Mirage 2000D-R1",
+      "short_name": "Mirage 2000D-R1",
+      "representative": "mirage_2000d_r1",
+      "fm_file": "fm/mirage_2000d_r1",
+      "fingerprint": "a40d417a4ee5",
+      "variants": [
+        {
+          "unit_id": "mirage_2000d_r1",
+          "name": "Mirage 2000D-R1",
+          "short_name": "Mirage 2000D-R1",
+          "nation": "france",
+          "br": 12.3,
+          "unit_class": "exp_assault"
+        }
+      ]
+    },
+    {
+      "id": "tornado-gr4",
+      "name": "Tornado GR.4",
+      "short_name": "Tornado GR.4",
+      "representative": "tornado_gr4",
+      "fm_file": "fm/tornado_gr4",
+      "fingerprint": "014e91a7ba87",
+      "variants": [
+        {
+          "unit_id": "tornado_gr4",
+          "name": "Tornado GR.4",
+          "short_name": "Tornado GR.4",
+          "nation": "britain",
+          "br": 12.3,
+          "unit_class": "exp_assault"
+        }
+      ]
+    },
+    {
+      "id": "tornado-ids-de-assta3-sle",
+      "name": "Tornado IDS SLE",
+      "short_name": "Tornado IDS SLE",
+      "representative": "tornado_ids_de_assta3_sle",
+      "fm_file": "fm/tornado_ids_de_assta3_sle",
+      "fingerprint": "25c7c20b026f",
+      "variants": [
+        {
+          "unit_id": "tornado_ids_de_assta3_sle",
+          "name": "Tornado IDS SLE",
+          "short_name": "Tornado IDS SLE",
+          "nation": "germany",
+          "br": 12.3,
+          "unit_class": "exp_assault"
+        }
+      ]
+    },
+    {
+      "id": "f-14a-early",
+      "name": "F-14A Tomcat (Early)",
+      "short_name": "F-14A Early",
+      "representative": "f_14a_early",
+      "fm_file": "fm/f_14a_early",
+      "fingerprint": "5cc7aca951b2",
+      "variants": [
+        {
+          "unit_id": "f_14a_early",
+          "name": "F-14A Tomcat (Early)",
+          "short_name": "F-14A Early",
+          "nation": "usa",
+          "br": 12.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-15a",
+      "name": "F-15A Eagle",
+      "short_name": "F-15A",
+      "representative": "f_15a",
+      "fm_file": "fm/f_15a",
+      "fingerprint": "9fa924419f0d",
+      "variants": [
+        {
+          "unit_id": "f_15a",
+          "name": "F-15A Eagle",
+          "short_name": "F-15A",
+          "nation": "usa",
+          "br": 12.7,
+          "unit_class": "exp_fighter"
+        },
+        {
+          "unit_id": "f_15a_iaf",
+          "name": "F-15A Baz",
+          "short_name": "Baz",
+          "nation": "israel",
+          "br": 12.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-15j",
+      "name": "F-15J Eagle",
+      "short_name": "F-15J",
+      "representative": "f_15j",
+      "fm_file": "fm/f_15j",
+      "fingerprint": "ad902facc8ba",
+      "variants": [
+        {
+          "unit_id": "f_15j",
+          "name": "F-15J Eagle",
+          "short_name": "F-15J",
+          "nation": "japan",
+          "br": 12.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-16a-block-15-belgium",
+      "name": "F-16A Block 15 Fighting Falcon",
+      "short_name": "F-16A",
+      "representative": "f_16a_block_15_belgium",
+      "fm_file": "fm/f_16a_block_15_belgium",
+      "fingerprint": "c4849e554667",
+      "variants": [
+        {
+          "unit_id": "f_16a_block_15_belgium",
+          "name": "F-16A Block 15 Fighting Falcon",
+          "short_name": "F-16A",
+          "nation": "france",
+          "br": 12.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-16a-block-15-ocu-belgium",
+      "name": "F-16A Block 15 OCU Fighting Falcon",
+      "short_name": "F-16A OCU",
+      "representative": "f_16a_block_15_ocu_belgium",
+      "fm_file": "fm/f_16a_block_15_ocu_belgium",
+      "fingerprint": "7c1748fdee2f",
+      "variants": [
+        {
+          "unit_id": "f_16a_block_15_ocu_belgium",
+          "name": "F-16A Block 15 OCU Fighting Falcon",
+          "short_name": "F-16A OCU",
+          "nation": "france",
+          "br": 12.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-16aj",
+      "name": "F-16AJ Fighting Falcon",
+      "short_name": "F-16AJ",
+      "representative": "f_16aj",
+      "fm_file": "fm/f_16aj",
+      "fingerprint": "6fa1cfedaf92",
+      "variants": [
+        {
+          "unit_id": "f_16aj",
+          "name": "F-16AJ Fighting Falcon",
+          "short_name": "F-16AJ",
+          "nation": "japan",
+          "br": 12.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "fa-18c-early",
+      "name": "F/A-18C (Early) Hornet",
+      "short_name": "F/A-18C Early",
+      "representative": "fa_18c_early",
+      "fm_file": "fm/fa_18c_early",
+      "fingerprint": "8a44f482c305",
+      "variants": [
+        {
+          "unit_id": "fa_18c_early",
+          "name": "F/A-18C (Early) Hornet",
+          "short_name": "F/A-18C Early",
+          "nation": "usa",
+          "br": 12.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "fa-18c-late-switzerland",
+      "name": "F/A-18C (Late) Hornet",
+      "short_name": "F/A-18C Late",
+      "representative": "fa_18c_late_switzerland",
+      "fm_file": "fm/fa_18c_late_switzerland",
+      "fingerprint": "df0b9f9973f3",
+      "variants": [
+        {
+          "unit_id": "fa_18c_late_switzerland",
+          "name": "F/A-18C (Late) Hornet",
+          "short_name": "F/A-18C Late",
+          "nation": "germany",
+          "br": 14.0,
+          "unit_class": "exp_fighter"
+        },
+        {
+          "unit_id": "fa_18c_switzerland",
+          "name": "F/A-18C Hornet",
+          "short_name": "F/A-18C",
+          "nation": "germany",
+          "br": 12.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "mig-29-9-12-germany",
+      "name": "MiG-29 (9-12A)",
+      "short_name": "MiG-29 (9-12A)",
+      "representative": "mig_29_9_12_germany",
+      "fm_file": "fm/mig_29_9_12_germany",
+      "fingerprint": "5f6dfc119778",
+      "variants": [
+        {
+          "unit_id": "mig_29_9_12_germany",
+          "name": "MiG-29 (9-12A)",
+          "short_name": "MiG-29 (9-12A)",
+          "nation": "germany",
+          "br": 12.7,
+          "unit_class": "exp_fighter"
+        },
+        {
+          "unit_id": "mig_29_9_12",
+          "name": "MiG-29 (9-12)",
+          "short_name": "MiG-29 (9-12)",
+          "nation": "ussr",
+          "br": 12.7,
+          "unit_class": "exp_fighter"
+        },
+        {
+          "unit_id": "mig_29_9_12_sniper",
+          "name": "MiG-29 Sniper",
+          "short_name": "MiG-29 Sniper",
+          "nation": "italy",
+          "br": 12.7,
+          "unit_class": "exp_fighter"
+        },
+        {
+          "unit_id": "mig_29_9_12b_hungary",
+          "name": "MiG-29 (9-12B)",
+          "short_name": "MiG-29 (9-12B)",
+          "nation": "italy",
+          "br": 12.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "mirage-2000d-rmv",
+      "name": "Mirage 2000D-RMV",
+      "short_name": "Mirage 2000D-RMV",
+      "representative": "mirage_2000d_rmv",
+      "fm_file": "fm/mirage_2000d_rmv",
+      "fingerprint": "a1cc1fad0002",
+      "variants": [
+        {
+          "unit_id": "mirage_2000d_rmv",
+          "name": "Mirage 2000D-RMV",
+          "short_name": "Mirage 2000D-RMV",
+          "nation": "france",
+          "br": 12.7,
+          "unit_class": "exp_assault"
+        }
+      ]
+    },
+    {
+      "id": "yak-141",
+      "name": "Yak-141",
+      "short_name": "Yak-141",
+      "representative": "yak_141",
+      "fm_file": "fm/yak_141",
+      "fingerprint": "2b9c20e7518e",
+      "variants": [
+        {
+          "unit_id": "yak_141",
+          "name": "Yak-141",
+          "short_name": "Yak-141",
+          "nation": "ussr",
+          "br": 12.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "av-8b-plus",
+      "name": "AV-8B Plus Harrier",
+      "short_name": "AV-8B Plus",
+      "representative": "av_8b_plus",
+      "fm_file": "fm/av_8b_plus",
+      "fingerprint": "8ecc71ddca01",
+      "variants": [
+        {
+          "unit_id": "av_8b_plus",
+          "name": "AV-8B Plus Harrier",
+          "short_name": "AV-8B Plus",
+          "nation": "usa",
+          "br": 13.0,
+          "unit_class": "exp_assault"
+        },
+        {
+          "unit_id": "av_8b_plus_italy",
+          "name": "AV-8B Plus Harrier",
+          "short_name": "AV-8B Plus",
+          "nation": "italy",
+          "br": 13.0,
+          "unit_class": "exp_assault"
+        }
+      ]
+    },
+    {
+      "id": "f-14b",
+      "name": "F-14B Tomcat",
+      "short_name": "F-14B",
+      "representative": "f_14b",
+      "fm_file": "fm/f_14b",
+      "fingerprint": "d05681dd78dc",
+      "variants": [
+        {
+          "unit_id": "f_14b",
+          "name": "F-14B Tomcat",
+          "short_name": "F-14B",
+          "nation": "usa",
+          "br": 13.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-14d",
+      "name": "F-14D Super Tomcat",
+      "short_name": "F-14D",
+      "representative": "f_14d",
+      "fm_file": "fm/f_14d",
+      "fingerprint": "30d09f45633f",
+      "variants": [
+        {
+          "unit_id": "f_14d",
+          "name": "F-14D Super Tomcat",
+          "short_name": "F-14D",
+          "nation": "usa",
+          "br": 13.0,
+          "unit_class": "exp_fighter"
+        },
+        {
+          "unit_id": "f_14d_vf_11",
+          "name": "F-14D (VF-11) Super Tomcat",
+          "short_name": "F-14D (VF-11)",
+          "nation": "usa",
+          "br": 13.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-16xl",
+      "name": "F-16XL-1",
+      "short_name": "F-16XL",
+      "representative": "f_16xl",
+      "fm_file": "fm/f_16xl",
+      "fingerprint": "4c7bf3718279",
+      "variants": [
+        {
+          "unit_id": "f_16xl",
+          "name": "F-16XL-1",
+          "short_name": "F-16XL",
+          "nation": "usa",
+          "br": 13.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-2a-adtw",
+      "name": "F-2A ADTW Viper Zero",
+      "short_name": "F-2A ADTW",
+      "representative": "f_2a_adtw",
+      "fm_file": "fm/f_2a_adtw",
+      "fingerprint": "a79710186e01",
+      "variants": [
+        {
+          "unit_id": "f_2a_adtw",
+          "name": "F-2A ADTW Viper Zero",
+          "short_name": "F-2A ADTW",
+          "nation": "japan",
+          "br": 13.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-4f-kws-lv",
+      "name": "F-4F KWS LV (ICE) Phantom II",
+      "short_name": "F-4F KWS LV",
+      "representative": "f-4f_kws_lv",
+      "fm_file": "fm/f-4f_kws_lv",
+      "fingerprint": "24d5bf02077f",
+      "variants": [
+        {
+          "unit_id": "f-4f_kws_lv",
+          "name": "F-4F KWS LV (ICE) Phantom II",
+          "short_name": "F-4F KWS LV",
+          "nation": "germany",
+          "br": 13.0,
+          "unit_class": "exp_fighter"
+        },
+        {
+          "unit_id": "f_4e_aup_greece",
+          "name": "F-4E AUP Phantom II",
+          "short_name": "F-4E AUP Phantom II",
+          "nation": "israel",
+          "br": 13.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-5th-thailand",
+      "name": "F-5TH Super Tigris TCU",
+      "short_name": "F-5TH TCU",
+      "representative": "f-5th_thailand",
+      "fm_file": "fm/f_5t_thailand",
+      "fingerprint": "3e85469bc0a3",
+      "variants": [
+        {
+          "unit_id": "f-5th_thailand",
+          "name": "F-5TH Super Tigris TCU",
+          "short_name": "F-5TH TCU",
+          "nation": "japan",
+          "br": 13.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "j-11",
+      "name": "J-11 Responsive Dragon",
+      "short_name": "J-11",
+      "representative": "j_11",
+      "fm_file": "fm/j_11",
+      "fingerprint": "29197a96b466",
+      "variants": [
+        {
+          "unit_id": "j_11",
+          "name": "J-11 Responsive Dragon",
+          "short_name": "J-11",
+          "nation": "china",
+          "br": 13.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "j-8f",
+      "name": "J-8F",
+      "short_name": "J-8F",
+      "representative": "j_8f",
+      "fm_file": "fm/j_8f",
+      "fingerprint": "5d8171ebac7d",
+      "variants": [
+        {
+          "unit_id": "j_8f",
+          "name": "J-8F",
+          "short_name": "J-8F",
+          "nation": "china",
+          "br": 13.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "saab-jas39a",
+      "name": "JAS39A Gripen",
+      "short_name": "JAS39A",
+      "representative": "saab_jas39a",
+      "fm_file": "fm/saab_jas39a",
+      "fingerprint": "3df2667dbf92",
+      "variants": [
+        {
+          "unit_id": "saab_jas39a",
+          "name": "JAS39A Gripen",
+          "short_name": "JAS39A",
+          "nation": "sweden",
+          "br": 13.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "jh-7a2",
+      "name": "JH-7A2 Flying Leopard",
+      "short_name": "JH-7A2",
+      "representative": "jh_7a2",
+      "fm_file": "fm/jh_7a2",
+      "fingerprint": "3a9162c6399e",
+      "variants": [
+        {
+          "unit_id": "jh_7a2",
+          "name": "JH-7A2 Flying Leopard",
+          "short_name": "JH-7A2",
+          "nation": "china",
+          "br": 13.0,
+          "unit_class": "exp_assault"
+        }
+      ]
+    },
+    {
+      "id": "m-346fa",
+      "name": "M-346FA Master",
+      "short_name": "M-346FA",
+      "representative": "m_346fa",
+      "fm_file": "fm/m_346fa",
+      "fingerprint": "774b26ea0c29",
+      "variants": [
+        {
+          "unit_id": "m_346fa",
+          "name": "M-346FA Master",
+          "short_name": "M-346FA",
+          "nation": "italy",
+          "br": 13.0,
+          "unit_class": "exp_assault"
+        }
+      ]
+    },
+    {
+      "id": "mig-29-9-12g",
+      "name": "MiG-29 (9-12G)",
+      "short_name": "MiG-29G",
+      "representative": "mig_29_9_12g",
+      "fm_file": "fm/mig_29_9_12g",
+      "fingerprint": "ac9221f91c31",
+      "variants": [
+        {
+          "unit_id": "mig_29_9_12g",
+          "name": "MiG-29 (9-12G)",
+          "short_name": "MiG-29G",
+          "nation": "germany",
+          "br": 13.0,
+          "unit_class": "exp_fighter"
+        },
+        {
+          "unit_id": "mig_29n",
+          "name": "MiG-29N (9-12SD)",
+          "short_name": "MiG-29N",
+          "nation": "japan",
+          "br": 13.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "mig-29-9-13",
+      "name": "MiG-29 (9-13)",
+      "short_name": "MiG-29 (9-13)",
+      "representative": "mig_29_9_13",
+      "fm_file": "fm/mig_29_9_13",
+      "fingerprint": "31184c9b8da0",
+      "variants": [
+        {
+          "unit_id": "mig_29_9_13",
+          "name": "MiG-29 (9-13)",
+          "short_name": "MiG-29 (9-13)",
+          "nation": "ussr",
+          "br": 13.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "mirage-4000",
+      "name": "Mirage 4000",
+      "short_name": "Mirage 4000",
+      "representative": "mirage_4000",
+      "fm_file": "fm/mirage_4000",
+      "fingerprint": "95df139f88e3",
+      "variants": [
+        {
+          "unit_id": "mirage_4000",
+          "name": "Mirage 4000",
+          "short_name": "Mirage 4000",
+          "nation": "france",
+          "br": 13.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "sea-harrier-fa2",
+      "name": "Sea Harrier FA 2",
+      "short_name": "Sea Harrier FA 2",
+      "representative": "sea_harrier_fa2",
+      "fm_file": "fm/sea_harrier_fa2",
+      "fingerprint": "29523f2490c4",
+      "variants": [
+        {
+          "unit_id": "sea_harrier_fa2",
+          "name": "Sea Harrier FA 2",
+          "short_name": "Sea Harrier FA 2",
+          "nation": "britain",
+          "br": 13.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "su-27",
+      "name": "Su-27",
+      "short_name": "Su-27",
+      "representative": "su_27",
+      "fm_file": "fm/su_27",
+      "fingerprint": "c31368cb2721",
+      "variants": [
+        {
+          "unit_id": "su_27",
+          "name": "Su-27",
+          "short_name": "Su-27",
+          "nation": "ussr",
+          "br": 13.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "su-33",
+      "name": "Su-33",
+      "short_name": "Su-33",
+      "representative": "su_33",
+      "fm_file": "fm/su_33",
+      "fingerprint": "17efc5efed82",
+      "variants": [
+        {
+          "unit_id": "su_33",
+          "name": "Su-33",
+          "short_name": "Su-33",
+          "nation": "ussr",
+          "br": 13.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "tornado-f3-late",
+      "name": "Tornado F.3 Late",
+      "short_name": "Tornado F.3 Late",
+      "representative": "tornado_f3_late",
+      "fm_file": "fm/tornado_f3_late",
+      "fingerprint": "634cf74d0e98",
+      "variants": [
+        {
+          "unit_id": "tornado_f3_late",
+          "name": "Tornado F.3 Late",
+          "short_name": "Tornado F.3 Late",
+          "nation": "britain",
+          "br": 13.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-16a-block-15-adf",
+      "name": "F-16A Block 15 ADF Fighting Falcon",
+      "short_name": "F-16A ADF",
+      "representative": "f_16a_block_15_adf",
+      "fm_file": "fm/f_16a_block_15_adf",
+      "fingerprint": "c0b27f3c379d",
+      "variants": [
+        {
+          "unit_id": "f_16a_block_15_adf",
+          "name": "F-16A Block 15 ADF Fighting Falcon",
+          "short_name": "F-16A ADF",
+          "nation": "usa",
+          "br": 13.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-16a-block-15-adf-italy",
+      "name": "F-16A Block 15 ADF Fighting Falcon",
+      "short_name": "F-16A ADF",
+      "representative": "f_16a_block_15_adf_italy",
+      "fm_file": "fm/f_16a_block_15_adf_italy",
+      "fingerprint": "615f9fa99d25",
+      "variants": [
+        {
+          "unit_id": "f_16a_block_15_adf_italy",
+          "name": "F-16A Block 15 ADF Fighting Falcon",
+          "short_name": "F-16A ADF",
+          "nation": "italy",
+          "br": 13.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-16a-block-20-mlu",
+      "name": "F-16A Block 20 MLU Fighting Falcon",
+      "short_name": "F-16A MLU",
+      "representative": "f_16a_block_20_mlu",
+      "fm_file": "fm/f_16a_block_20_mlu",
+      "fingerprint": "9347b5985f92",
+      "variants": [
+        {
+          "unit_id": "f_16a_block_20_mlu",
+          "name": "F-16A Block 20 MLU Fighting Falcon",
+          "short_name": "F-16A MLU",
+          "nation": "china",
+          "br": 13.3,
+          "unit_class": "exp_fighter"
+        },
+        {
+          "unit_id": "f_16am_block_20_mlu_netherlands",
+          "name": "F-16AM Block 20 MLU Fighting Falcon",
+          "short_name": "F-16AM",
+          "nation": "france",
+          "br": 13.7,
+          "unit_class": "exp_fighter"
+        },
+        {
+          "unit_id": "f_16am_block_20_mlu_norway",
+          "name": "F-16AM Block 20 MLU Fighting Falcon",
+          "short_name": "F-16AM",
+          "nation": "sweden",
+          "br": 13.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-16d-block-40-barak-2",
+      "name": "F-16D Block 40 Barak II",
+      "short_name": "F-16D Barak II",
+      "representative": "f_16d_block_40_barak_2",
+      "fm_file": "fm/f_16d_block_40_barak_2",
+      "fingerprint": "a762de70d1e6",
+      "variants": [
+        {
+          "unit_id": "f_16d_block_40_barak_2",
+          "name": "F-16D Block 40 Barak II",
+          "short_name": "F-16D Barak II",
+          "nation": "israel",
+          "br": 13.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "j-11a",
+      "name": "J-11A Responsive Dragon",
+      "short_name": "J-11A",
+      "representative": "j_11a",
+      "fm_file": "fm/j_11a",
+      "fingerprint": "1eadf90a3862",
+      "variants": [
+        {
+          "unit_id": "j_11a",
+          "name": "J-11A Responsive Dragon",
+          "short_name": "J-11A",
+          "nation": "china",
+          "br": 13.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "jf-17",
+      "name": "JF-17 Thunder",
+      "short_name": "JF-17",
+      "representative": "jf_17",
+      "fm_file": "fm/jf_17",
+      "fingerprint": "6f846798c7d0",
+      "variants": [
+        {
+          "unit_id": "jf_17",
+          "name": "JF-17 Thunder",
+          "short_name": "JF-17",
+          "nation": "china",
+          "br": 13.3,
+          "unit_class": "exp_assault"
+        }
+      ]
+    },
+    {
+      "id": "kfir-c10-colombia",
+      "name": "Kfir C.10 (Block 60)",
+      "short_name": "Kfir C.10",
+      "representative": "kfir_c10_colombia",
+      "fm_file": "fm/kfir_c10_colombia",
+      "fingerprint": "9c6f9e9d73cf",
+      "variants": [
+        {
+          "unit_id": "kfir_c10_colombia",
+          "name": "Kfir C.10 (Block 60)",
+          "short_name": "Kfir C.10",
+          "nation": "israel",
+          "br": 13.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "mig-29smt-9-19",
+      "name": "MiG-29SMT (9-19)",
+      "short_name": "MiG-29SMT (9-19)",
+      "representative": "mig_29smt_9_19",
+      "fm_file": "fm/mig_29smt_9_19",
+      "fingerprint": "ea78ab1cbda7",
+      "variants": [
+        {
+          "unit_id": "mig_29smt_9_19",
+          "name": "MiG-29SMT (9-19)",
+          "short_name": "MiG-29SMT (9-19)",
+          "nation": "ussr",
+          "br": 13.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "su-30mk2v-venezuela",
+      "name": "Su-30MK2 AMV",
+      "short_name": "Su-30MK2 AMV",
+      "representative": "su_30mk2v_venezuela",
+      "fm_file": "fm/su_30mk2v_venezuela",
+      "fingerprint": "cef316320973",
+      "variants": [
+        {
+          "unit_id": "su_30mk2v_venezuela",
+          "name": "Su-30MK2 AMV",
+          "short_name": "Su-30MK2 AMV",
+          "nation": "ussr",
+          "br": 13.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "su-30mkk",
+      "name": "Su-30MKK",
+      "short_name": "Su-30MKK",
+      "representative": "su_30mkk",
+      "fm_file": "fm/su_30mkk",
+      "fingerprint": "cc53b42e3789",
+      "variants": [
+        {
+          "unit_id": "su_30mkk",
+          "name": "Su-30MKK",
+          "short_name": "Su-30MKK",
+          "nation": "china",
+          "br": 13.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-14a-iriaf",
+      "name": "F-14A Tomcat (Early) IRIAF",
+      "short_name": "F-14A IRIAF",
+      "representative": "f_14a_iriaf",
+      "fm_file": "fm/f_14a_iriaf",
+      "fingerprint": "7cd6d33b8ae2",
+      "variants": [
+        {
+          "unit_id": "f_14a_iriaf",
+          "name": "F-14A Tomcat (Early) IRIAF",
+          "short_name": "F-14A IRIAF",
+          "nation": "usa",
+          "br": 13.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-15c-baz-msip",
+      "name": "F-15C Baz (Improved) Meshupar",
+      "short_name": "Baz Meshupar",
+      "representative": "f_15c_baz_msip",
+      "fm_file": "fm/f_15c_baz_msip",
+      "fingerprint": "ec2bf196d0ff",
+      "variants": [
+        {
+          "unit_id": "f_15c_baz_msip",
+          "name": "F-15C Baz (Improved) Meshupar",
+          "short_name": "Baz Meshupar",
+          "nation": "israel",
+          "br": 13.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-15c-msip2",
+      "name": "F-15C MSIP II Eagle",
+      "short_name": "F-15C MSIP II",
+      "representative": "f_15c_msip2",
+      "fm_file": "fm/f_15c_msip2",
+      "fingerprint": "ee36ce5bb5d7",
+      "variants": [
+        {
+          "unit_id": "f_15c_msip2",
+          "name": "F-15C MSIP II Eagle",
+          "short_name": "F-15C MSIP II",
+          "nation": "usa",
+          "br": 13.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-15j-kai",
+      "name": "F-15J(M) Eagle",
+      "short_name": "F-15J(M)",
+      "representative": "f_15j_kai",
+      "fm_file": "fm/f_15j_kai",
+      "fingerprint": "7df3bae92e21",
+      "variants": [
+        {
+          "unit_id": "f_15j_kai",
+          "name": "F-15J(M) Eagle",
+          "short_name": "F-15J(M)",
+          "nation": "japan",
+          "br": 13.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-16a-block-15-ocu-thailand",
+      "name": "F-16A Block 15 OCU Fighting Falcon",
+      "short_name": "F-16A OCU",
+      "representative": "f_16a_block_15_ocu_thailand",
+      "fm_file": "fm/f_16a_block_15_ocu_thailand",
+      "fingerprint": "7d10155823f4",
+      "variants": [
+        {
+          "unit_id": "f_16a_block_15_ocu_thailand",
+          "name": "F-16A Block 15 OCU Fighting Falcon",
+          "short_name": "F-16A OCU",
+          "nation": "japan",
+          "br": 13.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-16am-block-15-mlu-belgium",
+      "name": "F-16AM Block 15 MLU Fighting Falcon",
+      "short_name": "F-16AM",
+      "representative": "f_16am_block_15_mlu_belgium",
+      "fm_file": "fm/f_16am_block_15_mlu_belgium",
+      "fingerprint": "e55f0f1367b6",
+      "variants": [
+        {
+          "unit_id": "f_16am_block_15_mlu_belgium",
+          "name": "F-16AM Block 15 MLU Fighting Falcon",
+          "short_name": "F-16AM",
+          "nation": "france",
+          "br": 13.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-16c-block-40-barak-2",
+      "name": "F-16C Block 40 Barak II",
+      "short_name": "F-16C Barak II",
+      "representative": "f_16c_block_40_barak_2",
+      "fm_file": "fm/f_16c_block_40_barak_2",
+      "fingerprint": "5f55797e30c8",
+      "variants": [
+        {
+          "unit_id": "f_16c_block_40_barak_2",
+          "name": "F-16C Block 40 Barak II",
+          "short_name": "F-16C Barak II",
+          "nation": "israel",
+          "br": 13.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-16c-block-50",
+      "name": "F-16CM Block 50 Fighting Falcon",
+      "short_name": "F-16CM",
+      "representative": "f_16c_block_50",
+      "fm_file": "fm/f_16c_block_50",
+      "fingerprint": "be4cdf32e252",
+      "variants": [
+        {
+          "unit_id": "f_16c_block_50",
+          "name": "F-16CM Block 50 Fighting Falcon",
+          "short_name": "F-16CM",
+          "nation": "usa",
+          "br": 13.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-16i-sufa",
+      "name": "F-16I Sufa",
+      "short_name": "F-16I Sufa",
+      "representative": "f_16i_sufa",
+      "fm_file": "fm/f_16i_sufa",
+      "fingerprint": "00ac440371f8",
+      "variants": [
+        {
+          "unit_id": "f_16i_sufa",
+          "name": "F-16I Sufa",
+          "short_name": "F-16I Sufa",
+          "nation": "israel",
+          "br": 13.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-2a",
+      "name": "F-2A Viper Zero",
+      "short_name": "F-2A",
+      "representative": "f_2a",
+      "fm_file": "fm/f_2a",
+      "fingerprint": "521f8fb72925",
+      "variants": [
+        {
+          "unit_id": "f_2a",
+          "name": "F-2A Viper Zero",
+          "short_name": "F-2A",
+          "nation": "japan",
+          "br": 13.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "j-10a",
+      "name": "J-10A (Early) Vigorous Dragon",
+      "short_name": "J-10A",
+      "representative": "j_10a",
+      "fm_file": "fm/j_10a",
+      "fingerprint": "7442271deb60",
+      "variants": [
+        {
+          "unit_id": "j_10a",
+          "name": "J-10A (Early) Vigorous Dragon",
+          "short_name": "J-10A",
+          "nation": "china",
+          "br": 13.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "j-11b",
+      "name": "J-11B Responsive Dragon",
+      "short_name": "J-11B",
+      "representative": "j_11b",
+      "fm_file": "fm/j_11b",
+      "fingerprint": "1aaea5eadf97",
+      "variants": [
+        {
+          "unit_id": "j_11b",
+          "name": "J-11B Responsive Dragon",
+          "short_name": "J-11B",
+          "nation": "china",
+          "br": 13.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "saab-jas39c",
+      "name": "JAS39C Gripen",
+      "short_name": "JAS39C",
+      "representative": "saab_jas39c",
+      "fm_file": "fm/saab_jas39c",
+      "fingerprint": "c51048cba58e",
+      "variants": [
+        {
+          "unit_id": "saab_jas39c",
+          "name": "JAS39C Gripen",
+          "short_name": "JAS39C",
+          "nation": "sweden",
+          "br": 13.7,
+          "unit_class": "exp_fighter"
+        },
+        {
+          "unit_id": "saab_jas39c_hungary",
+          "name": "JAS39EBS HU C Gripen",
+          "short_name": "JAS39EBS HU C",
+          "nation": "italy",
+          "br": 13.7,
+          "unit_class": "exp_fighter"
+        },
+        {
+          "unit_id": "saab_jas39c_south_africa",
+          "name": "JAS39C Gripen",
+          "short_name": "JAS39C",
+          "nation": "britain",
+          "br": 13.7,
+          "unit_class": "exp_fighter"
+        },
+        {
+          "unit_id": "saab_jas39c_thailand",
+          "name": "JAS39C Gripen",
+          "short_name": "JAS39C",
+          "nation": "japan",
+          "br": 13.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "saab-jas39d",
+      "name": "JAS39D Gripen",
+      "short_name": "JAS39D",
+      "representative": "saab_jas39d",
+      "fm_file": "fm/saab_jas39d",
+      "fingerprint": "18b953b5499f",
+      "variants": [
+        {
+          "unit_id": "saab_jas39d",
+          "name": "JAS39D Gripen",
+          "short_name": "JAS39D",
+          "nation": "sweden",
+          "br": 13.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "mig-29kr-9-41r",
+      "name": "MiG-29KR (9-41R)",
+      "short_name": "MiG-29KR (9-41R)",
+      "representative": "mig_29kr_9_41r",
+      "fm_file": "fm/mig_29kr_9_41r",
+      "fingerprint": "4ee56971d6d0",
+      "variants": [
+        {
+          "unit_id": "mig_29kr_9_41r",
+          "name": "MiG-29KR (9-41R)",
+          "short_name": "MiG-29KR (9-41R)",
+          "nation": "ussr",
+          "br": 13.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "mig-29m-9-15",
+      "name": "MiG-29M (9-15)",
+      "short_name": "MiG-29M (9-15)",
+      "representative": "mig_29m_9_15",
+      "fm_file": "fm/mig_29m_9_15",
+      "fingerprint": "18aa9bc8d67a",
+      "variants": [
+        {
+          "unit_id": "mig_29m_9_15",
+          "name": "MiG-29M (9-15)",
+          "short_name": "MiG-29M (9-15)",
+          "nation": "ussr",
+          "br": 13.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "su-27sm",
+      "name": "Su-27SM",
+      "short_name": "Su-27SM",
+      "representative": "su_27sm",
+      "fm_file": "fm/su_27sm",
+      "fingerprint": "2934dcc901ca",
+      "variants": [
+        {
+          "unit_id": "su_27sm",
+          "name": "Su-27SM",
+          "short_name": "Su-27SM",
+          "nation": "ussr",
+          "br": 13.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "su-34",
+      "name": "Su-34",
+      "short_name": "Su-34",
+      "representative": "su_34",
+      "fm_file": "fm/su_34",
+      "fingerprint": "10757d6ed201",
+      "variants": [
+        {
+          "unit_id": "su_34",
+          "name": "Su-34",
+          "short_name": "Su-34",
+          "nation": "ussr",
+          "br": 13.7,
+          "unit_class": "exp_assault"
+        }
+      ]
+    },
+    {
+      "id": "fa-18a-hug-2-raaf",
+      "name": "AF/A-18A (HUG 2.4) Hornet",
+      "short_name": "AF/A-18A Late",
+      "representative": "fa_18a_hug_2_raaf",
+      "fm_file": "fm/fa_18a_hug_2_raaf",
+      "fingerprint": "e074e642cf19",
+      "variants": [
+        {
+          "unit_id": "fa_18a_hug_2_raaf",
+          "name": "AF/A-18A (HUG 2.4) Hornet",
+          "short_name": "AF/A-18A Late",
+          "nation": "britain",
+          "br": 14.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-15e",
+      "name": "F-15E Strike Eagle",
+      "short_name": "F-15E",
+      "representative": "f_15e",
+      "fm_file": "fm/f_15e",
+      "fingerprint": "d836c916734f",
+      "variants": [
+        {
+          "unit_id": "f_15e",
+          "name": "F-15E Strike Eagle",
+          "short_name": "F-15E",
+          "nation": "usa",
+          "br": 14.0,
+          "unit_class": "exp_assault"
+        }
+      ]
+    },
+    {
+      "id": "f-15i-raam",
+      "name": "F-15I Ra’am",
+      "short_name": "F-15I Ra’am",
+      "representative": "f_15i_raam",
+      "fm_file": "fm/f_15i_raam",
+      "fingerprint": "ea022dfcce34",
+      "variants": [
+        {
+          "unit_id": "f_15i_raam",
+          "name": "F-15I Ra’am",
+          "short_name": "F-15I Ra’am",
+          "nation": "israel",
+          "br": 14.0,
+          "unit_class": "exp_assault"
+        }
+      ]
+    },
+    {
+      "id": "fa-18c-finland",
+      "name": "F-18C Hornet",
+      "short_name": "F-18C",
+      "representative": "fa_18c_finland",
+      "fm_file": "fm/fa_18c_finland",
+      "fingerprint": "5fec2dae0aa7",
+      "variants": [
+        {
+          "unit_id": "fa_18c_finland",
+          "name": "F-18C Hornet",
+          "short_name": "F-18C",
+          "nation": "sweden",
+          "br": 14.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "fa-18c-late",
+      "name": "F/A-18C (Late) Hornet",
+      "short_name": "F/A-18C Late",
+      "representative": "fa_18c_late",
+      "fm_file": "fm/fa_18c_late",
+      "fingerprint": "a603a9d2474f",
+      "variants": [
+        {
+          "unit_id": "fa_18c_late",
+          "name": "F/A-18C (Late) Hornet",
+          "short_name": "F/A-18C Late",
+          "nation": "usa",
+          "br": 14.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "fa-18c-mlu-2-finland",
+      "name": "F/A-18C MLU 2 Hornet",
+      "short_name": "F/A-18C MLU 2",
+      "representative": "fa_18c_mlu_2_finland",
+      "fm_file": "fm/fa_18c_mlu_2_finland",
+      "fingerprint": "2411209c5539",
+      "variants": [
+        {
+          "unit_id": "fa_18c_mlu_2_finland",
+          "name": "F/A-18C MLU 2 Hornet",
+          "short_name": "F/A-18C MLU 2",
+          "nation": "sweden",
+          "br": 14.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "fa-18d-late-malaysia",
+      "name": "F/A-18D (Late) Hornet",
+      "short_name": "F/A-18D Late",
+      "representative": "fa_18d_late_malaysia",
+      "fm_file": "fm/fa_18d_late_malaysia",
+      "fingerprint": "578fa9b503a4",
+      "variants": [
+        {
+          "unit_id": "fa_18d_late_malaysia",
+          "name": "F/A-18D (Late) Hornet",
+          "short_name": "F/A-18D Late",
+          "nation": "japan",
+          "br": 14.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "mirage-2000-5ei",
+      "name": "Mirage 2000-5Ei",
+      "short_name": "Mirage 2000-5Ei",
+      "representative": "mirage_2000_5ei",
+      "fm_file": "fm/mirage_2000_5ei",
+      "fingerprint": "a2e38c0b9f0d",
+      "variants": [
+        {
+          "unit_id": "mirage_2000_5ei",
+          "name": "Mirage 2000-5Ei",
+          "short_name": "Mirage 2000-5Ei",
+          "nation": "china",
+          "br": 14.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "mirage-2000-5f",
+      "name": "Mirage 2000-5F",
+      "short_name": "Mirage 2000-5F",
+      "representative": "mirage_2000_5f",
+      "fm_file": "fm/mirage_2000_5f",
+      "fingerprint": "64a590b4dd6d",
+      "variants": [
+        {
+          "unit_id": "mirage_2000_5f",
+          "name": "Mirage 2000-5F",
+          "short_name": "Mirage 2000-5F",
+          "nation": "france",
+          "br": 14.0,
+          "unit_class": "exp_fighter"
+        },
+        {
+          "unit_id": "mirage_2000_5eg_mk2_greece",
+          "name": "Mirage 2000-5EG",
+          "short_name": "Mirage 2000-5EG",
+          "nation": "israel",
+          "br": 14.0,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "ef-2000-block-10",
+      "name": "EF-2000 Typhoon (Block 10 T2)",
+      "short_name": "EF-2000",
+      "representative": "ef_2000_block_10",
+      "fm_file": "fm/ef_2000_block_10",
+      "fingerprint": "ac2ba9a3fdc8",
+      "variants": [
+        {
+          "unit_id": "ef_2000_block_10",
+          "name": "EF-2000 Typhoon (Block 10 T2)",
+          "short_name": "EF-2000",
+          "nation": "germany",
+          "br": 14.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "ef-2000-fgr4",
+      "name": "EF-2000 Typhoon FGR.4",
+      "short_name": "Typhoon FGR.4",
+      "representative": "ef_2000_fgr4",
+      "fm_file": "fm/typhoon_fgr4",
+      "fingerprint": "4a4edc2c6790",
+      "variants": [
+        {
+          "unit_id": "ef_2000_fgr4",
+          "name": "EF-2000 Typhoon FGR.4",
+          "short_name": "Typhoon FGR.4",
+          "nation": "britain",
+          "br": 14.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-15c-golden-eagle",
+      "name": "F-15C Golden Eagle",
+      "short_name": "F-15C Golden Eagle",
+      "representative": "f_15c_golden_eagle",
+      "fm_file": "fm/f_15c_golden_eagle",
+      "fingerprint": "98e72a604f6e",
+      "variants": [
+        {
+          "unit_id": "f_15c_golden_eagle",
+          "name": "F-15C Golden Eagle",
+          "short_name": "F-15C Golden Eagle",
+          "nation": "usa",
+          "br": 14.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-16c-block-52-aesa",
+      "name": "F-16CM Block 52 PoBIT Fighting Falcon",
+      "short_name": "F-16CM PoBIT",
+      "representative": "f_16c_block_52_aesa",
+      "fm_file": "fm/f_16c_block_52_aesa",
+      "fingerprint": "4bc4333983e6",
+      "variants": [
+        {
+          "unit_id": "f_16c_block_52_aesa",
+          "name": "F-16CM Block 52 PoBIT Fighting Falcon",
+          "short_name": "F-16CM PoBIT",
+          "nation": "usa",
+          "br": 14.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "f-16a-block-72v-china",
+      "name": "F-16V Block 72 Fighting Falcon",
+      "short_name": "F-16V",
+      "representative": "f_16a_block_72v_china",
+      "fm_file": "fm/f_16a_block_72v_china",
+      "fingerprint": "014e9d5f760d",
+      "variants": [
+        {
+          "unit_id": "f_16a_block_72v_china",
+          "name": "F-16V Block 72 Fighting Falcon",
+          "short_name": "F-16V",
+          "nation": "china",
+          "br": 14.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "ef-2000a",
+      "name": "F-2000A Typhoon",
+      "short_name": "F-2000A",
+      "representative": "ef_2000a",
+      "fm_file": "fm/f_2000a",
+      "fingerprint": "6faf7fdca715",
+      "variants": [
+        {
+          "unit_id": "ef_2000a",
+          "name": "F-2000A Typhoon",
+          "short_name": "F-2000A",
+          "nation": "italy",
+          "br": 14.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "fa-18e-block-2",
+      "name": "F/A-18E (Block 2) Super Hornet",
+      "short_name": "F/A-18E",
+      "representative": "fa_18e_block_2",
+      "fm_file": "fm/fa_18e_block_2",
+      "fingerprint": "90142697aae3",
+      "variants": [
+        {
+          "unit_id": "fa_18e_block_2",
+          "name": "F/A-18E (Block 2) Super Hornet",
+          "short_name": "F/A-18E",
+          "nation": "usa",
+          "br": 14.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "fa-18f-block-2-raaf",
+      "name": "F/A-18F (Block 2) Super Hornet",
+      "short_name": "F/A-18F",
+      "representative": "fa_18f_block_2_raaf",
+      "fm_file": "fm/fa_18f_block_2_raaf",
+      "fingerprint": "04daa5595eef",
+      "variants": [
+        {
+          "unit_id": "fa_18f_block_2_raaf",
+          "name": "F/A-18F (Block 2) Super Hornet",
+          "short_name": "F/A-18F",
+          "nation": "britain",
+          "br": 14.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "j-10c",
+      "name": "J-10C Vigorous Dragon",
+      "short_name": "J-10C",
+      "representative": "j_10c",
+      "fm_file": "fm/j_10c",
+      "fingerprint": "30a93228bddc",
+      "variants": [
+        {
+          "unit_id": "j_10c",
+          "name": "J-10C Vigorous Dragon",
+          "short_name": "J-10C",
+          "nation": "china",
+          "br": 14.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "saab-jas39e",
+      "name": "JAS39E Gripen",
+      "short_name": "JAS39E",
+      "representative": "saab_jas39e",
+      "fm_file": "fm/saab_jas39e",
+      "fingerprint": "43d38ccb7f8d",
+      "variants": [
+        {
+          "unit_id": "saab_jas39e",
+          "name": "JAS39E Gripen",
+          "short_name": "JAS39E",
+          "nation": "sweden",
+          "br": 14.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "mig-35",
+      "name": "MiG-35",
+      "short_name": "MiG-35",
+      "representative": "mig_35",
+      "fm_file": "fm/mig_35",
+      "fingerprint": "7c0c9e282ecc",
+      "variants": [
+        {
+          "unit_id": "mig_35",
+          "name": "MiG-35",
+          "short_name": "MiG-35",
+          "nation": "ussr",
+          "br": 14.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "su-30mkm",
+      "name": "Su-30MKM",
+      "short_name": "Su-30MKM",
+      "representative": "su_30mkm",
+      "fm_file": "fm/su_30mkm",
+      "fingerprint": "218f4b6dd1c8",
+      "variants": [
+        {
+          "unit_id": "su_30mkm",
+          "name": "Su-30MKM",
+          "short_name": "Su-30MKM",
+          "nation": "japan",
+          "br": 14.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "su-30sm",
+      "name": "Su-30SM",
+      "short_name": "Su-30SM",
+      "representative": "su_30sm",
+      "fm_file": "fm/su_30sm",
+      "fingerprint": "db34d6235505",
+      "variants": [
+        {
+          "unit_id": "su_30sm",
+          "name": "Su-30SM",
+          "short_name": "Su-30SM",
+          "nation": "ussr",
+          "br": 14.3,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "ef-2000-aesa",
+      "name": "EF-2000 (AESA)",
+      "short_name": "EF-2000 (AESA)",
+      "representative": "ef_2000_aesa",
+      "fm_file": "fm/ef_2000_aesa",
+      "fingerprint": "c9ed8f1e790a",
+      "variants": [
+        {
+          "unit_id": "ef_2000_aesa",
+          "name": "EF-2000 (AESA)",
+          "short_name": "EF-2000 (AESA)",
+          "nation": "germany",
+          "br": 14.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "ef-2000-typhoon-aesa",
+      "name": "EF-2000 Typhoon (AESA)",
+      "short_name": "Typhoon (AESA)",
+      "representative": "ef_2000_typhoon_aesa",
+      "fm_file": "fm/ef_2000_typhoon_aesa",
+      "fingerprint": "22d7f73088fa",
+      "variants": [
+        {
+          "unit_id": "ef_2000_typhoon_aesa",
+          "name": "EF-2000 Typhoon (AESA)",
+          "short_name": "Typhoon (AESA)",
+          "nation": "britain",
+          "br": 14.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "ef-2000a-aesa",
+      "name": "F-2000A (AESA) Typhoon",
+      "short_name": "F-2000A (AESA)",
+      "representative": "ef_2000a_aesa",
+      "fm_file": "fm/ef_2000a_aesa",
+      "fingerprint": "18b5483cb217",
+      "variants": [
+        {
+          "unit_id": "ef_2000a_aesa",
+          "name": "F-2000A (AESA) Typhoon",
+          "short_name": "F-2000A (AESA)",
+          "nation": "italy",
+          "br": 14.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "j-15t",
+      "name": "J-15T Flying Shark",
+      "short_name": "J-15T",
+      "representative": "j_15t",
+      "fm_file": "fm/j_15t",
+      "fingerprint": "0f313c9d027b",
+      "variants": [
+        {
+          "unit_id": "j_15t",
+          "name": "J-15T Flying Shark",
+          "short_name": "J-15T",
+          "nation": "china",
+          "br": 14.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "j-16",
+      "name": "J-16 Hidden Dragon",
+      "short_name": "J-16",
+      "representative": "j_16",
+      "fm_file": "fm/j_16",
+      "fingerprint": "7b6b47b8fb31",
+      "variants": [
+        {
+          "unit_id": "j_16",
+          "name": "J-16 Hidden Dragon",
+          "short_name": "J-16",
+          "nation": "china",
+          "br": 14.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "rafale-c-f3",
+      "name": "Rafale C F3-R",
+      "short_name": "Rafale C F3",
+      "representative": "rafale_c_f3",
+      "fm_file": "fm/rafale_c_f3",
+      "fingerprint": "36e968301a34",
+      "variants": [
+        {
+          "unit_id": "rafale_c_f3",
+          "name": "Rafale C F3-R",
+          "short_name": "Rafale C F3",
+          "nation": "france",
+          "br": 14.7,
+          "unit_class": "exp_fighter"
+        },
+        {
+          "unit_id": "rafale_eg_greece",
+          "name": "Rafale EG",
+          "short_name": "Rafale EG",
+          "nation": "israel",
+          "br": 14.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "rafale-m-f3r",
+      "name": "Rafale M F3-R",
+      "short_name": "Rafale M F3-R",
+      "representative": "rafale_m_f3r",
+      "fm_file": "fm/rafale_m_f3r",
+      "fingerprint": "407857c40893",
+      "variants": [
+        {
+          "unit_id": "rafale_m_f3r",
+          "name": "Rafale M F3-R",
+          "short_name": "Rafale M F3-R",
+          "nation": "france",
+          "br": 14.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    },
+    {
+      "id": "su-30sm2",
+      "name": "Su-30SM2",
+      "short_name": "Su-30SM2",
+      "representative": "su_30sm2",
+      "fm_file": "fm/su_30sm2",
+      "fingerprint": "0342876b9420",
+      "variants": [
+        {
+          "unit_id": "su_30sm2",
+          "name": "Su-30SM2",
+          "short_name": "Su-30SM2",
+          "nation": "ussr",
+          "br": 14.7,
+          "unit_class": "exp_fighter"
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "unit_id": "a_129_d",
+      "name": "AH-129D Mangusta",
+      "br": 12.7,
+      "reason": "helicopter (the model is fixed-wing only)"
+    },
+    {
+      "unit_id": "ah_1z",
+      "name": "AH-1Z",
+      "br": 12.0,
+      "reason": "helicopter (the model is fixed-wing only)"
+    },
+    {
+      "unit_id": "ah_60_iaf",
+      "name": "AH-60 Battle Hawk",
+      "br": 12.7,
+      "reason": "helicopter (the model is fixed-wing only)"
+    },
+    {
+      "unit_id": "ah_64d_i_saraph",
+      "name": "AH-64D-I Saraph",
+      "br": 12.7,
+      "reason": "helicopter (the model is fixed-wing only)"
+    },
+    {
+      "unit_id": "ah_64e",
+      "name": "AH-64E",
+      "br": 13.0,
+      "reason": "helicopter (the model is fixed-wing only)"
+    },
+    {
+      "unit_id": "ah_64e_britain",
+      "name": "AH Mk.2 Apache",
+      "br": 13.0,
+      "reason": "helicopter (the model is fixed-wing only)"
+    },
+    {
+      "unit_id": "ah_64e_china",
+      "name": "AH-64E",
+      "br": 13.0,
+      "reason": "helicopter (the model is fixed-wing only)"
+    },
+    {
+      "unit_id": "ah_64e_indonesia",
+      "name": "AH-64E",
+      "br": 13.0,
+      "reason": "helicopter (the model is fixed-wing only)"
+    },
+    {
+      "unit_id": "ah_64e_netherlands",
+      "name": "AH-64E",
+      "br": 13.0,
+      "reason": "helicopter (the model is fixed-wing only)"
+    },
+    {
+      "unit_id": "aw_159",
+      "name": "AW159 Wildcat HMA2",
+      "br": 12.3,
+      "reason": "helicopter (the model is fixed-wing only)"
+    },
+    {
+      "unit_id": "f_16a_block_15_adf_britain_killstreak",
+      "name": "F-16A Block 15 ADF Fighting Falcon",
+      "br": 13.3,
+      "reason": "not sold in the shop (killstreak or missile-test copy)"
+    },
+    {
+      "unit_id": "f_16a_block_15_adf_france_killstreak",
+      "name": "F-16A Block 15 ADF Fighting Falcon",
+      "br": 13.3,
+      "reason": "not sold in the shop (killstreak or missile-test copy)"
+    },
+    {
+      "unit_id": "f_16a_block_15_adf_germany_killstreak",
+      "name": "F-16A Block 15 ADF Fighting Falcon",
+      "br": 13.3,
+      "reason": "not sold in the shop (killstreak or missile-test copy)"
+    },
+    {
+      "unit_id": "f_16a_block_15_adf_italy_killstreak",
+      "name": "F-16A Block 15 ADF Fighting Falcon",
+      "br": 13.3,
+      "reason": "not sold in the shop (killstreak or missile-test copy)"
+    },
+    {
+      "unit_id": "f_16a_block_15_adf_killstreak",
+      "name": "F-16A Block 15 ADF Fighting Falcon",
+      "br": 13.3,
+      "reason": "not sold in the shop (killstreak or missile-test copy)"
+    },
+    {
+      "unit_id": "f_16a_block_15_adf_sweden_killstreak",
+      "name": "F-16A Block 15 ADF Fighting Falcon",
+      "br": 13.3,
+      "reason": "not sold in the shop (killstreak or missile-test copy)"
+    },
+    {
+      "unit_id": "f_16a_block_20_mlu_killstreak",
+      "name": "F-16A Block 20 MLU Fighting Falcon",
+      "br": 13.3,
+      "reason": "not sold in the shop (killstreak or missile-test copy)"
+    },
+    {
+      "unit_id": "f_16c_block_50_missile_test",
+      "name": "F-16CM Block 50 Fighting Falcon",
+      "br": 12.7,
+      "reason": "not sold in the shop (killstreak or missile-test copy)"
+    },
+    {
+      "unit_id": "f_16d_block_40_barak_2_killstreak",
+      "name": "F-16D Block 40 Barak II",
+      "br": 12.7,
+      "reason": "not sold in the shop (killstreak or missile-test copy)"
+    },
+    {
+      "unit_id": "f_16d_block_40_barak_2_missile_test",
+      "name": "F-16D Block 40 Barak II",
+      "br": 12.7,
+      "reason": "not sold in the shop (killstreak or missile-test copy)"
+    },
+    {
+      "unit_id": "f_2a_killstreak",
+      "name": "F-2A Viper Zero",
+      "br": 13.7,
+      "reason": "not sold in the shop (killstreak or missile-test copy)"
+    },
+    {
+      "unit_id": "h145m",
+      "name": "H145M",
+      "br": 12.7,
+      "reason": "helicopter (the model is fixed-wing only)"
+    },
+    {
+      "unit_id": "j_10a_killstreak",
+      "name": "J-10A Vigorous Dragon",
+      "br": 13.7,
+      "reason": "not sold in the shop (killstreak or missile-test copy)"
+    },
+    {
+      "unit_id": "ka_52",
+      "name": "Ka-52",
+      "br": 12.0,
+      "reason": "helicopter (the model is fixed-wing only)"
+    },
+    {
+      "unit_id": "mi_28nm",
+      "name": "Mi-28NM",
+      "br": 13.0,
+      "reason": "helicopter (the model is fixed-wing only)"
+    },
+    {
+      "unit_id": "mig_29smt_9_19_killstreak",
+      "name": "MiG-29SMT (9-19)",
+      "br": 13.3,
+      "reason": "not sold in the shop (killstreak or missile-test copy)"
+    },
+    {
+      "unit_id": "mig_29smt_9_19_missile_test",
+      "name": "MiG-29SMT (9-19)",
+      "br": 12.7,
+      "reason": "not sold in the shop (killstreak or missile-test copy)"
+    },
+    {
+      "unit_id": "mirage_2000_5f_missile_test",
+      "name": "Mirage 2000-5F",
+      "br": 12.3,
+      "reason": "not sold in the shop (killstreak or missile-test copy)"
+    },
+    {
+      "unit_id": "saab_jas39c_south_africa_missile_test",
+      "name": "JAS39C Gripen",
+      "br": 12.7,
+      "reason": "not sold in the shop (killstreak or missile-test copy)"
+    },
+    {
+      "unit_id": "tiger_hac_france",
+      "name": "EC-665 Tiger HAC",
+      "br": 12.7,
+      "reason": "helicopter (the model is fixed-wing only)"
+    },
+    {
+      "unit_id": "tiger_had_block2_france",
+      "name": "EC-665 Tiger HAD Block 2",
+      "br": 12.7,
+      "reason": "helicopter (the model is fixed-wing only)"
+    },
+    {
+      "unit_id": "tiger_uht",
+      "name": "EC-665 Tiger UHT",
+      "br": 12.7,
+      "reason": "helicopter (the model is fixed-wing only)"
+    },
+    {
+      "unit_id": "z_10me",
+      "name": "Z-10ME",
+      "br": 13.0,
+      "reason": "helicopter (the model is fixed-wing only)"
+    }
+  ]
+}
