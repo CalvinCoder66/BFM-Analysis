@@ -184,8 +184,11 @@ export function casAtTas(f: Flight, tas: number): number {
   return f.curve.find((p) => p.tas === tas)?.cas ?? tas;
 }
 
-/** Energy retention: who has more airspeed left after the turn from the merge, as flown. */
+/**
+ * Energy retention: who has more energy left after the turn from the merge, as flown. Energy is
+ * compared as airspeed at the merge height, so height gained in an inclined turn counts.
+ */
 export function energyVerdict(m: Matchup): Verdict {
-  const speed = (r: SideResult) => r.flown.timeline.at(-1)?.cas ?? 0;
+  const speed = (r: SideResult) => r.flown.timeline.at(-1)?.energyCas ?? 0;
   return compareMetric(speed(m.attacker), speed(m.defender), true);
 }

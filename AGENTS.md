@@ -123,12 +123,15 @@ and get a portal URL.
   only) caps both instructor-on and instructor-off.
 - Scenario inputs: altitude, fuel, loadout, limiter (instructor/off), optional pilot G (smooth
   flying; null = yank to the limiter), turn-plane inclination θ.
-- Turn rate is the circle average in the turn plane: ω = g·√(n² − cos²θ) / V (level turn when θ = 0).
-  `turnRateExtremes` gives the top/bottom of an inclined turn (± g·sin θ / V).
+- Point-performance turn rate is the circle average in the turn plane at constant speed:
+  ω = g·√(n² − cos²θ) / V (level turn when θ = 0).
 - Outputs per speed: lift-limited and available G, ITR, STR (thrust = drag), radii, Ps at 1 g and
   at max G; plus stall / corner / placard speeds and Ps contours for E-M diagrams.
-- `timeline.ts` integrates a sustained hard turn from the merge (dV/dt = g·Ps / V, altitude held)
-  for the turn timeline and turn-circle views.
+- `timeline.ts` integrates a sustained hard turn from the merge for the turn timeline,
+  turn-circle and energy results. The turn starts level at the bottom of its plane, and gravity
+  acts round it: dV/dt = g·Ps / V − g·sin θ·sin φ and V·dφ/dt = g·√(n² − cos²θ) − g·sin θ·cos φ
+  (φ = angle turned). Altitude follows the plane (held when θ = 0) and the air is evaluated at it.
+  Energy is compared as `energyCas`, the speed at the merge height with the same total energy.
 - Tables are interpolated linearly and clamped at the edges (`interpolate.ts`).
 
 The matchup layer computes two flights per side: `pull` (to the limiter, used for 1-circle /

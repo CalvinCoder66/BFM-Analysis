@@ -46,9 +46,12 @@ describe('StatsPanel', () => {
     );
   });
 
-  it('shows top- and bottom-of-plane rates only when a jet turns in an inclined plane', () => {
+  it('shows the loop round an inclined plane only when a jet turns in one', () => {
     const sections = [
-      { title: 'Plane', metrics: [M.flownRateAtMerge, M.topOfPlane, M.bottomOfPlane] },
+      {
+        title: 'Plane',
+        metrics: [M.flownRateAtMerge, M.bottomOfPlane, M.topOfPlane, M.speedOverTop],
+      },
     ];
     const { unmount } = renderPanel(computeMatchup(testScenario()), sections, []);
     expect(screen.queryByRole('rowheader', { name: 'Over the top of the plane' })).toBeNull();
@@ -59,13 +62,15 @@ describe('StatsPanel', () => {
       sections,
       [],
     );
-    // Gravity adds g/V over the top and takes it away at the bottom.
-    expect(cellNumber('Over the top of the plane', 0)).toBeGreaterThan(
-      cellNumber('Turn rate at merge', 0),
-    );
+    // Gravity takes g/V away at the bottom (the merge) and adds it over the top, where the
+    // climb has also cost speed below the 800 km/h merge.
     expect(cellNumber('At the bottom of the plane', 0)).toBeLessThan(
       cellNumber('Turn rate at merge', 0),
     );
+    expect(cellNumber('Over the top of the plane', 0)).toBeGreaterThan(
+      cellNumber('At the bottom of the plane', 0),
+    );
+    expect(cellNumber('Speed over the top', 0)).toBeLessThan(800);
   });
 
   it('does not highlight anything in a mirror matchup', () => {

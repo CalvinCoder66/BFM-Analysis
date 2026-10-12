@@ -23,6 +23,8 @@ export interface TrackPoint {
   /** Total heading change since the merge, degrees. */
   turned: number;
   cas: number;
+  /** Altitude, m (changes only in an inclined turn plane). */
+  altitude: number;
   g: number;
 }
 
@@ -33,7 +35,15 @@ export function mergeTracks(m: Matchup, type: FightType): Record<Side, TrackPoin
   const place = (
     points: TimelinePoint[],
     transform: (p: TimelinePoint) => Pick<TrackPoint, 'x' | 'y' | 'heading'>,
-  ) => points.map((p) => ({ t: p.t, cas: p.cas, g: p.g, turned: p.heading, ...transform(p) }));
+  ) =>
+    points.map((p) => ({
+      t: p.t,
+      cas: p.cas,
+      altitude: p.altitude,
+      g: p.g,
+      turned: p.heading,
+      ...transform(p),
+    }));
 
   // Timelines are in a local frame: entry heading +y, turning right (towards +x).
   const attacker = place(flight('attacker').timeline, (p) => ({

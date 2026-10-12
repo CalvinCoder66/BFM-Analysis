@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
-import { formatSpeed, type SpeedUnit } from '../../shared/format';
+import { formatClimb, formatSpeed, type SpeedUnit } from '../../shared/format';
 import { type Matchup, SIDES, type Side } from '../comparison/matchup';
+import { anyInclined } from '../comparison/metrics';
 import {
   type FightType,
   mergeTracks,
@@ -39,6 +40,8 @@ export function TurnCircles({
   const unitSize = bounds.width / 100;
   const scale = scaleBarLength(bounds.width);
   const duration = tracks.attacker.at(-1)?.t ?? 0;
+  const inclined = anyInclined(matchup);
+  const entryAltitude = tracks.attacker[0]?.altitude ?? 0;
 
   return (
     <div className="flex h-full flex-col gap-2">
@@ -46,7 +49,8 @@ export function TurnCircles({
         {fightType === 'one-circle'
           ? '1-circle: defender turns away, both pull to the limiter'
           : '2-circle: both turn towards each other, flown as set'}{' '}
-        · top-down, {duration.toFixed(0)} s from the merge · dot every {TICK_EVERY_S} s
+        · {inclined ? 'drawn flat in each turn plane' : 'top-down'}, {duration.toFixed(0)} s from
+        the merge · dot every {TICK_EVERY_S} s
       </p>
 
       <svg
@@ -129,7 +133,9 @@ export function TurnCircles({
           return (
             <li key={side} className="font-mono" style={{ color: SIDE_COLOURS[side] }}>
               {matchup[side].aircraft.name}: turned {Math.round(last.turned)}° · ends at{' '}
-              {formatSpeed(last.cas, unit)} · pulling {last.g.toFixed(1)} g
+              {formatSpeed(last.cas, unit)}
+              {inclined && ` · ${formatClimb(last.altitude - entryAltitude)}`} · pulling{' '}
+              {last.g.toFixed(1)} g
             </li>
           );
         })}
