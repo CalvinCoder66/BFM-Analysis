@@ -129,6 +129,8 @@ We'll only add a FastAPI service if a feature needs a server. Examples are compa
 
 - The full product plan and phased roadmap live in [docs/PROJECT-PLAN.md](docs/PROJECT-PLAN.md).
 - Terms used throughout the project are defined in [docs/GLOSSARY.md](docs/GLOSSARY.md).
+- What in-game test flights have shown about the datamine is tracked in
+  [docs/FINDINGS.md](docs/FINDINGS.md).
 - AI agent guidance (Amp, Claude Code, Copilot, Cursor, Codex) is generated from `.rulesync/` by [rulesync](https://github.com/dyoshikawa/rulesync). Edit `.rulesync/rules/overview.md`, then run `mise run rules:sync`. CI fails if the generated files are out of date.
 
 ## Credits
