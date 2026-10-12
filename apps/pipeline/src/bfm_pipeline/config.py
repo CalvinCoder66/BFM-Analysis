@@ -12,6 +12,8 @@ CACHE_DIR = REPO_ROOT / '.cache' / 'datamine'
 #: Intermediate output that is useful to look at but not committed.
 SCRATCH_DIR = REPO_ROOT / '.cache' / 'out'
 DATA_DIR = REPO_ROOT / 'data'
+#: Committed in-game validation flights (raw telemetry logs and their metadata).
+FLIGHTS_DIR = PIPELINE_DIR / 'validation' / 'flights'
 
 
 class SourceConfig(BaseModel):

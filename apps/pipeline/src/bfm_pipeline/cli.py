@@ -7,12 +7,14 @@ from typing import Annotated
 import typer
 
 from .blkx import get_path
-from .config import CACHE_DIR, DATA_DIR, SCRATCH_DIR, load_config
+from .config import CACHE_DIR, DATA_DIR, FLIGHTS_DIR, SCRATCH_DIR, load_config
 from .datamine import Datamine
 from .extract import extract_all
 from .fetch import Checkout, DatamineError, fetch, open_checkout
 from .report import write_extraction, write_roster
 from .roster import build_roster
+from .telemetry.analysis import analyse_run, load_run, summarise
+from .telemetry.recorder import DEFAULT_URL, RunMetadata, TelemetryUnavailable, record
 
 app = typer.Typer(no_args_is_help=True, help='War Thunder datamine pipeline for BFM Analysis.')
 
@@ -101,3 +103,67 @@ def inspect(
     except KeyError as error:
         typer.secho(f'error: {error.args[0]}', fg='red', err=True)
         raise typer.Exit(1) from error
+
+
+CARDS = ('A', 'B', 'C', 'D', 'E')
+
+
+@app.command('record')
+def record_command(
+    aircraft: Annotated[str, typer.Option(help='Datamine unit id of the aircraft you fly.')],
+    card: Annotated[str, typer.Option(help='Test card: A, B, C, D or E.')],
+    run: Annotated[int, typer.Option(help='Run number (fly each card three times).')],
+    duration: Annotated[float | None, typer.Option(help='Seconds; default until Ctrl+C.')] = None,
+    start_fuel_kg: Annotated[float | None, typer.Option(help='Fuel at the start.')] = None,
+    loadout: Annotated[str, typer.Option()] = 'clean',
+    map_name: Annotated[str | None, typer.Option('--map')] = None,
+    notes: Annotated[str, typer.Option()] = '',
+    game_version: Annotated[str | None, typer.Option(help='Default: pinned datamine ref.')] = None,
+    url: Annotated[str, typer.Option()] = DEFAULT_URL,
+    out: Annotated[Path, typer.Option(help='Root folder for flight logs.')] = FLIGHTS_DIR,
+) -> None:
+    """Record an in-game test flight from War Thunder's telemetry (localhost:8111)."""
+    if card.upper() not in CARDS:
+        raise typer.BadParameter(f'card must be one of {", ".join(CARDS)}')
+    meta = RunMetadata(
+        aircraft=aircraft,
+        card=card.upper(),
+        run=run,
+        game_version=game_version or load_config().source.ref,
+        loadout=loadout,
+        start_fuel_kg=start_fuel_kg,
+        map=map_name,
+        notes=notes,
+        url=url,
+    )
+    typer.echo('Recording. Fly the card, then press Ctrl+C (or wait for --duration).')
+    try:
+        path, samples = record(meta, out, duration_s=duration)
+    except (TelemetryUnavailable, FileExistsError) as error:
+        typer.secho(f'error: {error}', fg='red', err=True)
+        raise typer.Exit(1) from error
+    typer.echo(f'wrote {samples} samples to {path}')
+
+
+@app.command()
+def analyse(
+    logs: Annotated[list[Path], typer.Argument(help='Flight logs (*.jsonl.gz) for one card.')],
+) -> None:
+    """Analyse recorded flights: steady segments, peak pull, Ps, with spread across runs."""
+    peaks: list[float] = []
+    for log in logs:
+        result = analyse_run(load_run(log))
+        summary_path = log.with_name(log.name.removesuffix('.jsonl.gz') + '.summary.json')
+        summary_path.write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
+        peak = result['peak_pull']
+        typer.echo(
+            f'{log.name}: {result["samples"]} samples at {result["effective_hz"]} Hz '
+            f'({result["duplicates"]} repeats), {len(result["steady_segments"])} steady segments, '
+            f'peak {peak["ny"]:.1f} g at {peak["ias_kmh"]:.0f} km/h IAS'
+        )
+        if not result['has_heading']:
+            typer.secho('  warning: no heading in the log, so no measured turn rate', fg='yellow')
+        peaks.append(peak['ny'])
+    if len(peaks) > 1:
+        stats = summarise(peaks)
+        typer.echo(f'peak G over {len(peaks)} runs: {stats["mean"]:.2f} ± {stats["spread"]:.2f}')

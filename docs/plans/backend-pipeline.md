@@ -1,6 +1,6 @@
 # Plan: datamine pipeline (backend phase A)
 
-**Status:** final, agreed 2026-10-12 · **Owner:** Calvin · **Progress:** milestone 1 in review, milestone 2 built
+**Status:** final, agreed 2026-10-12 · **Owner:** Calvin · **Progress:** milestone 1 in review, milestones 2–3 built
 
 ## Goal
 

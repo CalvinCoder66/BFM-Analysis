@@ -63,7 +63,8 @@ BFM-Analysis/
 │   ├── e2e/                   # Playwright tests against the production build
 │   └── pipeline/              # Python 3.14 (uv) datamine pipeline: fetch, roster, extraction
 │       ├── pipeline.toml      # Pinned datamine tag + roster rules (BR range, classes, deny)
-│       └── src/bfm_pipeline/  # fetch, datamine, roster, extract/ (per-concern extractors), report, cli
+│       ├── validation/        # protocol.md (test cards) + flights/ (committed telemetry logs)
+│       └── src/bfm_pipeline/  # fetch, datamine, roster, extract/, telemetry/ (recorder, analysis), report, cli
 ├── data/
 │   ├── aircraft/              # Version-controlled aircraft performance JSON (one file per aircraft)
 │   ├── roster.json            # Generated: in-scope aircraft (RB 12.0–14.7, unique flight models)
@@ -109,6 +110,8 @@ mise run test:e2e           # Playwright e2e tests (builds + previews the app)
 mise run data:roster        # Rebuild data/roster.json + data/ROSTER.md from the pinned datamine
 mise run data:extract       # Extract fields for every roster aircraft → data/EXTRACTION.md
 mise run data:inspect -- f_16c_block_50 --path Mass   # Print raw datamine fields
+mise run data:record -- --aircraft f_16c_block_50 --card A --run 1   # Record an in-game test flight
+mise run data:analyse -- <logs>   # Analyse recorded flights (see apps/pipeline/validation/protocol.md)
 
 # AI config
 mise run rules:sync         # Regenerate AI config files from .rulesync/
