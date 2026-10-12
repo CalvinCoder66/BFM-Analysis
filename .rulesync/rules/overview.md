@@ -73,6 +73,7 @@ BFM-Analysis/
 ├── docs/
 │   ├── PROJECT-PLAN.md        # Product plan, feature blueprint, phased roadmap
 │   ├── GLOSSARY.md            # Definitions of every domain and project term
+│   ├── FINDINGS.md            # In-game flight results vs. the datamine (what matches, what doesn't)
 │   └── plans/                 # Implementation plans (e.g. backend-pipeline.md)
 ├── .rulesync/                 # AI config source of truth → generates AGENTS.md, CLAUDE.md, etc.
 │   ├── rules/overview.md      # This file

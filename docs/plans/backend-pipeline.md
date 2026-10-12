@@ -252,6 +252,9 @@ data from milestone 3.
 
 ## Remaining unknowns (resolved during the milestones)
 
+Flight results so far, and every datamine value they confirmed or contradicted, are in
+[FINDINGS.md](../FINDINGS.md).
+
 - ~~Whether `CritOverload` is per wing or total~~ — Typhoon FGR.4 flights (October 2026): with the
   instructor on, the load held at maximum G was 0.98–1.04 × 2 × `CritOverload` across 12.9–15.6 t,
   so the G limit is that force divided by weight. To be confirmed on a second aircraft.
