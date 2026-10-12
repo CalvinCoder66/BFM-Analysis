@@ -93,12 +93,15 @@ def record(
         raise FileExistsError(f'{log_path} exists; use a new --run number')
     log_path.parent.mkdir(parents=True, exist_ok=True)
     meta = meta.model_copy(update={'recorded_at': datetime.now(UTC).isoformat(timespec='seconds')})
-    meta_path.write_text(meta.model_dump_json(indent=2) + '\n', encoding='utf-8')
+    meta_path.write_text(meta.model_dump_json(indent=2) + '\n', encoding='utf-8', newline='\n')
 
     start = clock()
     written = [0]
     # Ctrl+C ends the run; the log written so far is kept.
-    with gzip.open(log_path, 'wt', encoding='utf-8') as log, contextlib.suppress(KeyboardInterrupt):
+    with (
+        gzip.open(log_path, 'wt', encoding='utf-8', newline='\n') as log,
+        contextlib.suppress(KeyboardInterrupt),
+    ):
         _poll(meta, log, start, duration_s, should_stop, clock, sleep, written)
     return log_path, written[0]
 

@@ -66,8 +66,8 @@ def write_roster(roster: Roster, out_dir: Path) -> tuple[Path, Path]:
     out_dir.mkdir(parents=True, exist_ok=True)
     json_path = out_dir / 'roster.json'
     md_path = out_dir / 'ROSTER.md'
-    json_path.write_text(roster.model_dump_json(indent=2) + '\n', encoding='utf-8')
-    md_path.write_text(render_markdown(roster), encoding='utf-8')
+    json_path.write_text(roster.model_dump_json(indent=2) + '\n', encoding='utf-8', newline='\n')
+    md_path.write_text(render_markdown(roster), encoding='utf-8', newline='\n')
     return json_path, md_path
 
 
@@ -139,8 +139,8 @@ def write_extraction(extraction: Extraction, report_dir: Path, scratch_dir: Path
     report_dir.mkdir(parents=True, exist_ok=True)
     scratch_dir.mkdir(parents=True, exist_ok=True)
     (scratch_dir / 'extraction.json').write_text(
-        extraction.model_dump_json(indent=2) + '\n', encoding='utf-8'
+        extraction.model_dump_json(indent=2) + '\n', encoding='utf-8', newline='\n'
     )
     report = report_dir / 'EXTRACTION.md'
-    report.write_text(render_extraction_markdown(extraction), encoding='utf-8')
+    report.write_text(render_extraction_markdown(extraction), encoding='utf-8', newline='\n')
     return report

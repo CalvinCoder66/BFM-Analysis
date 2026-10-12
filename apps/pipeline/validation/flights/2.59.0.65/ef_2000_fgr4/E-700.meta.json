@@ -1,0 +1,14 @@
+{
+  "aircraft": "ef_2000_fgr4",
+  "card": "E",
+  "run": 700,
+  "game_version": "2.59.0.65",
+  "loadout": "clean",
+  "start_fuel_kg": null,
+  "map": "Western Europe",
+  "mode": "Realistic, instructor (mouse aim)",
+  "notes": "Military power (not afterburner), held max pull from 700 km/h IAS at about 3,000 m. Flown as card D by mistake and relabelled; telemetry unchanged.",
+  "recorded_at": "2026-10-12T20:55:42+00:00",
+  "url": "http://127.0.0.1:8111",
+  "target_hz": 20.0
+}

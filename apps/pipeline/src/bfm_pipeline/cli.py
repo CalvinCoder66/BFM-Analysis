@@ -157,7 +157,7 @@ def analyse(
     logs: Annotated[list[Path], typer.Argument(help='Flight logs (*.jsonl.gz) for one card.')],
 ) -> None:
     """Analyse recorded flights: steady segments, peak pull, Ps, with spread across runs."""
-    peaks: list[float] = []
+    peaks: dict[tuple[str, int], list[float]] = {}
     missing = [log for log in logs if not log.is_file()]
     if missing:
         for log in missing:
@@ -173,7 +173,7 @@ def analyse(
             raise typer.Exit(1) from error
         result = analyse_run(run)
         summary_path = log.with_name(log.name.removesuffix('.jsonl.gz') + '.summary.json')
-        summary_path.write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
+        summary_path.write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8', newline='\n')
         peak = result['peak_pull']
         typer.echo(
             f'{log.name}: {result["samples"]} samples at {result["effective_hz"]} Hz '
@@ -193,7 +193,15 @@ def analyse(
             )
         if result['fuel_capacity_kg'] is not None:
             typer.echo(f'  full-tank fuel in game (Mfuel0): {result["fuel_capacity_kg"]:,.0f} kg')
-        peaks.append(peak['ny'])
-    if len(peaks) > 1:
-        stats = summarise(peaks)
-        typer.echo(f'peak G over {len(peaks)} runs: {stats["mean"]:.2f} ± {stats["spread"]:.2f}')
+        if result['bleed']:
+            typer.echo(f'  {len(result["bleed"])} bleed points (Ps under load)')
+        # Repeats of one condition share a card and run hundreds (D-701, D-702 = 700 km/h).
+        peaks.setdefault((run.meta.card, run.meta.run // 100), []).append(peak['ny'])
+    for (card, hundreds), values in peaks.items():
+        if len(values) > 1:
+            stats = summarise(values)
+            label = f'{card}-{hundreds}xx' if hundreds else card
+            typer.echo(
+                f'peak G, {label} over {len(values)} runs: '
+                f'{stats["mean"]:.2f} ± {stats["spread"]:.2f}'
+            )

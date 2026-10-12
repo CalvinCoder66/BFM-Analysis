@@ -117,6 +117,24 @@ def test_heading_falls_back_to_the_map_vector() -> None:
     assert segment.thrust_N == pytest.approx(2 * 4404 * G0)
 
 
+def test_turn_rate_follows_the_map_track_not_the_nose() -> None:
+    # A 10°/s turn flown clockwise round a circle on the map, positions rounded as the game does.
+    # The nose leads the track by the angle of attack, which builds from 0 to 25° over the run,
+    # so the nose turns at 12.5°/s while the aircraft's path turns at 10°/s.
+    lines = []
+    for i in range(201):
+        t = i / 20
+        track = math.radians(350 + 10 * t)
+        x = map_heading_line(t, 350 + 10 * t + 2.5 * t)
+        x['player'] |= {'x': round(0.5 - 0.01 * math.cos(track), 6),
+                        'y': round(0.5 - 0.01 * math.sin(track), 6)}  # fmt: skip
+        lines.append(x)
+    samples = parse_samples(lines)[0]
+    assert samples[100].heading == pytest.approx(400.0, abs=0.2)  # track (40°), not nose (52.5°)
+    [segment] = steady_segments(samples)
+    assert segment.turn_rate_degs == pytest.approx(10.0, abs=0.02)
+
+
 def test_turn_rate_falls_back_to_kinematics_without_any_heading() -> None:
     lines = [map_heading_line(i / 20, 0.0) for i in range(201)]
     for x in lines:

@@ -4,12 +4,16 @@ Everything is derived from the raw log with simple, documented steps:
 
 - **Specific excess power** comes from energy height, hₑ = h + V²/2g. Ps = dhₑ/dt, so trading
   height for speed doesn't distort it.
-- **Turn rate** comes from the heading the game reports: the cockpit compass where the aircraft has
-  one, otherwise the player's heading vector on the map (`/map_obj.json`). It is unwrapped and
-  differentiated, so it doesn't depend on our own turn formulas. If no heading was logged, level
-  segments fall back to the kinematic rate ω = g·√(n² − 1) / V from the measured load factor and
-  speed, which holds for any aircraft in a level turn, and are labelled as such.
+- **Turn rate** comes from the direction the aircraft is travelling: its track across the map
+  (`/map_obj.json` position), unwrapped and differentiated, so it doesn't depend on our own turn
+  formulas. The nose heading (the map's heading vector or a cockpit compass) is only a fallback:
+  in a hard turn the nose points inside the track by about the angle of attack, so while the angle
+  of attack is building it overstates the turn rate (by up to 20% in the first Typhoon pulls).
+  If no heading was logged at all, level segments fall back to the kinematic rate
+  ω = g·√(n² − 1) / V from the measured load factor and speed, and are labelled as such.
 - **Engine thrust** is logged by the game per engine (`thrust N, kgs`) and summed.
+- **Bleed under load** (card E) is Ps at every half second of the pull, with the load factor,
+  angle of attack and turn rate at that moment.
 - **Rates** (dV/dt, dh/dt, Ps, turn rate) are least-squares slopes over a short centred window,
   which smooths telemetry jitter without lagging the signal.
 """
@@ -18,7 +22,7 @@ import gzip
 import json
 import math
 import statistics
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
 
@@ -48,7 +52,7 @@ class Sample:
     ny: float
     aoa: float | None
     fuel: float | None
-    heading: float | None  # degrees, unwrapped
+    heading: float | None  # degrees, unwrapped; track where the log has map positions
     #: Total engine thrust the game reports, newtons (None if not logged).
     thrust_N: float | None = None
 
@@ -74,7 +78,7 @@ class Run:
         return (len(self.samples) - 1) / (self.samples[-1].t - self.samples[0].t)
 
 
-def _heading(line: dict[str, Any]) -> float | None:
+def _nose_heading(line: dict[str, Any]) -> float | None:
     indicators = line.get('indicators') or {}
     for key in HEADING_KEYS:
         if isinstance(indicators.get(key), int | float):
@@ -92,12 +96,69 @@ def _thrust(state: dict[str, Any]) -> float | None:
     return sum(float(v) for v in engines) * G0 if engines else None
 
 
+def _map_position(line: dict[str, Any]) -> tuple[float, float] | None:
+    player = line.get('player') or {}
+    x, y = player.get('x'), player.get('y')
+    if isinstance(x, int | float) and isinstance(y, int | float):
+        return float(x), float(y)
+    return None
+
+
+def _track_headings(
+    ts: list[float], positions: list[tuple[float, float] | None], half_window_s: float = 0.25
+) -> list[float | None]:
+    """Direction of travel at each sample, from the map positions either side of it.
+
+    The window is kept symmetric (the same number of samples each side), so on a steady turn the
+    chord is parallel to the track at the centre sample; only the very first and last samples use a
+    one-sided difference.
+    """
+    headings: list[float | None] = []
+    for i, t in enumerate(ts):
+        lo = hi = i
+        while (
+            lo > 0
+            and hi < len(ts) - 1
+            and t - ts[lo - 1] <= half_window_s
+            and ts[hi + 1] - t <= half_window_s
+        ):
+            lo, hi = lo - 1, hi + 1
+        if lo == hi:  # first or last sample
+            lo, hi = max(i - 1, 0), min(i + 1, len(ts) - 1)
+        first, last = positions[lo], positions[hi]
+        if positions[i] is None or first is None or last is None or first == last:
+            headings.append(None)
+            continue
+        # Map y grows southwards, so north is −y.
+        headings.append(math.degrees(math.atan2(last[0] - first[0], first[1] - last[1])) % 360)
+    return headings
+
+
+def _unwrap(headings: list[float | None]) -> list[float | None]:
+    out: list[float | None] = []
+    offset = 0.0
+    last: float | None = None
+    for heading in headings:
+        if heading is None:
+            out.append(None)
+            continue
+        if last is not None:
+            step = heading - last
+            if step > 180:
+                offset -= 360
+            elif step < -180:
+                offset += 360
+        last = heading
+        out.append(heading + offset)
+    return out
+
+
 def parse_samples(lines: list[dict[str, Any]]) -> tuple[list[Sample], int, int]:
     samples: list[Sample] = []
     duplicates = errors = 0
     previous_state: dict[str, Any] | None = None
-    unwrap = 0.0
-    last_raw_heading: float | None = None
+    positions: list[tuple[float, float] | None] = []
+    noses: list[float | None] = []
     for line in lines:
         state = line.get('state')
         if not state or not state.get('valid', False):
@@ -107,17 +168,8 @@ def parse_samples(lines: list[dict[str, Any]]) -> tuple[list[Sample], int, int]:
             duplicates += 1
             continue
         previous_state = state
-        raw_heading = _heading(line)
-        heading = None
-        if raw_heading is not None:
-            if last_raw_heading is not None:
-                step = raw_heading - last_raw_heading
-                if step > 180:
-                    unwrap -= 360
-                elif step < -180:
-                    unwrap += 360
-            last_raw_heading = raw_heading
-            heading = raw_heading + unwrap
+        positions.append(_map_position(line))
+        noses.append(_nose_heading(line))
         samples.append(
             Sample(
                 t=float(line['t']),
@@ -128,10 +180,14 @@ def parse_samples(lines: list[dict[str, Any]]) -> tuple[list[Sample], int, int]:
                 ny=float(state[STATE_KEYS['ny']]),
                 aoa=state.get(STATE_KEYS['aoa']),
                 fuel=state.get(STATE_KEYS['fuel']),
-                heading=heading,
+                heading=None,
                 thrust_N=_thrust(state),
             )
         )
+    tracks = _track_headings([s.t for s in samples], positions)
+    raw = tracks if all(h is not None for h in tracks) else noses
+    headings = _unwrap(raw)
+    samples = [replace(s, heading=h) for s, h in zip(samples, headings, strict=True)]
     return samples, duplicates, errors
 
 
@@ -283,6 +339,28 @@ def acceleration_points(samples: list[Sample], ny_tolerance: float = 0.15) -> li
     return points
 
 
+def bleed_points(
+    samples: list[Sample], min_ny: float = 2.0, every_s: float = 0.5
+) -> list[dict[str, Any]]:
+    """Card E: Ps under load against speed, one point per half second of the pull."""
+    points: list[dict[str, Any]] = []
+    last_t = -math.inf
+    for i, s in enumerate(samples):
+        if s.ny < min_ny or s.t - last_t < every_s:
+            continue
+        ps = specific_excess_power(samples, i)
+        if ps is None:
+            continue
+        turn = rate(samples, i, 'heading', window_s=0.6)
+        points.append({
+            't': s.t, 'ias_kmh': s.ias * 3.6, 'mach': s.mach, 'h_m': s.h, 'ny': s.ny,
+            'aoa_deg': s.aoa, 'ps': ps, 'turn_rate_degs': abs(turn) if turn is not None else None,
+            'thrust_N': s.thrust_N, 'fuel_kg': s.fuel,
+        })  # fmt: skip
+        last_t = s.t
+    return points
+
+
 def peak_pull(samples: list[Sample]) -> dict[str, float | None]:
     """Card D: the highest load factor in the log, with the speed and turn rate at that moment."""
     i = max(range(len(samples)), key=lambda k: samples[k].ny)
@@ -326,4 +404,5 @@ def analyse_run(run: Run) -> dict[str, Any]:
         ],
         'peak_pull': peak_pull(run.samples) if run.samples else None,
         'acceleration': acceleration_points(run.samples),
+        'bleed': bleed_points(run.samples),
     }

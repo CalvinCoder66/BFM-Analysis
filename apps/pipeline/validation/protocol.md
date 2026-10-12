@@ -21,11 +21,14 @@ analysis. HUD readings and eyeballed numbers don't count.
    mise run data:record -- --aircraft f_16c_block_50 --card A --run 1 --start-fuel-kg 3200 --map "Denmark"
    ```
 
-   Press Ctrl+C when the card is done (or pass `--duration 90`). The log goes to
+   Press Ctrl+C when the card is done. Don't copy `--duration 10` from a smoke test: it stops the
+   recording after 10 s, which is far too short for cards A, B and C. The log goes to
    `apps/pipeline/validation/flights/<game version>/<aircraft>/<card>-<run>.jsonl.gz`, with a
    `.meta.json` alongside. Commit both.
 
-Fly each card **three times** (`--run 1`, `2`, `3`). Then analyse them together:
+Fly each card **three times** (`--run 1`, `2`, `3`). Where a card is flown at several speeds, put
+the speed in the run number: `--run 501`, `502`, `503` for three runs at 500 km/h. The analysis
+groups repeats by card and run hundreds. Then analyse them together:
 
 ```bash
 mise run data:analyse -- apps/pipeline/validation/flights/2.59.0.65/f_16c_block_50/A-*.jsonl.gz
@@ -69,7 +72,11 @@ steady; the analysis finds the steady parts itself, so small wobbles are fine.
 
 - **Start:** 3,000 m, 900 km/h IAS, full afterburner.
 - **Fly:** hold maximum pull, level, for **10 s**.
-- **Gives:** Ps at maximum G against speed: how fast the jet bleeds energy.
+- **Gives:** Ps at maximum G against speed: how fast the jet bleeds energy. The analysis lists it
+  every half second as `bleed` in the summary.
+
+Throttle in the log: 100% is full military power and 110% is afterburner. Note in `--notes` if a
+card was flown at military power.
 
 ## Troubleshooting
 
