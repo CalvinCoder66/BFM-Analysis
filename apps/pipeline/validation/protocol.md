@@ -21,6 +21,10 @@ analysis. HUD readings and eyeballed numbers don't count.
    mise run data:record -- --aircraft f_16c_block_50 --card A --run 1 --start-fuel-kg 3200 --map "Denmark"
    ```
 
+   The log is filed under the pinned datamine version, since the telemetry doesn't report the
+   game's. If the game has been patched and the datamine hasn't caught up, pass
+   `--game-version <version>` (shown on the game's login screen).
+
    Press Ctrl+C when the card is done. Don't copy `--duration 10` from a smoke test: it stops the
    recording after 10 s, which is far too short for cards A, B and C. The log goes to
    `apps/pipeline/validation/flights/<game version>/<aircraft>/<card>-<run>.jsonl.gz`, with a

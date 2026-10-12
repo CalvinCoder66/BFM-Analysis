@@ -49,6 +49,19 @@ def component_fm(name: str) -> dict:
             }
         },
         'Mass': {'EmptyMass': 9031.0, 'MaxFuelMass0': 6398.0, 'OilMass': 30.0},
+        'EngineType0': {
+            'Main': {
+                'Type': 'Jet',
+                'AfterburnerBoost': 1.25,
+                'ThrustMax': {
+                    'Altitude_0': 0.0, 'Velocity_0': 0.0, 'ThrustMax0': 7030.0,
+                    'ThrustMaxCoeff_0_0': 1.0, 'ThrAftMaxCoeff_0_0': 1.0,
+                },
+                'Mode4': {'Throttle': 1.0, 'ThrustMult': 1.0},
+                'Mode5': {'Throttle': 1.1, 'ThrustMult': 1.32},
+            }
+        },
+        'Engine0': {'Type': 0},
         'Passport': {'name': name},
     }  # fmt: skip
 

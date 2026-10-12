@@ -153,7 +153,7 @@ pass the validation below before we drop the mock badge for that aircraft.
 | `gLimits.wingBreakLoad_N` | `WingPlane.Strength.CritOverload[1]` | Need to confirm whether the force is per wing or total; today's mock doubles it | **Low until validated** |
 | `gLimits` instructor (reworked) | FM `Instructor` (`overloadMult`, `overloadTimeRange`, `critMult`), overridden by the unit's `instructorOverloadMult` / `instructorCritMult` | Model two limits: a **steady** limit and a short **peak** the instructor allows briefly. That covers the 12–13 g you see in RB. Keep the raw arrays | **Low until validated** |
 | `gLimits.fcs` | Autopilot `Pitch.RateMaxLoadFactorMax[1]` (and `AoaLimits`) when the unit's `autopilotImpl` is `FBW` | Direct (F-16: 10). The AoA limit feeds into CLmax | Medium |
-| `thrust` table | `EngineType0.Main.ThrustMax` grid (altitude × TAS, `ThrustMax0`, `ThrustMaxCoeff_i_j`, `ThrAftMaxCoeff_i_j`), afterburner `ThrustMult` / `AfterburnerBoost`, engine count | Work out the game's formula, convert TAS to Mach with ISA, resample to our Mach grid | **Low until validated** |
+| `thrust` table | `EngineType0.Main.ThrustMax` grid (altitude × TAS, `ThrustMax0`, `ThrustMaxCoeff_i_j`, `ThrAftMaxCoeff_i_j`), afterburner `ThrustMult` / `AfterburnerBoost`, engine count | Game formula confirmed within 1% against the Typhoon's logged thrust (FINDINGS.md); TAS→Mach with ISA, resampled to our Mach grid. Built in milestone 4 | Medium (one aircraft) |
 | `aero.clMax(M)` | Wing `FlapsPolar0` (`ClCritHigh`, `alphaCritHigh`, `lineClCoeff`, `Cl0`) with the `MachCritN`/`MachMaxN`/`MultLimitN` modifiers, capped by the FBW/instructor AoA limit | Evaluate the polar at each Mach on our grid | **Low until validated** |
 | `aero.cd0(M)` | `CdMin` of wing, fuselage and tail polars weighted by area, plus fixed drag items, with Mach modifiers | Evaluate at each Mach | **Low until validated** |
 | `aero.k(M)` | Wing `OswaldsEfficiencyNumber`, span and area (k = 1 / (π·e·AR)), with Mach modifiers | Evaluate at each Mach | Medium |
@@ -258,7 +258,7 @@ Flight results so far, and every datamine value they confirmed or contradicted, 
 - ~~Whether `CritOverload` is per wing or total~~ — Typhoon FGR.4 flights (October 2026): with the
   instructor on, the load held at maximum G was 0.98–1.04 × 2 × `CritOverload` across 12.9–15.6 t,
   so the G limit is that force divided by weight. To be confirmed on a second aircraft.
-- The exact thrust formula (cards A and B).
+- ~~The exact thrust formula~~ — confirmed within 1% on the Typhoon (milestone 4).
 - How the instructor's `overloadMult` and `overloadTimeRange` map to the steady and peak G (card D).
   The Typhoon (0.90 / 1.05) held about 1.0 × the wing-break load for up to 8 s, matching neither
   fraction; an aircraft with different values is needed.
