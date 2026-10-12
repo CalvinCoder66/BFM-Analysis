@@ -86,7 +86,7 @@ A single-page app with no server: everything is calculated in the browser from v
 | Layer | Tech |
 | --- | --- |
 | UI | React 19, TypeScript, Tailwind CSS 4, built with Vite |
-| Charts | Plotly.js (basic bundle) and a hand-drawn SVG for the turn circles |
+| Charts | Plotly.js (basic bundle) and a hand-drawn 3D SVG (orthographic, drag to orbit) for the turn circles |
 | Data | One JSON file per aircraft in `data/aircraft/`, validated with zod when the app loads |
 | Tests | Vitest + Testing Library for units and components; Playwright for end-to-end |
 | Tooling | mise (versions and tasks), Bun workspaces, Biome (lint and format), GitHub Actions |
