@@ -162,8 +162,14 @@ export function backWalls(box: Box, camera: Camera) {
   };
 }
 
-/** Gridded floor and back walls, and the box's twelve edges. */
-export function boxFrame(box: Box, camera: Camera): { grid: Segment[]; edges: Segment[] } {
+/**
+ * Gridded floor and back walls, the box's twelve edges, and the lattice of lines through the
+ * inside that divides it into grid-step cubes (leaving out lines already on the walls or edges).
+ */
+export function boxFrame(
+  box: Box,
+  camera: Camera,
+): { grid: Segment[]; edges: Segment[]; lattice: Segment[] } {
   const { spacing, minX, maxX, minY, maxY, minZ, maxZ } = box;
   const wall = backWalls(box, camera);
   const xs = steps(minX, maxX, spacing);
@@ -219,7 +225,45 @@ export function boxFrame(box: Box, camera: Camera): { grid: Segment[]; edges: Se
       .filter((b) => [a.x === b.x, a.y === b.y, a.z === b.z].filter(Boolean).length === 2)
       .map((b): Segment => [a, b]),
   );
-  return { grid, edges };
+  const isEnd = (v: number, min: number, max: number) => v === min || v === max;
+  const lattice: Segment[] = [
+    // Along east–west, at each (north, height)
+    ...ys.flatMap((y) =>
+      zs
+        .filter((z) => z !== minZ && y !== wall.y && !(isEnd(y, minY, maxY) && z === maxZ))
+        .map(
+          (z): Segment => [
+            { x: minX, y, z },
+            { x: maxX, y, z },
+          ],
+        ),
+    ),
+    // Along north–south, at each (east, height)
+    ...xs.flatMap((x) =>
+      zs
+        .filter((z) => z !== minZ && x !== wall.x && !(isEnd(x, minX, maxX) && z === maxZ))
+        .map(
+          (z): Segment => [
+            { x, y: minY, z },
+            { x, y: maxY, z },
+          ],
+        ),
+    ),
+    // Vertical, at each (east, north)
+    ...xs.flatMap((x) =>
+      ys
+        .filter(
+          (y) => x !== wall.x && y !== wall.y && !(isEnd(x, minX, maxX) && isEnd(y, minY, maxY)),
+        )
+        .map(
+          (y): Segment => [
+            { x, y, z: minZ },
+            { x, y, z: maxZ },
+          ],
+        ),
+    ),
+  ];
+  return { grid, edges, lattice };
 }
 
 export interface AxisTicks {

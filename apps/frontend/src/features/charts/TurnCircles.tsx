@@ -138,6 +138,10 @@ export function TurnCircles({
         onPointerCancel={endDrag}
       >
         {/* Box round the fight: gridded floor and back walls, edges, and distance scales */}
+        {/* Lines through the box mark out grid-step cubes, faintly so the tracks stand out */}
+        <g stroke="#1e293b" strokeOpacity={0.55} strokeWidth={u * 0.12}>
+          {frame.lattice.map(segment)}
+        </g>
         <g stroke="#1e293b" strokeWidth={u * 0.2}>
           {frame.grid.map(segment)}
         </g>

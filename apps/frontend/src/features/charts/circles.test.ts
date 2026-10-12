@@ -159,6 +159,18 @@ describe('box frame and distance scales', () => {
     expect(edges).toHaveLength(12);
   });
 
+  it('divides the inside of the box into grid-step cubes without redrawing walls or edges', () => {
+    const { lattice } = boxFrame(box, VIEWS['3d']);
+    // 4 × 4 grid positions per direction. Leaving out the floor and the back wall leaves 3 × 3,
+    // and one of those is a front edge of the box: 8 lines in each of the three directions.
+    expect(lattice).toHaveLength(24);
+    for (const [a, b] of lattice) {
+      expect(a.z === 0 && b.z === 0).toBe(false);
+      expect(a.x === -1_000 && b.x === -1_000).toBe(false);
+      expect(a.y === 1_000 && b.y === 1_000).toBe(false);
+    }
+  });
+
   it('scales east and north along the near floor edges and height up a back corner', () => {
     const axes = axisTicks(box, VIEWS['3d']);
     const values = (axis: string) => axes.find((a) => a.axis === axis)?.ticks.map((t) => t.value);
