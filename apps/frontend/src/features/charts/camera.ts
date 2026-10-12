@@ -97,3 +97,35 @@ export function zoomAt(
     },
   };
 }
+
+/**
+ * Moves the point the camera looks at by a drag of (dx, dy) screen metres (y up), so the scene
+ * follows the cursor, keeping it within ±`limits` of the scene centre on each axis.
+ */
+export function panBy(
+  framing: Framing,
+  camera: Camera,
+  dx: number,
+  dy: number,
+  limits: Point3,
+): Framing {
+  const { right, up } = screenAxes(camera);
+  const { pan } = framing;
+  return {
+    ...framing,
+    pan: clampPan(
+      {
+        x: pan.x - right.x * dx - up.x * dy,
+        y: pan.y - right.y * dx - up.y * dy,
+        z: pan.z - right.z * dx - up.z * dy,
+      },
+      limits,
+    ),
+  };
+}
+
+/** Holds a pan within ±limits on each axis. */
+export function clampPan(pan: Point3, limits: Point3): Point3 {
+  const clamp = (v: number, limit: number) => Math.min(Math.max(v, -limit), limit);
+  return { x: clamp(pan.x, limits.x), y: clamp(pan.y, limits.y), z: clamp(pan.z, limits.z) };
+}

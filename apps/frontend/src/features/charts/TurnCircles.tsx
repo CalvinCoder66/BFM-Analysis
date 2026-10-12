@@ -3,18 +3,22 @@ import { formatClimb, formatDistance, formatSpeed, type SpeedUnit } from '../../
 import { Segmented } from '../../shared/ui/Segmented';
 import { type Matchup, SIDES, type Side } from '../comparison/matchup';
 import { anyInclined } from '../comparison/metrics';
+import { panLimits } from './box';
 import {
   type Camera,
+  clampPan,
   DEFAULT_FRAMING,
   type Framing,
   orbit,
   type Point3,
+  panBy,
   project,
   VIEWS,
   ZOOM_LIMITS,
   zoomAt,
 } from './camera';
-import { buildScene, type FightType, mergeTracks } from './circles';
+import { buildScene, type FightType, mergeTracks, type TrackPoint } from './circles';
+import { placeLabels } from './labels';
 import { SceneBox } from './SceneBox';
 import { SIDE_COLOURS } from './series';
 
@@ -46,12 +50,14 @@ export function TurnCircles({
   const [camera, setCamera] = useState<Camera>(VIEWS['3d']);
   const [framing, setFraming] = useState<Framing>(DEFAULT_FRAMING);
   const [showBox, setShowBox] = useState(true);
-  const drag = useRef<{ x: number; y: number } | null>(null);
+  /** Left-drag orbits the camera; right-drag (or Shift-drag) pans where it looks. */
+  const drag = useRef<{ x: number; y: number; mode: 'orbit' | 'pan' } | null>(null);
   const container = useRef<HTMLDivElement>(null);
   const svg = useRef<SVGSVGElement>(null);
-  // The wheel listener is attached once, so it reads the latest camera from here.
-  const cameraRef = useRef(camera);
-  cameraRef.current = camera;
+  const limits = useMemo(() => panLimits(scene.box), [scene]);
+  // The wheel listener is attached once, so it reads the latest camera and limits from here.
+  const latest = useRef({ camera, limits });
+  latest.current = { camera, limits };
   const [fullscreen, setFullscreen] = useState(false);
   useEffect(() => {
     const update = () => setFullscreen(document.fullscreenElement === container.current);
@@ -71,7 +77,10 @@ export function TurnCircles({
         y: -(e.clientY - rect.top - rect.height / 2) * metresPerPixel,
       };
       const factor = Math.exp(-e.deltaY * ZOOM_PER_WHEEL_PIXEL);
-      setFraming((f) => zoomAt(f, cameraRef.current, factor, offset));
+      setFraming((f) => {
+        const zoomed = zoomAt(f, latest.current.camera, factor, offset);
+        return { ...zoomed, pan: clampPan(zoomed.pan, latest.current.limits) };
+      });
     };
     element.addEventListener('wheel', onWheel, { passive: false });
     return () => element.removeEventListener('wheel', onWheel);
@@ -94,6 +103,67 @@ export function TurnCircles({
   // One view unit: line widths and text scale with it, so they keep their size on screen.
   const u = size / 100;
   const [mx, my] = screen({ x: 0, y: 0, z: 0 });
+  const ticks = Object.fromEntries(
+    SIDES.map((side) => [
+      side,
+      tracks[side].filter(
+        (p, i) => i > 0 && Math.abs(p.t / TICK_EVERY_S - Math.round(p.t / TICK_EVERY_S)) < 1e-6,
+      ),
+    ]),
+  ) as Record<Side, TrackPoint[]>;
+  // Place the merge and time labels clear of each other, the tracks and the markers.
+  const labelStyle = (id: string) =>
+    id === 'merge'
+      ? { colour: '#facc15', size: u * 3, opacity: 1 }
+      : {
+          colour: SIDE_COLOURS[id.startsWith('attacker') ? 'attacker' : 'defender'],
+          size: u * 2.6,
+          opacity: 0.85,
+        };
+  const labels = placeLabels(
+    [
+      { id: 'merge', anchor: { x: mx, y: my }, text: 'Merge', size: u * 3, gap: u * 2 },
+      ...SIDES.flatMap((side) =>
+        ticks[side].map((p) => {
+          const [x, y] = screen(p);
+          return {
+            id: `${side}-${p.t}`,
+            anchor: { x, y },
+            text: `${p.t.toFixed(0)}s`,
+            size: u * 2.6,
+            gap: u * 1.2,
+          };
+        }),
+      ),
+    ],
+    {
+      points: SIDES.flatMap((side) => tracks[side].map(screen)),
+      dots: [
+        { x: mx, y: my, r: u * 1.5 },
+        ...SIDES.flatMap((side) =>
+          ticks[side].map((p) => {
+            const [x, y] = screen(p);
+            return { x, y, r: u * 0.7 };
+          }),
+        ),
+        // Arrowheads at the ends of the tracks.
+        ...SIDES.flatMap((side) => {
+          const end = tracks[side].at(-1);
+          if (!end) return [];
+          const [x, y] = screen(end);
+          return [{ x, y, r: u * 2.2 }];
+        }),
+      ],
+      view: { x: cx - size / 2, y: cy - size / 2, width: size, height: size },
+      padding: u * 0.3,
+    },
+  );
+  const labelTexts = new Map([
+    ['merge', 'Merge'],
+    ...SIDES.flatMap((side) =>
+      ticks[side].map((p) => [`${side}-${p.t}`, `${p.t.toFixed(0)}s`] as [string, string]),
+    ),
+  ]);
   const zoomBy = (factor: number) => setFraming((f) => zoomAt(f, camera, factor));
 
   const choose = (next: View) => {
@@ -101,16 +171,27 @@ export function TurnCircles({
     if (next !== 'free') setCamera(VIEWS[next]);
   };
   const onPointerDown = (e: PointerEvent<SVGSVGElement>) => {
-    if (e.button !== 0) return;
-    drag.current = { x: e.clientX, y: e.clientY };
+    const pan = e.button === 2 || (e.button === 0 && e.shiftKey);
+    if (e.button !== 0 && !pan) return;
+    drag.current = { x: e.clientX, y: e.clientY, mode: pan ? 'pan' : 'orbit' };
     e.currentTarget.setPointerCapture?.(e.pointerId);
   };
   const onPointerMove = (e: PointerEvent<SVGSVGElement>) => {
     const last = drag.current;
     if (!last) return;
-    setCamera((c) => orbit(c, e.clientX - last.x, e.clientY - last.y));
-    setView('free');
-    drag.current = { x: e.clientX, y: e.clientY };
+    const dx = e.clientX - last.x;
+    const dy = e.clientY - last.y;
+    if (last.mode === 'orbit') {
+      setCamera((c) => orbit(c, dx, dy));
+      setView('free');
+    } else {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const pixels = Math.min(rect.width, rect.height);
+      const metresPerPixel = pixels > 0 ? size / pixels : 0;
+      // Screen y runs down; the camera's up runs up.
+      setFraming((f) => panBy(f, camera, dx * metresPerPixel, -dy * metresPerPixel, limits));
+    }
+    drag.current = { ...last, x: e.clientX, y: e.clientY };
   };
   const endDrag = () => {
     drag.current = null;
@@ -127,8 +208,8 @@ export function TurnCircles({
             ? '1-circle: defender turns away, both pull to the limiter'
             : '2-circle: both turn towards each other, flown as set'}{' '}
           · {duration.toFixed(0)} s from the merge · dot every {TICK_EVERY_S} s · grid{' '}
-          {formatDistance(box.spacing)} · heights from the merge · drag to look around, scroll to
-          zoom
+          {formatDistance(box.spacing)} · heights from the merge · drag to look around, right-drag
+          to move, scroll to zoom
         </p>
         <Segmented legend="View" value={view} options={VIEW_OPTIONS} onChange={choose} />
         <fieldset className="flex items-center gap-1">
@@ -160,7 +241,7 @@ export function TurnCircles({
             disabled={framing === DEFAULT_FRAMING}
             onClick={() => setFraming(DEFAULT_FRAMING)}
           >
-            Reset zoom
+            Reset view
           </button>
         </fieldset>
         <label className="flex items-center gap-1.5 text-xs text-slate-400">
@@ -199,6 +280,7 @@ export function TurnCircles({
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
+        onContextMenu={(e) => e.preventDefault()}
       >
         {showBox && <SceneBox box={box} camera={camera} toScreen={screen} unit={u} />}
 
@@ -207,16 +289,10 @@ export function TurnCircles({
           <line x1={mx - u * 1.5} y1={my} x2={mx + u * 1.5} y2={my} />
           <line x1={mx} y1={my - u * 1.5} x2={mx} y2={my + u * 1.5} />
         </g>
-        <text x={mx + u * 2} y={my - u} fill="#facc15" fontSize={u * 3}>
-          Merge
-        </text>
 
         {SIDES.map((side: Side) => {
           const points = tracks[side];
           const colour = SIDE_COLOURS[side];
-          const ticks = points.filter(
-            (p, i) => i > 0 && Math.abs(p.t / TICK_EVERY_S - Math.round(p.t / TICK_EVERY_S)) < 1e-6,
-          );
           const climbs = points.some((p) => Math.abs(p.z) > 1);
           return (
             <g key={side} data-side={side}>
@@ -230,7 +306,7 @@ export function TurnCircles({
                     strokeOpacity={0.25}
                     strokeWidth={u * 0.3}
                   />
-                  {ticks.map((p) => {
+                  {ticks[side].map((p) => {
                     const [x1, y1] = screen(p);
                     const [x2, y2] = screen(ground(p));
                     return (
@@ -257,31 +333,40 @@ export function TurnCircles({
                 strokeWidth={u * 0.5}
                 strokeLinejoin="round"
               />
-              {ticks.map((p) => {
+              {ticks[side].map((p) => {
                 const [x, y] = screen(p);
                 return (
-                  <g key={p.t}>
-                    <circle cx={x} cy={y} r={u * 0.7} fill={colour}>
-                      <title>
-                        {`${matchup[side].aircraft.name}, ${p.t.toFixed(0)} s: ${formatSpeed(p.cas, unit)}, ${formatClimb(p.z)}, ${p.g.toFixed(1)} g`}
-                      </title>
-                    </circle>
-                    <text
-                      x={x + u * 1.2}
-                      y={y - u * 1.2}
-                      fill={colour}
-                      fontSize={u * 2.6}
-                      opacity={0.85}
-                    >
-                      {p.t.toFixed(0)}s
-                    </text>
-                  </g>
+                  <circle key={p.t} cx={x} cy={y} r={u * 0.7} fill={colour}>
+                    <title>
+                      {`${matchup[side].aircraft.name}, ${p.t.toFixed(0)} s: ${formatSpeed(p.cas, unit)}, ${formatClimb(p.z)}, ${p.g.toFixed(1)} g`}
+                    </title>
+                  </circle>
                 );
               })}
               <EndMarker points={points.slice(-2).map(screen)} size={u * 2.2} colour={colour} />
             </g>
           );
         })}
+
+        {/* Labels go on top of every track, placed clear of each other and the markers */}
+        <g data-labels="">
+          {labels.map(({ id, x, y, height }) => {
+            const { colour, size: fontSize, opacity } = labelStyle(id);
+            return (
+              <text
+                key={id}
+                x={x}
+                y={y + height / 2}
+                dominantBaseline="central"
+                fill={colour}
+                fontSize={fontSize}
+                opacity={opacity}
+              >
+                {labelTexts.get(id)}
+              </text>
+            );
+          })}
+        </g>
       </svg>
 
       <ul className="grid gap-1 px-2 text-xs sm:grid-cols-2">

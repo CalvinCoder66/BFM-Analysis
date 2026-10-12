@@ -57,7 +57,7 @@ describe('ChartArea', () => {
     expect(screen.getByLabelText('Side')).not.toBeChecked();
   });
 
-  it('zooms the turn circles and can hide the box round them', async () => {
+  it('zooms and moves the turn circles and can hide the box round them', async () => {
     render(<ChartArea {...props} charts={['circles']} />);
     const svg = screen.getByRole('img', { name: 'Turn circles, 2-circle fight' });
     const width = () => Number(svg.getAttribute('viewBox')?.split(' ')[2]);
@@ -68,8 +68,23 @@ describe('ChartArea', () => {
     // Each press zooms 1.5×, so the view shows 1 / 2.25 as much.
     expect(width()).toBeCloseTo(start / 2.25, 6);
     expect(screen.getByText('×2.3')).toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: 'Reset zoom' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Reset view' }));
     expect(width()).toBeCloseTo(start, 6);
+
+    // Right-drag moves where the camera looks: the view shifts, its size stays.
+    const origin = () => svg.getAttribute('viewBox')?.split(' ').slice(0, 2).join(' ');
+    const centred = origin();
+    // jsdom has no layout; give the drawing a size so pixels convert to metres.
+    svg.getBoundingClientRect = () => new DOMRect(0, 0, 500, 500);
+    fireEvent.pointerDown(svg, { button: 2, clientX: 100, clientY: 100 });
+    fireEvent.pointerMove(svg, { button: 2, clientX: 140, clientY: 120 });
+    fireEvent.pointerUp(svg);
+    expect(origin()).not.toBe(centred);
+    expect(origin()).not.toMatch(/NaN/);
+    expect(width()).toBeCloseTo(start, 6);
+    expect(fireEvent.contextMenu(svg)).toBe(false);
+    await userEvent.click(screen.getByRole('button', { name: 'Reset view' }));
+    expect(origin()).toBe(centred);
 
     expect(svg.querySelectorAll('[data-axis]')).toHaveLength(3);
     await userEvent.click(screen.getByLabelText('Box'));

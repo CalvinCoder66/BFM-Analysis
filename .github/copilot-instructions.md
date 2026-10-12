@@ -46,7 +46,7 @@ BFM-Analysis/
 │   │   │   │   ├── scenario/   # Sidebar: altitude, merge speed, unit, per-side aircraft/loadout/fuel
 │   │   │   │   ├── comparison/ # matchup.ts (pure: computeMatchup, verdicts), metrics.ts, StatsPanel
 │   │   │   │   ├── focus/      # focus.ts (focus views: charts + stats), Hotbar, FocusView
-│   │   │   │   └── charts/     # series.ts (Plotly figures), circles.ts (3D merge tracks), camera.ts (orbit, zoom), box.ts + SceneBox (3D box), ChartArea
+│   │   │   │   └── charts/     # series.ts (Plotly figures), circles.ts (3D merge tracks), camera.ts (orbit, zoom, pan), box.ts + SceneBox (3D box), labels.ts (label placement), ChartArea
 │   │   │   ├── physics/       # Pure TS: ISA atmosphere, interpolation, performance model, turn timeline
 │   │   │   ├── shared/        # format.ts (display units), ui/ (Slider, Segmented)
 │   │   │   └── test/          # Vitest setup + shared scenario fixtures (sideConfig, testScenario)
