@@ -4,8 +4,12 @@ Everything is derived from the raw log with simple, documented steps:
 
 - **Specific excess power** comes from energy height, hₑ = h + V²/2g. Ps = dhₑ/dt, so trading
   height for speed doesn't distort it.
-- **Turn rate** comes from the heading the game reports. It is unwrapped and differentiated, so it
-  doesn't depend on our own turn formulas.
+- **Turn rate** comes from the heading the game reports: the cockpit compass where the aircraft has
+  one, otherwise the player's heading vector on the map (`/map_obj.json`). It is unwrapped and
+  differentiated, so it doesn't depend on our own turn formulas. If no heading was logged, level
+  segments fall back to the kinematic rate ω = g·√(n² − 1) / V from the measured load factor and
+  speed, which holds for any aircraft in a level turn, and are labelled as such.
+- **Engine thrust** is logged by the game per engine (`thrust N, kgs`) and summed.
 - **Rates** (dV/dt, dh/dt, Ps, turn rate) are least-squares slopes over a short centred window,
   which smooths telemetry jitter without lagging the signal.
 """
@@ -45,6 +49,8 @@ class Sample:
     aoa: float | None
     fuel: float | None
     heading: float | None  # degrees, unwrapped
+    #: Total engine thrust the game reports, newtons (None if not logged).
+    thrust_N: float | None = None
 
     @property
     def energy_height(self) -> float:
@@ -58,6 +64,8 @@ class Run:
     #: Samples dropped because the game had not refreshed since the previous one.
     duplicates: int
     errors: int
+    #: The game's full-tank fuel mass (`Mfuel0`), the in-game check on the datamine value.
+    fuel_capacity_kg: float | None = None
 
     @property
     def effective_hz(self) -> float:
@@ -66,11 +74,22 @@ class Run:
         return (len(self.samples) - 1) / (self.samples[-1].t - self.samples[0].t)
 
 
-def _heading(indicators: dict[str, Any]) -> float | None:
+def _heading(line: dict[str, Any]) -> float | None:
+    indicators = line.get('indicators') or {}
     for key in HEADING_KEYS:
         if isinstance(indicators.get(key), int | float):
             return float(indicators[key])
+    player = line.get('player') or {}
+    dx, dy = player.get('dx'), player.get('dy')
+    if isinstance(dx, int | float) and isinstance(dy, int | float) and (dx or dy):
+        # Map y grows southwards, so north is −y.
+        return math.degrees(math.atan2(dx, -dy)) % 360
     return None
+
+
+def _thrust(state: dict[str, Any]) -> float | None:
+    engines = [v for k, v in state.items() if k.startswith('thrust ') and k.endswith(', kgs')]
+    return sum(float(v) for v in engines) * G0 if engines else None
 
 
 def parse_samples(lines: list[dict[str, Any]]) -> tuple[list[Sample], int, int]:
@@ -88,7 +107,7 @@ def parse_samples(lines: list[dict[str, Any]]) -> tuple[list[Sample], int, int]:
             duplicates += 1
             continue
         previous_state = state
-        raw_heading = _heading(line.get('indicators') or {})
+        raw_heading = _heading(line)
         heading = None
         if raw_heading is not None:
             if last_raw_heading is not None:
@@ -110,6 +129,7 @@ def parse_samples(lines: list[dict[str, Any]]) -> tuple[list[Sample], int, int]:
                 aoa=state.get(STATE_KEYS['aoa']),
                 fuel=state.get(STATE_KEYS['fuel']),
                 heading=heading,
+                thrust_N=_thrust(state),
             )
         )
     return samples, duplicates, errors
@@ -121,7 +141,17 @@ def load_run(log_path: Path) -> Run:
     with gzip.open(log_path, 'rt', encoding='utf-8') as f:
         lines = [json.loads(line) for line in f if line.strip()]
     samples, duplicates, errors = parse_samples(lines)
-    return Run(meta=meta, samples=samples, duplicates=duplicates, errors=errors)
+    capacity = next(
+        (float(x['state']['Mfuel0, kg']) for x in lines if 'Mfuel0, kg' in (x.get('state') or {})),
+        None,
+    )
+    return Run(
+        meta=meta,
+        samples=samples,
+        duplicates=duplicates,
+        errors=errors,
+        fuel_capacity_kg=capacity,
+    )
 
 
 def slope(ts: list[float], ys: list[float]) -> float:
@@ -161,8 +191,10 @@ class Segment:
     h_m: float
     ny: float
     ps: float
-    #: From the reported heading; None if the log has no heading.
+    #: Measured from heading, or kinematic g·√(n² − 1)/V when the log has no heading.
     turn_rate_degs: float | None
+    turn_rate_source: str = 'heading'
+    thrust_N: float | None = None
 
     @property
     def duration(self) -> float:
@@ -185,6 +217,17 @@ def steady_segments(
             part = [samples[i] for i in run]
             ts = [s.t for s in part]
             headings = [s.heading for s in part]
+            ny = statistics.fmean(s.ny for s in part)
+            tas = statistics.fmean(s.tas for s in part)
+            thrusts = [s.thrust_N for s in part]
+            if all(h is not None for h in headings):
+                turn_rate = abs(slope(ts, [float(h) for h in headings if h is not None]))
+                source = 'heading'
+            elif ny > 1:
+                turn_rate = math.degrees(G0 * math.sqrt(ny * ny - 1) / tas)
+                source = 'kinematic (level turn)'
+            else:
+                turn_rate, source = 0.0, 'kinematic (level turn)'
             segments.append(
                 Segment(
                     start=part[0].t,
@@ -193,11 +236,13 @@ def steady_segments(
                     tas_kmh=statistics.fmean(s.tas for s in part) * 3.6,
                     mach=statistics.fmean(s.mach for s in part),
                     h_m=statistics.fmean(s.h for s in part),
-                    ny=statistics.fmean(s.ny for s in part),
+                    ny=ny,
                     ps=slope(ts, [s.energy_height for s in part]),
-                    turn_rate_degs=None
-                    if any(h is None for h in headings)
-                    else abs(slope(ts, [float(h) for h in headings if h is not None])),
+                    turn_rate_degs=turn_rate,
+                    turn_rate_source=source,
+                    thrust_N=None
+                    if any(t is None for t in thrusts)
+                    else statistics.fmean(float(t) for t in thrusts if t is not None),
                 )
             )
         run.clear()
@@ -220,11 +265,9 @@ def steady_segments(
     return segments
 
 
-def acceleration_points(
-    samples: list[Sample], ny_tolerance: float = 0.15
-) -> list[dict[str, float]]:
+def acceleration_points(samples: list[Sample], ny_tolerance: float = 0.15) -> list[dict[str, Any]]:
     """Card A: Ps at 1 g against speed, one point per second of level, wings-level flight."""
-    points: list[dict[str, float]] = []
+    points: list[dict[str, Any]] = []
     last_t = -math.inf
     for i, s in enumerate(samples):
         if abs(s.ny - 1.0) > ny_tolerance or s.t - last_t < 1.0:
@@ -232,7 +275,10 @@ def acceleration_points(
         ps = specific_excess_power(samples, i, window_s=2.0)
         if ps is None:
             continue
-        points.append({'t': s.t, 'tas_kmh': s.tas * 3.6, 'mach': s.mach, 'h_m': s.h, 'ps': ps})
+        points.append({
+            't': s.t, 'tas_kmh': s.tas * 3.6, 'mach': s.mach, 'h_m': s.h, 'ps': ps,
+            'thrust_N': s.thrust_N, 'fuel_kg': s.fuel,
+        })  # fmt: skip
         last_t = s.t
     return points
 
@@ -272,6 +318,8 @@ def analyse_run(run: Run) -> dict[str, Any]:
         'duplicates': run.duplicates,
         'errors': run.errors,
         'has_heading': all(s.heading is not None for s in run.samples),
+        'has_thrust': all(s.thrust_N is not None for s in run.samples),
+        'fuel_capacity_kg': run.fuel_capacity_kg,
         'steady_segments': [
             {**segment.__dict__, 'duration': segment.duration}
             for segment in steady_segments(run.samples)

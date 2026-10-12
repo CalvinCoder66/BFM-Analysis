@@ -96,6 +96,37 @@ def test_level_acceleration_gives_ps_equal_to_v_dv_dt_over_g() -> None:
     assert at_200['ps'] == pytest.approx(102.0, rel=0.01)
 
 
+def map_heading_line(t: float, heading_deg: float, ny: float = 6.0) -> dict:
+    """A sample from an aircraft with no cockpit compass: heading only on the map (north = −y)."""
+    x = line(t, 720.0, 1000.0, ny, 0.0)
+    x['indicators'] = {'valid': True, 'type': 'ef_2000_fgr4'}
+    rad = math.radians(heading_deg)
+    x['player'] = {'icon': 'Player', 'dx': math.sin(rad), 'dy': -math.cos(rad)}
+    x['state']['thrust 1, kgs'] = 4404
+    x['state']['thrust 2, kgs'] = 4404
+    return x
+
+
+def test_heading_falls_back_to_the_map_vector() -> None:
+    samples = parse_samples([map_heading_line(i / 20, (350 + 10 * i / 20)) for i in range(201)])[0]
+    assert samples[0].heading == pytest.approx(350)  # dx = sin, dy = −cos: north is up
+    [segment] = steady_segments(samples)
+    assert segment.turn_rate_source == 'heading'
+    assert segment.turn_rate_degs == pytest.approx(10.0, abs=1e-6)
+    # Two engines at 4,404 kgf each.
+    assert segment.thrust_N == pytest.approx(2 * 4404 * G0)
+
+
+def test_turn_rate_falls_back_to_kinematics_without_any_heading() -> None:
+    lines = [map_heading_line(i / 20, 0.0) for i in range(201)]
+    for x in lines:
+        del x['player']
+    [segment] = steady_segments(parse_samples(lines)[0])
+    # 720 km/h at 6 g: 16.62°/s, as in the compass test.
+    assert segment.turn_rate_source == 'kinematic (level turn)'
+    assert segment.turn_rate_degs == pytest.approx(16.62, abs=0.01)
+
+
 def test_drops_repeated_and_invalid_samples() -> None:
     lines, _ = steady_turn(seconds=1)
     lines.insert(5, dict(lines[4]))
@@ -123,6 +154,8 @@ def test_analyse_run_round_trips_through_a_log_file(tmp_path: Path) -> None:
     assert run.effective_hz == pytest.approx(20.0)
     result = analyse_run(run)
     assert result['has_heading'] is True
+    assert result['has_thrust'] is False
+    assert result['fuel_capacity_kg'] is None
     assert result['steady_segments'][0]['turn_rate_degs'] == pytest.approx(omega, abs=0.01)
     json.dumps(result)  # must be plain JSON
 
@@ -138,8 +171,15 @@ class FakeGame(BaseHTTPRequestHandler):
     valid = True
 
     def do_GET(self) -> None:
-        body = {'valid': self.valid, 'IAS, km/h': 800.0, 'TAS, km/h': 850.0, 'H, m': 1000.0,
-                'Ny': 1.0, 'M': 0.7, 'compass': 12.0}  # fmt: skip
+        if self.path == '/map_obj.json':
+            body: object = [
+                {'type': 'airfield', 'icon': 'none', 'sx': 0.1},
+                {'type': 'aircraft', 'icon': 'Player', 'x': 0.4, 'y': 0.6, 'dx': 0.0, 'dy': -1.0},
+                {'type': 'aircraft', 'icon': 'Fighter', 'x': 0.5, 'y': 0.5, 'dx': 1.0, 'dy': 0.0},
+            ]
+        else:
+            body = {'valid': self.valid, 'IAS, km/h': 800.0, 'TAS, km/h': 850.0, 'H, m': 1000.0,
+                    'Ny': 1.0, 'M': 0.7, 'compass': 12.0, 'Mfuel0, kg': 7110}  # fmt: skip
         payload = json.dumps(body).encode()
         self.send_response(200)
         self.send_header('Content-Type', 'application/json')
@@ -168,6 +208,10 @@ def test_records_raw_telemetry_with_metadata(fake_game: str, tmp_path: Path) -> 
         first = json.loads(f.readline())
     assert first['state']['IAS, km/h'] == 800.0
     assert first['indicators']['compass'] == 12.0
+    # Only the player's map entry is kept: it carries the heading vector.
+    assert first['player'] == {'type': 'aircraft', 'icon': 'Player', 'x': 0.4, 'y': 0.6,
+                               'dx': 0.0, 'dy': -1.0}  # fmt: skip
+    assert load_run(log).fuel_capacity_kg == 7110
     saved = RunMetadata.model_validate_json(log.with_name('C-1.meta.json').read_text())
     assert saved.recorded_at  # timestamped when recording started
     with pytest.raises(FileExistsError):

@@ -241,9 +241,9 @@ def extract_basic(fm: dict[str, Any], unit: dict[str, Any], label: str) -> Basic
         internal_fuel_kg=Sourced(
             value=float(_need(mass, fuel_key, label)),
             source=f'Mass.{fuel_key}',
-            confidence='medium',
-            note='Some values look high next to published figures (e.g. F-16C 6,398 kg); '
-            'to be checked against telemetry Mfuel0 on a full tank.',
+            confidence='high',
+            note="Matches the game's own full-tank mass (telemetry Mfuel0: 7,110 kg for the "
+            'Typhoon FGR.4), even where it is higher than published figures.',
         ),
         crit_overload_N=crit,
         wing_break_load_N=Sourced(

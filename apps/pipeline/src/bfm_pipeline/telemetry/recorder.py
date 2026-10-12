@@ -18,7 +18,9 @@ from typing import Any
 
 from pydantic import BaseModel
 
-DEFAULT_URL = 'http://localhost:8111'
+# 127.0.0.1 rather than localhost: on Windows, localhost tries IPv6 (::1) first and the game only
+# listens on IPv4, which costs about half a second per request and caps recording at ~1 Hz.
+DEFAULT_URL = 'http://127.0.0.1:8111'
 
 
 class TelemetryUnavailable(RuntimeError):
@@ -40,12 +42,27 @@ class RunMetadata(BaseModel):
     target_hz: float = 20.0
 
 
-def fetch_json(url: str, timeout: float = 0.5) -> dict[str, Any]:
+def fetch_json(url: str, timeout: float = 0.5) -> Any:
     try:
         with urllib.request.urlopen(url, timeout=timeout) as response:
             return json.loads(response.read().decode('utf-8'))
     except (urllib.error.URLError, TimeoutError, ConnectionError, json.JSONDecodeError) as error:
         raise TelemetryUnavailable(f'{url}: {error}') from error
+
+
+def player_map_object(url: str) -> dict[str, Any] | None:
+    """The player's entry from `/map_obj.json`: map position and heading vector (dx, dy).
+
+    Cockpit indicators don't include a compass on every aircraft, so this is the heading source
+    that always works. Only the player's entry is kept, to keep logs small.
+    """
+    try:
+        objects = fetch_json(f'{url}/map_obj.json')
+    except TelemetryUnavailable:
+        return None
+    if not isinstance(objects, list):
+        return None
+    return next((o for o in objects if isinstance(o, dict) and o.get('icon') == 'Player'), None)
 
 
 def run_paths(root: Path, meta: RunMetadata) -> tuple[Path, Path]:
@@ -105,6 +122,7 @@ def _poll(
                 'wall': time.time(),
                 'state': fetch_json(f'{meta.url}/state'),
                 'indicators': fetch_json(f'{meta.url}/indicators'),
+                'player': player_map_object(meta.url),
             }
         except TelemetryUnavailable as error:
             sample = {'t': round(tick - start, 4), 'wall': time.time(), 'error': str(error)}

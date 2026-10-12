@@ -13,8 +13,8 @@ analysis. HUD readings and eyeballed numbers don't count.
    fuel to the amount the card says and note it.
 3. **Map.** Use the same map for every run of a card. Air temperature affects density, and the
    analysis uses the altitude and speed the game reports.
-4. **Telemetry.** War Thunder serves it on `http://localhost:8111` while you are in a flight.
-   Recording runs on the same PC as the game.
+4. **Telemetry.** War Thunder serves it on `http://127.0.0.1:8111` while you are in a flight.
+   Recording runs on the same PC as the game (on Windows, run it from PowerShell, not WSL).
 5. **Start the recorder** after spawning, before the manoeuvre:
 
    ```bash
@@ -73,11 +73,19 @@ steady; the analysis finds the steady parts itself, so small wobbles are fine.
 
 ## Troubleshooting
 
+**Recording at only ~1 Hz on Windows.** `localhost` tries IPv6 first and the game only listens on
+IPv4, which adds about half a second to every request. The recorder uses `http://127.0.0.1:8111`
+by default; if you passed `--url http://localhost:8111`, drop it. `analyse` warns below 5 Hz.
+
+**No heading in the log.** Not every cockpit has a compass indicator, so the recorder also logs the
+player's heading vector from the map (`/map_obj.json`). If neither is available, turn rates fall
+back to g·√(n² − 1)/V from the measured load factor and speed, which is exact for a level turn.
+
 **`Connection refused` on `localhost:8111`.** Nothing is serving telemetry where the recorder is
 looking.
 
 1. Make sure War Thunder is running **and you have spawned into a flight**, then check from the
-   same terminal: `curl http://localhost:8111/state`. You should get JSON with `"valid": true`.
+   same terminal: `curl http://127.0.0.1:8111/state`. You should get JSON with `"valid": true`.
 2. **WSL with the game on Windows:** inside WSL 2, `localhost` is the Linux VM, not Windows, and
    the game only listens on Windows' own `localhost`. Either:
    - turn on mirrored networking: add the lines below to `%UserProfile%\.wslconfig` on Windows,

@@ -108,7 +108,7 @@ def inspect(
 CARDS = ('A', 'B', 'C', 'D', 'E')
 TELEMETRY_HINT = """Nothing is answering on that address. Check:
   - War Thunder is running on this machine and you have spawned into a flight;
-  - `curl http://localhost:8111/state` answers from this same terminal;
+  - `curl http://127.0.0.1:8111/state` answers from this same terminal;
   - on WSL with the game on Windows, localhost points at WSL, not Windows: enable mirrored
     networking or run the recorder from Windows (see validation/protocol.md, Troubleshooting)."""
 
@@ -127,7 +127,7 @@ def record_command(
     url: Annotated[str, typer.Option()] = DEFAULT_URL,
     out: Annotated[Path, typer.Option(help='Root folder for flight logs.')] = FLIGHTS_DIR,
 ) -> None:
-    """Record an in-game test flight from War Thunder's telemetry (localhost:8111)."""
+    """Record an in-game test flight from War Thunder's telemetry (127.0.0.1:8111)."""
     if card.upper() not in CARDS:
         raise typer.BadParameter(f'card must be one of {", ".join(CARDS)}')
     meta = RunMetadata(
@@ -180,8 +180,19 @@ def analyse(
             f'({result["duplicates"]} repeats), {len(result["steady_segments"])} steady segments, '
             f'peak {peak["ny"]:.1f} g at {peak["ias_kmh"]:.0f} km/h IAS'
         )
+        if result['effective_hz'] < 5:
+            typer.secho(
+                f'  warning: only {result["effective_hz"]} Hz; aim for 10–20 Hz '
+                '(use --url http://127.0.0.1:8111, not localhost, on Windows)',
+                fg='yellow',
+            )
         if not result['has_heading']:
-            typer.secho('  warning: no heading in the log, so no measured turn rate', fg='yellow')
+            typer.secho(
+                '  warning: no heading in the log; turn rates fall back to g·√(n² − 1)/V',
+                fg='yellow',
+            )
+        if result['fuel_capacity_kg'] is not None:
+            typer.echo(f'  full-tank fuel in game (Mfuel0): {result["fuel_capacity_kg"]:,.0f} kg')
         peaks.append(peak['ny'])
     if len(peaks) > 1:
         stats = summarise(peaks)
