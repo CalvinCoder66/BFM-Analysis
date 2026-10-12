@@ -74,6 +74,20 @@ test('turns the 3D turn circles by dragging and shows them full screen', async (
   await expect(track).not.toHaveAttribute('points', before ?? '');
   await expect(chartArea(page).getByLabel('3D')).not.toBeChecked();
 
+  // Scrolling over the drawing zooms it instead of scrolling the page.
+  const viewWidth = async () => Number((await circles.getAttribute('viewBox'))?.split(' ')[2]);
+  const wide = await viewWidth();
+  const scrollY = await page.evaluate(() => window.scrollY);
+  await page.mouse.wheel(0, -300);
+  await expect.poll(viewWidth).toBeLessThan(wide / 1.5);
+  expect(await page.evaluate(() => window.scrollY)).toBe(scrollY);
+  await chartArea(page).getByRole('button', { name: 'Reset zoom' }).click();
+  await expect.poll(viewWidth).toBeCloseTo(wide, 6);
+
+  await chartArea(page).getByLabel('Box').uncheck();
+  await expect(circles.locator('[data-box]')).toHaveCount(0);
+  await expect(circles.locator('polyline[data-track]')).toHaveCount(2);
+
   await chartArea(page).getByRole('button', { name: 'Full screen' }).click();
   await expect
     .poll(() => page.evaluate(() => document.fullscreenElement?.querySelector('svg')?.ariaLabel))

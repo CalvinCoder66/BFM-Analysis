@@ -46,7 +46,7 @@ BFM-Analysis/
 │   │   │   │   ├── scenario/   # Sidebar: altitude, merge speed, unit, per-side aircraft/loadout/fuel
 │   │   │   │   ├── comparison/ # matchup.ts (pure: computeMatchup, verdicts), metrics.ts, StatsPanel
 │   │   │   │   ├── focus/      # focus.ts (focus views: charts + stats), Hotbar, FocusView
-│   │   │   │   └── charts/     # series.ts (Plotly figures), circles.ts (3D merge geometry, orbit camera), ChartArea
+│   │   │   │   └── charts/     # series.ts (Plotly figures), circles.ts (3D merge tracks), camera.ts (orbit, zoom), box.ts + SceneBox (3D box), ChartArea
 │   │   │   ├── physics/       # Pure TS: ISA atmosphere, interpolation, performance model, turn timeline
 │   │   │   ├── shared/        # format.ts (display units), ui/ (Slider, Segmented)
 │   │   │   └── test/          # Vitest setup + shared scenario fixtures (sideConfig, testScenario)
@@ -197,6 +197,10 @@ Physics reference formulas (level turn, SI units):
   are generated into `.agents/skills/` (Amp) and each other tool's skills folder. Other `.amp/settings.json`
   keys (e.g. permissions) may be edited by hand — rulesync preserves them.
 - **British English** in user-facing copy (manoeuvre, behaviour, colour).
+- **Ship by default** — once a change passes `mise run check` and `mise run test` (and
+  `mise run test:e2e` for UI changes), commit it on a feature branch, push it and open a PR
+  without asking first; push follow-up work to the change's open PR. If that PR is already
+  merged, open a new one from the latest `main`. Never merge: the owner reviews and merges.
 
 ## Anti-Patterns
 
