@@ -48,13 +48,43 @@ test('fits the turn circles within the screen on an ultrawide', async ({ page })
   await page.goto('/');
   await focusTab(page, /^2-circle/).click();
   const circles = chartArea(page).getByRole('img', { name: 'Turn circles, 2-circle fight' });
-  await expect(circles.locator('polyline')).toHaveCount(2);
+  await expect(circles.locator('polyline[data-track]')).toHaveCount(2);
   // The square drawing is capped by height, not stretched to the full page width.
   const box = await circles.boundingBox();
   expect(box?.height ?? Number.POSITIVE_INFINITY).toBeLessThan(950);
   // Hotbar and chart fit above the fold.
   const chartBox = await chartArea(page).boundingBox();
   expect((chartBox?.y ?? 0) + (chartBox?.height ?? 0)).toBeLessThan(1440);
+});
+
+test('turns the 3D turn circles by dragging and shows them full screen', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/');
+  await focusTab(page, /^2-circle/).click();
+  const circles = chartArea(page).getByRole('img', { name: 'Turn circles, 2-circle fight' });
+  const track = circles.locator('polyline[data-track=attacker]');
+  const before = await track.getAttribute('points');
+
+  const box = await circles.boundingBox();
+  if (!box) throw new Error('turn circles not rendered');
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2 + 120, box.y + box.height / 2 + 40, { steps: 5 });
+  await page.mouse.up();
+  await expect(track).not.toHaveAttribute('points', before ?? '');
+  await expect(chartArea(page).getByLabel('3D')).not.toBeChecked();
+
+  await chartArea(page).getByRole('button', { name: 'Full screen' }).click();
+  await expect
+    .poll(() => page.evaluate(() => document.fullscreenElement?.querySelector('svg')?.ariaLabel))
+    .toBe('Turn circles, 2-circle fight');
+  // Only the turn circles are full screen: the stats and hotbar are not part of it.
+  expect(
+    await page.evaluate(() => document.fullscreenElement?.textContent?.includes('Best STR')),
+  ).toBe(false);
+  await page.getByRole('button', { name: 'Exit full screen' }).click();
+  await expect.poll(() => page.evaluate(() => document.fullscreenElement)).toBeNull();
+  expect(errors).toEqual([]);
 });
 
 test('drills into each fight with its own charts and stats', async ({ page }) => {
@@ -72,7 +102,7 @@ test('drills into each fight with its own charts and stats', async ({ page }) =>
       const picker = chartArea(page).getByRole('group', { name: 'Chart' });
       if ((await picker.count()) > 0) await picker.getByText(chart, { exact: true }).click();
       if (chart === 'Turn circles') {
-        await expect(chartArea(page).locator('svg[role=img] polyline')).toHaveCount(2);
+        await expect(chartArea(page).locator('svg[role=img] polyline[data-track]')).toHaveCount(2);
       } else {
         expect(
           await chartArea(page).locator('.scatterlayer .trace').count(),

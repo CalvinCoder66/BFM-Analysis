@@ -159,4 +159,14 @@ describe('energyVerdict', () => {
     expect(energyVerdict(smooth).winner).toBe('attacker');
     expect(energyVerdict(computeMatchup(scenario({ defender: f16 }))).winner).toBe('even');
   });
+
+  it('counts height gained in a loop, not just the airspeed left', () => {
+    const m = computeMatchup(scenario({ attacker: { ...f16, turnPlane_deg: 90 }, defender: f16 }));
+    const end = m.attacker.flown.timeline.at(-1);
+    const level = m.defender.flown.timeline.at(-1);
+    // 20 s in, the looping jet is climbing into its second loop: slower, but higher.
+    expect(end?.cas).toBeLessThan(level?.cas ?? 0);
+    expect(end?.altitude).toBeGreaterThan(1_000);
+    expect(energyVerdict(m).winner).toBe('attacker');
+  });
 });

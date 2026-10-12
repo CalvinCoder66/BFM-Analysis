@@ -19,7 +19,7 @@ Terms used in the dashboard, the code and the docs. Grouped by topic, alphabetic
 - **Instantaneous turn rate (ITR)**: the highest turn rate available right now, whatever the energy cost. Limited by lift at low speed and by the G limit at high speed.
 - **Lift-limited / G-limited**: below corner speed the wing cannot make enough lift to reach the G limit (lift-limited); above it, the G limiter or structure is the cap (G-limited).
 - **Sustained turn rate (STR)**: the highest turn rate the aircraft can hold without losing speed or altitude, where thrust equals drag (Ps = 0).
-- **Turn plane**: the plane the turn is flown in, set per side from 0° (level turn) to 90° (vertical loop). Gravity helps over the top and hurts at the bottom; the dashboard reports the circle average, ω = g·√(n² − cos²θ) / V, plus top and bottom rates when inclined.
+- **Turn plane**: the plane the turn is flown in, set per side from 0° (level turn) to 90° (vertical loop). The turn starts level at the bottom of the plane. Gravity slows the jet as it climbs and speeds it up in the dive, and helps the turn over the top and hurts it at the bottom. Point-performance charts report the circle average at constant speed, ω = g·√(n² − cos²θ) / V; the turn from the merge flies the loop with gravity, and the stats show the bottom and top rates and the speed over the top.
 - **Flight path angle**: the angle of the velocity vector above or below the horizon. In this project it is modelled as the turn-plane inclination.
 - **Turn radius**: the radius of the circle flown, r = V / ω. Smaller is tighter.
 - **Turn rate (ω)**: how fast the heading changes, in degrees per second. In a level turn ω = g·√(n² − 1) / V.
@@ -27,7 +27,7 @@ Terms used in the dashboard, the code and the docs. Grouped by topic, alphabetic
 ## Energy
 
 - **Bleed**: losing energy (speed) while turning, i.e. negative Ps.
-- **Energy retention**: how much speed an aircraft keeps through a turn. The Energy view compares airspeed left after the turn from the merge.
+- **Energy retention**: how much speed an aircraft keeps through a turn. The Energy view compares energy left after the turn from the merge, as the airspeed the jet would have at the merge height (plain airspeed in a level turn; height gained in an inclined turn counts too).
 - **Ps (specific excess power)**: the rate an aircraft gains or loses energy, Ps = V·(T − D) / W, in m/s. Positive means it can accelerate or climb; negative means it is bleeding energy. **Ps at 1 g** is acceleration in level flight; **Ps at max G** is the bleed rate in a hard turn.
 - **Ps contour**: a line on the E-M diagram joining points with the same Ps (e.g. −50 m/s).
 - **Specific energy**: energy per unit weight, height plus V² / 2g. Ps is its rate of change.
@@ -68,7 +68,7 @@ Terms used in the dashboard, the code and the docs. Grouped by topic, alphabetic
 - **E-M diagram (energy-manoeuvrability diagram)**: turn rate against airspeed, showing the max-turn boundary, the sustained (Ps = 0) line, Ps contours and constant-radius lines. Also called a **doghouse plot** after its shape.
 - **Hotbar**: the bar of four focus views (Summary, 1-circle, 2-circle, Energy). Each slot shows that view's winner.
 - **Rate advantage chart**: attacker minus defender turn rate at each speed.
-- **Turn circles**: a top-down, to-scale drawing of both aircraft's flight paths from the merge.
+- **Turn circles**: a to-scale 3D drawing of both aircraft's flight paths from the merge, each in its own turn plane. Drag to look around; Top and Side give flat views.
 - **Turn timeline**: heading turned and airspeed against time for the turn from the merge.
 
 ## Data

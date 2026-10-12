@@ -1,6 +1,6 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { testScenario } from '../../test/scenarios';
+import { sideConfig, testScenario } from '../../test/scenarios';
 import { computeMatchup } from '../comparison/matchup';
 import { ChartArea } from './ChartArea';
 import type { Figure } from './series';
@@ -25,8 +25,36 @@ describe('ChartArea', () => {
   it('draws turn circles as SVG for the given fight type', () => {
     render(<ChartArea {...props} charts={['circles', 'radius']} fightType="one-circle" />);
     const svg = screen.getByRole('img', { name: 'Turn circles, 1-circle fight' });
-    expect(svg.querySelectorAll('polyline')).toHaveLength(2);
+    expect(svg.querySelectorAll('polyline[data-track]')).toHaveLength(2);
     expect(screen.getByText(/F-16C Block 50: turned \d+°/)).toBeInTheDocument();
+  });
+
+  it('shows the turn circles from the top, the side, or wherever they are dragged', async () => {
+    const looping = computeMatchup(
+      testScenario({ attacker: sideConfig('f-16c', { turnPlane_deg: 90 }) }),
+    );
+    render(<ChartArea {...props} matchup={looping} charts={['circles']} />);
+    const svg = screen.getByRole('img', { name: 'Turn circles, 2-circle fight' });
+    const points = () => svg.querySelector('polyline[data-track=attacker]')?.getAttribute('points');
+    const spread = (axis: 0 | 1) => {
+      const values = (points() ?? '').split(' ').map((pair) => Number(pair.split(',')[axis]));
+      return Math.max(...values) - Math.min(...values);
+    };
+
+    // From above, a vertical loop is edge-on: a straight north–south line.
+    await userEvent.click(screen.getByLabelText('Top'));
+    expect(spread(0)).toBeCloseTo(0, 6);
+    // From the side it shows its full height.
+    await userEvent.click(screen.getByLabelText('Side'));
+    expect(spread(1)).toBeGreaterThan(500);
+
+    const side = points();
+    fireEvent.pointerDown(svg, { button: 0, clientX: 100, clientY: 100 });
+    fireEvent.pointerMove(svg, { clientX: 160, clientY: 130 });
+    fireEvent.pointerUp(svg);
+    expect(points()).not.toBe(side);
+    expect(points()).not.toMatch(/NaN/);
+    expect(screen.getByLabelText('Side')).not.toBeChecked();
   });
 
   it('offers only the charts it is given and switches between them', async () => {

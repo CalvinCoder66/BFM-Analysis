@@ -11,7 +11,6 @@ import {
   turnRadius,
   turnRate,
   turnRateAtPs,
-  turnRateExtremes,
 } from './performance';
 
 /**
@@ -146,12 +145,6 @@ describe('turn plane', () => {
     expect(turnRate(5, 200, Math.PI / 2)).toBeCloseTo((9.80665 * 5) / 200, 9);
     // 60° plane: cos²θ = 0.25.
     expect(turnRate(Math.SQRT2, 100, Math.PI / 3)).toBeCloseTo(0.12973, 5);
-  });
-
-  it('turns slower at the bottom of a loop and faster over the top', () => {
-    const { bottom, top } = turnRateExtremes(5, 200, Math.PI / 2);
-    expect(bottom).toBeCloseTo(0.196133, 6);
-    expect(top).toBeCloseTo(0.2942, 4);
   });
 
   it('raises turn rate but not sustained G in a vertical turn', () => {

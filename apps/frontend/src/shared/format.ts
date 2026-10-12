@@ -22,6 +22,11 @@ export function formatDistance(metres: number): string {
   return Number.isFinite(metres) ? `${Math.round(metres).toLocaleString('en-GB')} m` : '—';
 }
 
+/** Height change, signed: "+312 m", "−57 m". */
+export function formatClimb(metres: number): string {
+  return `${metres < 0 ? '−' : '+'}${formatDistance(Math.abs(metres))}`;
+}
+
 export function formatPs(ms: number): string {
   const rounded = Math.round(ms);
   return `${rounded > 0 ? '+' : ''}${rounded} m/s`;

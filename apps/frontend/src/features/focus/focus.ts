@@ -15,7 +15,7 @@ import {
   twoCircleVerdict,
   type Verdict,
 } from '../comparison/matchup';
-import { METRICS as M, type MetricSection } from '../comparison/metrics';
+import { anyInclined, METRICS as M, type MetricSection } from '../comparison/metrics';
 
 export type FocusId = 'summary' | 'one-circle' | 'two-circle' | 'energy';
 
@@ -46,7 +46,9 @@ export function fightResults(m: Matchup, scenario: Scenario, unit: SpeedUnit): F
   const two = twoCircleVerdict(m);
   const energy = energyVerdict(m);
   const both = (f: (r: SideResult) => string): [string, string] => [f(m.attacker), f(m.defender)];
-  const speedLeft = (r: SideResult) => formatSpeed(r.flown.timeline.at(-1)?.cas ?? 0, unit);
+  // Energy as speed at merge height, which is plain airspeed unless a jet climbs in its turn plane.
+  const inclined = anyInclined(m);
+  const speedLeft = (r: SideResult) => formatSpeed(r.flown.timeline.at(-1)?.energyCas ?? 0, unit);
   return [
     {
       focus: 'one-circle',
@@ -67,7 +69,12 @@ export function fightResults(m: Matchup, scenario: Scenario, unit: SpeedUnit): F
       label: 'Energy',
       verdict: energy,
       detail: `+${formatSpeed(energy.margin, unit)} after ${scenario.turnDuration_s} s`,
-      figures: [`Speed after ${scenario.turnDuration_s} s turning`, ...both(speedLeft)],
+      figures: [
+        inclined
+          ? `Energy after ${scenario.turnDuration_s} s, as speed at merge height`
+          : `Speed after ${scenario.turnDuration_s} s turning`,
+        ...both(speedLeft),
+      ],
     },
   ];
 }
@@ -80,17 +87,16 @@ const ALL_SECTIONS = (s: Scenario): MetricSection[] => [
       M.itrAtMerge,
       M.radiusAtMerge,
       M.flownRateAtMerge,
-      M.topOfPlane,
-      M.bottomOfPlane,
       M.strAtMerge,
       M.psFlown,
       M.psPull,
       M.ps1g,
     ],
   },
+  { title: 'Round the turn plane', metrics: [M.bottomOfPlane, M.topOfPlane, M.speedOverTop] },
   {
     title: `After ${s.turnDuration_s} s turning`,
-    metrics: [M.headingTurned, M.speedLeft, M.gAtEnd],
+    metrics: [M.headingTurned, M.speedLeft, M.energyLeft, M.heightChange, M.gAtEnd],
   },
   {
     title: 'Whole envelope',
@@ -147,8 +153,9 @@ export const FOCUSES: readonly Focus[] = [
     more: () => [
       {
         title: 'At the merge',
-        metrics: [M.flownRateAtMerge, M.strAtMerge, M.topOfPlane, M.bottomOfPlane],
+        metrics: [M.flownRateAtMerge, M.strAtMerge],
       },
+      { title: 'Round the turn plane', metrics: [M.bottomOfPlane, M.topOfPlane, M.speedOverTop] },
       { title: 'End of the turn', metrics: [M.gAtEnd] },
     ],
   },
@@ -159,11 +166,17 @@ export const FOCUSES: readonly Focus[] = [
       'Energy retention: how much speed each jet keeps, and how fast it bleeds or gains it.',
     charts: ['energy', 'timeline'],
     sections: (s) => [
-      { title: `After ${s.turnDuration_s} s turning`, metrics: [M.speedLeft] },
+      {
+        title: `After ${s.turnDuration_s} s turning`,
+        metrics: [M.speedLeft, M.energyLeft],
+      },
       { title: 'At the merge', metrics: [M.psFlown, M.ps1g] },
     ],
     more: () => [
-      { title: 'Energy state', metrics: [M.psPull, M.thrustToWeight, M.wingLoading, M.mass] },
+      {
+        title: 'Energy state',
+        metrics: [M.heightChange, M.psPull, M.thrustToWeight, M.wingLoading, M.mass],
+      },
     ],
   },
 ];

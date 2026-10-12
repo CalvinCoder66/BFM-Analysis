@@ -6,9 +6,10 @@
  *
  * Turns happen in a plane inclined θ from the horizontal (0° = level turn, 90° = vertical loop).
  * Lift must cancel the out-of-plane part of gravity, g·cos θ, leaving g·√(n² − cos²θ) to turn.
- * The in-plane part of gravity, g·sin θ, helps over the top and hurts at the bottom; over a whole
- * circle it averages out, so the turn rate reported is the circle average
+ * The in-plane part of gravity, g·sin θ, helps over the top and hurts at the bottom, and slows the
+ * jet as it climbs; the point performance here reports the circle average at constant speed,
  * ω = g·√(n² − cos²θ) / V (the level-turn formula when θ = 0), with radius r = V / ω.
+ * `timeline.ts` flies the turn with gravity applied round the circle.
  *
  * Everything is SI internally; turn rates are returned in deg/s for convenience because every
  * consumer (charts, cards) displays them that way.
@@ -127,13 +128,6 @@ export function turnRate(n: number, v: number, plane = 0): number {
 export function turnRadius(n: number, v: number, plane = 0): number {
   const omega = turnRate(n, v, plane);
   return omega > 0 ? v / omega : Number.POSITIVE_INFINITY;
-}
-
-/** Turn rate (rad/s) at the bottom and top of an inclined turn, where gravity hurts and helps most. */
-export function turnRateExtremes(n: number, v: number, plane: number) {
-  const average = turnRate(n, v, plane);
-  const gravity = (G0 * Math.sin(plane)) / v;
-  return { bottom: Math.max(average - gravity, 0), top: average + gravity };
 }
 
 function aeroAt(cond: FlightCondition, mach: number) {

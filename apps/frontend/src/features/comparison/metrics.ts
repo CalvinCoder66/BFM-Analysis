@@ -1,8 +1,7 @@
 /** Comparison metrics, shared by the stats panels of each focus view. */
-import { turnRateExtremes } from '../../physics/performance';
 import type { TimelinePoint } from '../../physics/timeline';
-import { radToDeg } from '../../physics/units';
 import {
+  formatClimb,
   formatDistance,
   formatPs,
   formatRate,
@@ -38,15 +37,21 @@ const endOfTurn =
     const p = r.flown.timeline.at(-1);
     return p ? pick(p) : null;
   };
-const gFormat = (v: number) => `${v.toFixed(1)} g`;
-/** As-flown turn rate at the top or bottom of an inclined turn, at the merge. */
-const inclined =
-  (where: 'top' | 'bottom') =>
+/**
+ * As flown, round an inclined turn plane: at the bottom (the merge) or over the top (the first
+ * time round 180°). Null for a level turn, which has no top or bottom, or if never reached.
+ */
+const roundThePlane =
+  (where: 'bottom' | 'top', pick: (p: TimelinePoint) => number) =>
   (r: SideResult): number | null => {
-    const p = r.flown.atMerge;
-    return p ? radToDeg(turnRateExtremes(p.maxG, p.tas, r.flown.condition.turnPlane)[where]) : null;
+    if (r.config.turnPlane_deg === 0) return null;
+    const { timeline } = r.flown;
+    const p = where === 'bottom' ? timeline[0] : timeline.find((q) => q.heading >= 180);
+    return p ? pick(p) : null;
   };
-const anyInclined = (m: Matchup) => SIDES.some((s) => m[s].config.turnPlane_deg > 0);
+const gFormat = (v: number) => `${v.toFixed(1)} g`;
+/** True when either jet turns in an inclined plane, so climbing and gravity come into play. */
+export const anyInclined = (m: Matchup) => SIDES.some((s) => m[s].config.turnPlane_deg > 0);
 
 export const METRICS = {
   gLimit: {
@@ -85,17 +90,24 @@ export const METRICS = {
     format: formatRate,
     higherIsBetter: true,
   },
-  topOfPlane: {
-    label: 'Over the top of the plane',
-    value: inclined('top'),
+  bottomOfPlane: {
+    label: 'At the bottom of the plane',
+    value: roundThePlane('bottom', (p) => p.rate),
     format: formatRate,
     higherIsBetter: true,
     visible: anyInclined,
   },
-  bottomOfPlane: {
-    label: 'At the bottom of the plane',
-    value: inclined('bottom'),
+  topOfPlane: {
+    label: 'Over the top of the plane',
+    value: roundThePlane('top', (p) => p.rate),
     format: formatRate,
+    higherIsBetter: true,
+    visible: anyInclined,
+  },
+  speedOverTop: {
+    label: 'Speed over the top',
+    value: roundThePlane('top', (p) => p.cas),
+    format: formatSpeed,
     higherIsBetter: true,
     visible: anyInclined,
   },
@@ -134,6 +146,23 @@ export const METRICS = {
     value: endOfTurn((p) => p.cas),
     format: formatSpeed,
     higherIsBetter: true,
+  },
+  energyLeft: {
+    label: 'Energy left, as speed at merge height',
+    value: endOfTurn((p) => p.energyCas),
+    format: formatSpeed,
+    higherIsBetter: true,
+    visible: anyInclined,
+  },
+  heightChange: {
+    label: 'Height change',
+    value: (r) => {
+      const p = r.flown.timeline.at(-1);
+      return p ? p.altitude - r.flown.condition.altitude_m : null;
+    },
+    format: formatClimb,
+    higherIsBetter: null,
+    visible: anyInclined,
   },
   gAtEnd: {
     label: 'Pulling at end',
