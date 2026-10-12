@@ -64,11 +64,23 @@ run = "cd apps/e2e && bunx playwright test"
 
 [tasks."data:roster"]
 description = "Build the aircraft roster from the pinned datamine (data/ROSTER.md, data/roster.json)"
-run = "uv --directory apps/pipeline run bfm-pipeline roster"
+run = "uv run --project apps/pipeline bfm-pipeline roster"
+
+[tasks."data:extract"]
+description = "Extract basic fields for every roster aircraft (data/EXTRACTION.md)"
+run = "uv run --project apps/pipeline bfm-pipeline extract"
+
+[tasks."data:record"]
+description = "Record an in-game test flight, e.g. mise run data:record -- --aircraft f_16c_block_50 --card A --run 1"
+run = "uv run --project apps/pipeline bfm-pipeline record"
+
+[tasks."data:analyse"]
+description = "Analyse recorded test flights, e.g. mise run data:analyse -- apps/pipeline/validation/flights/.../A-*.jsonl.gz"
+run = "uv run --project apps/pipeline bfm-pipeline analyse"
 
 [tasks."data:inspect"]
 description = "Print raw datamine fields, e.g. mise run data:inspect -- f_16c_block_50 --path Mass"
-run = "uv --directory apps/pipeline run bfm-pipeline inspect"
+run = "uv run --project apps/pipeline bfm-pipeline inspect"
 
 [tasks."rules:sync"]
 description = "Regenerate AI config files from .rulesync/"

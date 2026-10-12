@@ -1,6 +1,6 @@
 # Plan: datamine pipeline (backend phase A)
 
-**Status:** final, agreed 2026-10-12 · **Owner:** Calvin · **Progress:** milestone 1 in review
+**Status:** final, agreed 2026-10-12 · **Owner:** Calvin · **Progress:** milestone 1 in review, milestones 2–3 built
 
 ## Goal
 
@@ -252,9 +252,12 @@ data from milestone 3.
 
 ## Remaining unknowns (resolved during the milestones)
 
-- Whether `CritOverload` is per wing or total (card D at higher speeds, or a wing-rip test with the
-  instructor off, purely as a check).
+- ~~Whether `CritOverload` is per wing or total~~ — Typhoon FGR.4 flights (October 2026): with the
+  instructor on, the load held at maximum G was 0.98–1.04 × 2 × `CritOverload` across 12.9–15.6 t,
+  so the G limit is that force divided by weight. To be confirmed on a second aircraft.
 - The exact thrust formula (cards A and B).
 - How the instructor's `overloadMult` and `overloadTimeRange` map to the steady and peak G (card D).
+  The Typhoon (0.90 / 1.05) held about 1.0 × the wing-break load for up to 8 s, matching neither
+  fraction; an aircraft with different values is needed.
 - Whether test-flight mode uses exactly the RB flight model, or we must use a custom battle (we
   compare one card in both early in milestone 3).

@@ -1,0 +1,14 @@
+{
+  "aircraft": "ef_2000_fgr4",
+  "card": "C",
+  "run": 901,
+  "game_version": "2.59.0.65",
+  "loadout": "clean",
+  "start_fuel_kg": null,
+  "map": "Western Europe",
+  "mode": "Realistic, instructor (mouse aim)",
+  "notes": "Sustained turn at military power (no afterburner).",
+  "recorded_at": "2026-10-12T21:38:57+00:00",
+  "url": "http://127.0.0.1:8111",
+  "target_hz": 20.0
+}

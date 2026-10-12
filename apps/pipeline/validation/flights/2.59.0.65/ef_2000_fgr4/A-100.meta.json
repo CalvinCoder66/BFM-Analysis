@@ -1,0 +1,14 @@
+{
+  "aircraft": "ef_2000_fgr4",
+  "card": "A",
+  "run": 100,
+  "game_version": "2.59.0.65",
+  "loadout": "clean",
+  "start_fuel_kg": null,
+  "map": "Western Europe",
+  "mode": "Realistic, instructor (mouse aim)",
+  "notes": "High-G pulls at about 4,400 kg fuel (62%), afterburner. Not card A: recorded as A because the recorder only accepts cards A\u2013E.",
+  "recorded_at": "2026-10-12T21:29:22+00:00",
+  "url": "http://127.0.0.1:8111",
+  "target_hz": 20.0
+}
