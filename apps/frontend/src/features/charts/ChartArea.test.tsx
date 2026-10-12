@@ -57,6 +57,26 @@ describe('ChartArea', () => {
     expect(screen.getByLabelText('Side')).not.toBeChecked();
   });
 
+  it('zooms the turn circles and can hide the box round them', async () => {
+    render(<ChartArea {...props} charts={['circles']} />);
+    const svg = screen.getByRole('img', { name: 'Turn circles, 2-circle fight' });
+    const width = () => Number(svg.getAttribute('viewBox')?.split(' ')[2]);
+    const start = width();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Zoom in' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Zoom in' }));
+    // Each press zooms 1.5×, so the view shows 1 / 2.25 as much.
+    expect(width()).toBeCloseTo(start / 2.25, 6);
+    expect(screen.getByText('×2.3')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Reset zoom' }));
+    expect(width()).toBeCloseTo(start, 6);
+
+    expect(svg.querySelectorAll('[data-axis]')).toHaveLength(3);
+    await userEvent.click(screen.getByLabelText('Box'));
+    expect(svg.querySelector('[data-box]')).toBeNull();
+    expect(svg.querySelectorAll('polyline[data-track]')).toHaveLength(2);
+  });
+
   it('offers only the charts it is given and switches between them', async () => {
     render(<ChartArea {...props} charts={['circles', 'timeline', 'advantage']} />);
     const picker = screen.getByRole('group', { name: 'Chart' });

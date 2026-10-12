@@ -4,18 +4,18 @@ import { Segmented } from '../../shared/ui/Segmented';
 import { type Matchup, SIDES, type Side } from '../comparison/matchup';
 import { anyInclined } from '../comparison/metrics';
 import {
-  axisTicks,
-  boxFrame,
-  buildScene,
   type Camera,
-  type FightType,
-  mergeTracks,
+  DEFAULT_FRAMING,
+  type Framing,
   orbit,
   type Point3,
   project,
-  type Segment,
   VIEWS,
-} from './circles';
+  ZOOM_LIMITS,
+  zoomAt,
+} from './camera';
+import { buildScene, type FightType, mergeTracks } from './circles';
+import { SceneBox } from './SceneBox';
 import { SIDE_COLOURS } from './series';
 
 const TICK_EVERY_S = 5;
@@ -25,10 +25,11 @@ const VIEW_OPTIONS = [
   { value: 'side', label: 'Side' },
 ] as const;
 type View = keyof typeof VIEWS | 'free';
-
-/** Distance-scale label: "−1,000", "0", "500". */
-const formatMetres = (metres: number) =>
-  `${metres < 0 ? '−' : ''}${Math.abs(Math.round(metres)).toLocaleString('en-GB')}`;
+/** Zoom per button press, and per pixel of mouse-wheel scroll. */
+const ZOOM_STEP = 1.5;
+const ZOOM_PER_WHEEL_PIXEL = 0.002;
+const BUTTON =
+  'rounded border border-slate-700 px-2 py-1 text-xs text-slate-400 hover:bg-slate-800 disabled:opacity-40';
 
 export function TurnCircles({
   matchup,
@@ -43,13 +44,37 @@ export function TurnCircles({
   const scene = useMemo(() => buildScene(tracks), [tracks]);
   const [view, setView] = useState<View>('3d');
   const [camera, setCamera] = useState<Camera>(VIEWS['3d']);
+  const [framing, setFraming] = useState<Framing>(DEFAULT_FRAMING);
+  const [showBox, setShowBox] = useState(true);
   const drag = useRef<{ x: number; y: number } | null>(null);
   const container = useRef<HTMLDivElement>(null);
+  const svg = useRef<SVGSVGElement>(null);
+  // The wheel listener is attached once, so it reads the latest camera from here.
+  const cameraRef = useRef(camera);
+  cameraRef.current = camera;
   const [fullscreen, setFullscreen] = useState(false);
   useEffect(() => {
     const update = () => setFullscreen(document.fullscreenElement === container.current);
     document.addEventListener('fullscreenchange', update);
     return () => document.removeEventListener('fullscreenchange', update);
+  }, []);
+  // Wheel zoom about the cursor. React's onWheel is passive, so it cannot stop the page scrolling.
+  useEffect(() => {
+    const element = svg.current;
+    if (!element) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const rect = element.getBoundingClientRect();
+      const metresPerPixel = element.viewBox.baseVal.width / Math.min(rect.width, rect.height);
+      const offset = {
+        x: (e.clientX - rect.left - rect.width / 2) * metresPerPixel,
+        y: -(e.clientY - rect.top - rect.height / 2) * metresPerPixel,
+      };
+      const factor = Math.exp(-e.deltaY * ZOOM_PER_WHEEL_PIXEL);
+      setFraming((f) => zoomAt(f, cameraRef.current, factor, offset));
+    };
+    element.addEventListener('wheel', onWheel, { passive: false });
+    return () => element.removeEventListener('wheel', onWheel);
   }, []);
 
   const inclined = anyInclined(matchup);
@@ -60,21 +85,16 @@ export function TurnCircles({
     return [q.x, -q.y] as const;
   };
   const toPoints = (points: Point3[]) => points.map((p) => screen(p).join(',')).join(' ');
-  const { box } = scene;
+  const { box, centre } = scene;
   const ground = (p: Point3) => ({ ...p, z: box.minZ });
-  const [cx, cy] = screen(scene.centre);
-  // Room round the box for the distance labels.
-  const size = scene.radius * 2.4;
+  const { pan, zoom } = framing;
+  const [cx, cy] = screen({ x: centre.x + pan.x, y: centre.y + pan.y, z: centre.z + pan.z });
+  // Room round the box for the distance labels; zooming in shows less of it.
+  const size = (scene.radius * 2.4) / zoom;
+  // One view unit: line widths and text scale with it, so they keep their size on screen.
   const u = size / 100;
-  const frame = boxFrame(box, camera);
-  const axes = axisTicks(box, camera);
-  // Segments are a fixed list for a given box, so their index is a stable key.
-  const segment = ([a, b]: Segment, i: number) => {
-    const [x1, y1] = screen(a);
-    const [x2, y2] = screen(b);
-    return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} />;
-  };
   const [mx, my] = screen({ x: 0, y: 0, z: 0 });
+  const zoomBy = (factor: number) => setFraming((f) => zoomAt(f, camera, factor));
 
   const choose = (next: View) => {
     setView(next);
@@ -107,9 +127,51 @@ export function TurnCircles({
             ? '1-circle: defender turns away, both pull to the limiter'
             : '2-circle: both turn towards each other, flown as set'}{' '}
           · {duration.toFixed(0)} s from the merge · dot every {TICK_EVERY_S} s · grid{' '}
-          {formatDistance(box.spacing)} · heights from the merge · drag to look around
+          {formatDistance(box.spacing)} · heights from the merge · drag to look around, scroll to
+          zoom
         </p>
         <Segmented legend="View" value={view} options={VIEW_OPTIONS} onChange={choose} />
+        <fieldset className="flex items-center gap-1">
+          <legend className="sr-only">Zoom</legend>
+          <button
+            type="button"
+            aria-label="Zoom out"
+            className={BUTTON}
+            disabled={zoom <= ZOOM_LIMITS.min}
+            onClick={() => zoomBy(1 / ZOOM_STEP)}
+          >
+            −
+          </button>
+          <button
+            type="button"
+            aria-label="Zoom in"
+            className={BUTTON}
+            disabled={zoom >= ZOOM_LIMITS.max}
+            onClick={() => zoomBy(ZOOM_STEP)}
+          >
+            +
+          </button>
+          <span className="w-10 text-center font-mono text-xs text-slate-500">
+            ×{zoom.toFixed(1)}
+          </span>
+          <button
+            type="button"
+            className={BUTTON}
+            disabled={framing === DEFAULT_FRAMING}
+            onClick={() => setFraming(DEFAULT_FRAMING)}
+          >
+            Reset zoom
+          </button>
+        </fieldset>
+        <label className="flex items-center gap-1.5 text-xs text-slate-400">
+          <input
+            type="checkbox"
+            checked={showBox}
+            onChange={(e) => setShowBox(e.target.checked)}
+            className="accent-slate-400"
+          />
+          Box
+        </label>
         {document.fullscreenEnabled && (
           <button
             type="button"
@@ -119,7 +181,7 @@ export function TurnCircles({
                 : container.current?.requestFullscreen()
               )?.catch(() => {})
             }
-            className="rounded border border-slate-700 px-2 py-1 text-xs text-slate-400 hover:bg-slate-800"
+            className={BUTTON}
           >
             {fullscreen ? 'Exit full screen' : 'Full screen'}
           </button>
@@ -127,6 +189,7 @@ export function TurnCircles({
       </div>
 
       <svg
+        ref={svg}
         role="img"
         aria-label={`Turn circles, ${fightType === 'one-circle' ? '1-circle' : '2-circle'} fight`}
         viewBox={`${cx - size / 2} ${cy - size / 2} ${size} ${size}`}
@@ -137,49 +200,7 @@ export function TurnCircles({
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
       >
-        {/* Box round the fight: gridded floor and back walls, edges, and distance scales */}
-        {/* Lines through the box mark out grid-step cubes, faintly so the tracks stand out */}
-        <g stroke="#1e293b" strokeOpacity={0.55} strokeWidth={u * 0.12}>
-          {frame.lattice.map(segment)}
-        </g>
-        <g stroke="#1e293b" strokeWidth={u * 0.2}>
-          {frame.grid.map(segment)}
-        </g>
-        <g stroke="#334155" strokeWidth={u * 0.25}>
-          {frame.edges.map(segment)}
-        </g>
-        {axes.map(({ axis, title, ticks, middle, out }) => {
-          // Screen y runs down, so flip the outward direction's y.
-          const anchor = out.x > 0.3 ? 'start' : out.x < -0.3 ? 'end' : 'middle';
-          const [tx, ty] = screen(middle);
-          return (
-            <g key={axis} data-axis={axis} fill="#64748b" fontSize={u * 2.2}>
-              {ticks.map(({ at, value }) => {
-                const [x, y] = screen(at);
-                return (
-                  <text
-                    key={value}
-                    x={x + out.x * u * 2}
-                    y={y - out.y * u * 2}
-                    textAnchor={anchor}
-                    dominantBaseline="middle"
-                  >
-                    {formatMetres(value)}
-                  </text>
-                );
-              })}
-              <text
-                x={tx + out.x * u * 8}
-                y={ty - out.y * u * 8}
-                textAnchor={anchor}
-                dominantBaseline="middle"
-                fill="#94a3b8"
-              >
-                {title}
-              </text>
-            </g>
-          );
-        })}
+        {showBox && <SceneBox box={box} camera={camera} toScreen={screen} unit={u} />}
 
         {/* Merge point, drawn flat on the screen so it reads from any angle */}
         <g stroke="#facc15" strokeWidth={u * 0.25}>
