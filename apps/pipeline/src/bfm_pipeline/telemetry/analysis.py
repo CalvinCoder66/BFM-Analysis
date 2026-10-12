@@ -12,6 +12,9 @@ Everything is derived from the raw log with simple, documented steps:
   If no heading was logged at all, level segments fall back to the kinematic rate
   ω = g·√(n² − 1) / V from the measured load factor and speed, and are labelled as such.
 - **Engine thrust** is logged by the game per engine (`thrust N, kgs`) and summed.
+- **Sustained turns** (card C) are hard to fly exactly: the pull wanders by a g or two either
+  side. So rather than waiting for a steady stretch, the analysis fits Ps against n² over the
+  whole turn (at constant speed, drag rises linearly with n²) and solves for Ps = 0.
 - **Bleed under load** (card E) is Ps at every half second of the pull, with the load factor,
   angle of attack and turn rate at that moment.
 - **Rates** (dV/dt, dh/dt, Ps, turn rate) are least-squares slopes over a short centred window,
@@ -361,6 +364,49 @@ def bleed_points(
     return points
 
 
+def sustained_fit(
+    samples: list[Sample], min_ny: float = 1.5, window_s: float = 2.0
+) -> dict[str, Any] | None:
+    """Card C: sustained load factor at the turn's speed, from a straight-line fit Ps = a + b·n².
+
+    Each point pairs Ps with the mean n² over the same centred window. `extrapolated` is true when
+    the answer lies outside the load factors actually flown, and `r2` shows how well the line fits:
+    below about 0.8 the pull wandered too much for the answer to be trusted.
+    """
+    xs: list[float] = []
+    ys: list[float] = []
+    turning = [s for s in samples if s.ny >= min_ny]
+    for i, s in enumerate(samples):
+        if s.ny < min_ny:
+            continue
+        ps = specific_excess_power(samples, i, window_s)
+        window = [x for x in samples if abs(x.t - s.t) <= window_s / 2]
+        if ps is None or samples[-1].t - s.t < window_s / 2 or s.t - samples[0].t < window_s / 2:
+            continue
+        xs.append(statistics.fmean(x.ny**2 for x in window))
+        ys.append(ps)
+    if len(xs) < 20 or max(xs) - min(xs) < 4:
+        return None
+    b = slope(xs, ys)
+    a = statistics.fmean(ys) - b * statistics.fmean(xs)
+    residual = sum((y - (a + b * x)) ** 2 for x, y in zip(xs, ys, strict=True))
+    total = sum((y - statistics.fmean(ys)) ** 2 for y in ys)
+    n = math.sqrt(-a / b) if a > 0 and b < 0 else None
+    tas = statistics.fmean(s.tas for s in turning)
+    return {
+        'ias_kmh': statistics.fmean(s.ias for s in turning) * 3.6,
+        'ias_spread_kmh': (max(s.ias for s in turning) - min(s.ias for s in turning)) * 3.6,
+        'tas_kmh': tas * 3.6,
+        'h_m': statistics.fmean(s.h for s in turning),
+        'ps_at_zero_g': a,
+        'ps_per_g2': b,
+        'r2': 1 - residual / total if total else 0.0,
+        'sustained_ny': n,
+        'turn_rate_degs': math.degrees(G0 * math.sqrt(n * n - 1) / tas) if n and n > 1 else None,
+        'extrapolated': n is None or not min(xs) <= n * n <= max(xs),
+    }
+
+
 def peak_pull(samples: list[Sample]) -> dict[str, float | None]:
     """Card D: the highest load factor in the log, with the speed and turn rate at that moment."""
     i = max(range(len(samples)), key=lambda k: samples[k].ny)
@@ -405,4 +451,5 @@ def analyse_run(run: Run) -> dict[str, Any]:
         'peak_pull': peak_pull(run.samples) if run.samples else None,
         'acceleration': acceleration_points(run.samples),
         'bleed': bleed_points(run.samples),
+        'sustained': sustained_fit(run.samples) if run.meta.card == 'C' else None,
     }

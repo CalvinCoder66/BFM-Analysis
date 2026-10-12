@@ -18,6 +18,7 @@ from bfm_pipeline.telemetry.analysis import (
     peak_pull,
     steady_segments,
     summarise,
+    sustained_fit,
 )
 from bfm_pipeline.telemetry.recorder import RunMetadata, TelemetryUnavailable, record, run_paths
 
@@ -133,6 +134,25 @@ def test_turn_rate_follows_the_map_track_not_the_nose() -> None:
     assert samples[100].heading == pytest.approx(400.0, abs=0.2)  # track (40°), not nose (52.5°)
     [segment] = steady_segments(samples)
     assert segment.turn_rate_degs == pytest.approx(10.0, abs=0.02)
+
+
+def test_sustained_turn_is_where_ps_crosses_zero_despite_a_wandering_pull() -> None:
+    # A pilot wandering between 3 and 7 g at a constant 720 km/h, where Ps = 100 − 4·n² m/s:
+    # the jet climbs when under-pulling and sinks when over-pulling, never holding steady.
+    # Sustained is where 100 = 4·n², n = 5. Height integrates Ps (speed is constant).
+    lines, h = [], 1000.0
+    for i in range(301):
+        t = i / 20
+        ny = 5 + 2 * math.sin(2 * math.pi * t / 4.3)
+        lines.append(line(t, 720.0, h, ny, 0.0))
+        h += (100 - 4 * ny * ny) / 20
+    fit = sustained_fit(parse_samples(lines)[0])
+    assert fit is not None
+    assert fit['sustained_ny'] == pytest.approx(5.0, abs=0.05)
+    assert fit['r2'] > 0.95
+    assert fit['extrapolated'] is False
+    # 720 km/h at 5 g: ω = g·√24 / 200 m/s = 13.76°/s.
+    assert fit['turn_rate_degs'] == pytest.approx(13.76, abs=0.1)
 
 
 def test_turn_rate_falls_back_to_kinematics_without_any_heading() -> None:

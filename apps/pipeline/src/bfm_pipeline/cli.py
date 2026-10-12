@@ -193,6 +193,15 @@ def analyse(
             )
         if result['fuel_capacity_kg'] is not None:
             typer.echo(f'  full-tank fuel in game (Mfuel0): {result["fuel_capacity_kg"]:,.0f} kg')
+        if fit := result['sustained']:
+            note = '' if fit['r2'] >= 0.8 else ' (poor fit: the pull wandered too much)'
+            if fit['sustained_ny'] is None:
+                typer.secho(f'  sustained: no Ps = 0 crossing (r² {fit["r2"]:.2f})', fg='yellow')
+            else:
+                typer.echo(
+                    f'  sustained {fit["sustained_ny"]:.2f} g at {fit["ias_kmh"]:.0f} km/h IAS, '
+                    f'{fit["turn_rate_degs"]:.1f}°/s (r² {fit["r2"]:.2f}){note}'
+                )
         if result['bleed']:
             typer.echo(f'  {len(result["bleed"])} bleed points (Ps under load)')
         # Repeats of one condition share a card and run hundreds (D-701, D-702 = 700 km/h).

@@ -57,9 +57,13 @@ steady; the analysis finds the steady parts itself, so small wobbles are fine.
 ### C. Sustained turns
 
 - **Start:** 1,000 m, 30% fuel.
-- **Fly:** a level turn holding a constant speed and height for **at least 10 s**, at
-  600, 800 and 1,000 km/h IAS. Adjust pull, not throttle (full afterburner throughout).
-- **Gives:** the sustained load factor and the measured turn rate at each speed.
+- **Fly:** a turn holding a constant speed for **at least 15 s**, at 700, 900 and 1,100 km/h
+  IAS. Adjust pull, not throttle (full afterburner throughout, or note military power). The pull
+  doesn't have to be steady: drifting a g or two either side of the sustained value is fine, and
+  even helps, as long as the speed stays within about ±20 km/h. Keep roughly level.
+- **Gives:** the sustained load factor and turn rate at each speed. The analysis fits Ps against
+  n² over the turn and solves for Ps = 0; it reports the fit's r², and below about 0.8 the run
+  should be flown again.
 
 ### D. Instantaneous pulls
 
