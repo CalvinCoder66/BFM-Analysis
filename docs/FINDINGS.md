@@ -201,3 +201,38 @@ Not datamine findings, but they shaped how the evidence is gathered:
   fly-by-wire limit (the F-16's `Autopilot.Pitch` strength is 1.0).
 - Where the instructor's 25–26.5° angle-of-attack limit comes from in the files.
 - Whether the datamine thrust tables reproduce the logged thrust (milestone 4).
+
+## Next flights (to do)
+
+Aircraft available to fly, ranked by what they would settle. Predictions use the rule found on
+the Typhoon (instructor holds 2 × `CritOverload`), so each test either confirms it or shows what
+replaces it. Masses are datamine empty mass plus fuel; aim for the stated fuel at the start of the
+card and check `Mfuel` in the log.
+
+- [ ] **1. JAS39C Gripen (`saab_jas39c`) — next.** The cleanest test of the instructor settings.
+  Its `overloadMult` is 0.85 / 0.92 (the Typhoon's is 0.90 / 1.05) and it has `instructorCritMult`
+  0.8, while its pitch limiter (14 g, strength 0.4) is too high to interfere. With 2 × 450 kN =
+  0.9 MN at about 2,000 kg of fuel (8,865 kg), the candidate rules predict clearly different G:
+  1.0 × → 10.3 g, 0.92 × → 9.5 g, 0.85 × → 8.8 g, 0.8 × → 8.3 g. Its result applies to the four
+  Gripen variants and to every aircraft with the common 0.85 / 0.92 setting.
+  - Card D at 900 km/h, three runs at about 30% fuel, plus one or two at 70% or more to confirm
+    the force scales with weight.
+  - Card D at 500 and 700 km/h for the angle-of-attack limit (the files say 22°).
+  - Card A (to top speed or VNE) and card C in afterburner, for thrust and drag.
+- [ ] **2. Su-30MKK (`su_30mkk`).** Tests whether a near-hard limiter binds: `Autopilot.Pitch` is
+  12 g at strength 0.95, below the 0.99 we treat as hard. At about 3,000 kg of fuel the force rule
+  predicts 14.3 g (2 × 1,450 kN over 20,730 kg); a binding limiter would hold 12 g. Covers the
+  Flanker family. Same cards as the Gripen, at low fuel.
+- [ ] **3. F-16XL (`f_16xl`).** A hard fly-by-wire limit (10 g, strength 1.0) with the F-16
+  family's `overloadMult` 0.6 / 0.67. At about 2,000 kg of fuel the force rule predicts 15.3 g,
+  so a fixed 10 g would show the limiter overriding it. Its flight model is separate from the
+  F-16C's, but the limiter setting is the same.
+- [ ] **4. F/A-18F Super Hornet (`fa_18f_block_2_raaf`).** Strong soft limiter (11 g, strength
+  0.85) and a 30° angle-of-attack limit in the files, the highest of the roster's mainstream
+  fighters. Force rule at about 3,000 kg of fuel: 13.1 g.
+- [ ] **5. F-14D (`f_14d`).** The variable-sweep flight-model layout, with no pitch limiter. Useful
+  once the sweep extraction exists (milestone 5).
+- [ ] **6. CF-18 (`cf_188a_canada`, same flight model as the F/A-18A) and Sea Harrier FA 2.**
+  Lowest priority: the Super Hornet covers the Hornet limiter, and the Harrier is subsonic.
+
+For the Typhoon, still missing: card B (top speed at 6,000 m) and card C in afterburner.
