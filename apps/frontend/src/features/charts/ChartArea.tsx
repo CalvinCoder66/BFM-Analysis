@@ -28,7 +28,7 @@ interface ChartDefinition {
 export const CHARTS: Record<ChartId, ChartDefinition> = {
   circles: {
     label: 'Turn circles',
-    help: 'Flight paths in 3D from a left-to-left merge, to scale, with a dot every 5 s. Each jet turns in its own plane, so a vertical loop stands upright; dashed drop lines and a ground shadow show height above the merge, and the grid lies at merge height. Drag to look around, pick Top or Side for a flat view, or go full screen. 2-circle: both turn towards each other and each pilot flies as set, so the faster rate gets behind. 1-circle: the defender turns away and both pull to the limiter, meeting nose-to-nose, so the tighter circle wins.',
+    help: 'Flight paths in 3D from a left-to-left merge, to scale, with a dot every 5 s. Each jet turns in its own plane, so a vertical loop stands upright; the fight sits in a box with a gridded floor and back walls, scaled in metres east, north and above the merge, and dashed drop lines and a shadow on the floor show height. Drag to look around, pick Top or Side for a flat view, or go full screen. 2-circle: both turn towards each other and each pilot flies as set, so the faster rate gets behind. 1-circle: the defender turns away and both pull to the limiter, meeting nose-to-nose, so the tighter circle wins.',
   },
   em: {
     label: 'E-M diagram',

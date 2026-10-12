@@ -4,6 +4,8 @@ import { Segmented } from '../../shared/ui/Segmented';
 import { type Matchup, SIDES, type Side } from '../comparison/matchup';
 import { anyInclined } from '../comparison/metrics';
 import {
+  axisTicks,
+  boxFrame,
   buildScene,
   type Camera,
   type FightType,
@@ -11,6 +13,7 @@ import {
   orbit,
   type Point3,
   project,
+  type Segment,
   VIEWS,
 } from './circles';
 import { SIDE_COLOURS } from './series';
@@ -22,6 +25,10 @@ const VIEW_OPTIONS = [
   { value: 'side', label: 'Side' },
 ] as const;
 type View = keyof typeof VIEWS | 'free';
+
+/** Distance-scale label: "−1,000", "0", "500". */
+const formatMetres = (metres: number) =>
+  `${metres < 0 ? '−' : ''}${Math.abs(Math.round(metres)).toLocaleString('en-GB')}`;
 
 export function TurnCircles({
   matchup,
@@ -53,24 +60,20 @@ export function TurnCircles({
     return [q.x, -q.y] as const;
   };
   const toPoints = (points: Point3[]) => points.map((p) => screen(p).join(',')).join(' ');
-  const ground = (p: Point3) => ({ ...p, z: 0 });
+  const { box } = scene;
+  const ground = (p: Point3) => ({ ...p, z: box.minZ });
   const [cx, cy] = screen(scene.centre);
-  const size = scene.radius * 2.1;
+  // Room round the box for the distance labels.
+  const size = scene.radius * 2.4;
   const u = size / 100;
-  const { grid } = scene;
-  const gridLines: [Point3, Point3][] = [];
-  for (let x = grid.minX; x <= grid.maxX + 1e-6; x += grid.spacing) {
-    gridLines.push([
-      { x, y: grid.minY, z: 0 },
-      { x, y: grid.maxY, z: 0 },
-    ]);
-  }
-  for (let y = grid.minY; y <= grid.maxY + 1e-6; y += grid.spacing) {
-    gridLines.push([
-      { x: grid.minX, y, z: 0 },
-      { x: grid.maxX, y, z: 0 },
-    ]);
-  }
+  const frame = boxFrame(box, camera);
+  const axes = axisTicks(box, camera);
+  // Segments are a fixed list for a given box, so their index is a stable key.
+  const segment = ([a, b]: Segment, i: number) => {
+    const [x1, y1] = screen(a);
+    const [x2, y2] = screen(b);
+    return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} />;
+  };
   const [mx, my] = screen({ x: 0, y: 0, z: 0 });
 
   const choose = (next: View) => {
@@ -104,7 +107,7 @@ export function TurnCircles({
             ? '1-circle: defender turns away, both pull to the limiter'
             : '2-circle: both turn towards each other, flown as set'}{' '}
           · {duration.toFixed(0)} s from the merge · dot every {TICK_EVERY_S} s · grid{' '}
-          {formatDistance(grid.spacing)} at merge height · drag to look around
+          {formatDistance(box.spacing)} · heights from the merge · drag to look around
         </p>
         <Segmented legend="View" value={view} options={VIEW_OPTIONS} onChange={choose} />
         {document.fullscreenEnabled && (
@@ -134,14 +137,49 @@ export function TurnCircles({
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
       >
-        {/* Ground grid at the merge altitude */}
-        <g stroke="#1e293b" strokeWidth={u * 0.2}>
-          {gridLines.map(([a, b]) => {
-            const [x1, y1] = screen(a);
-            const [x2, y2] = screen(b);
-            return <line key={`${x1},${y1},${x2},${y2}`} x1={x1} y1={y1} x2={x2} y2={y2} />;
-          })}
+        {/* Box round the fight: gridded floor and back walls, edges, and distance scales */}
+        {/* Lines through the box mark out grid-step cubes, faintly so the tracks stand out */}
+        <g stroke="#1e293b" strokeOpacity={0.55} strokeWidth={u * 0.12}>
+          {frame.lattice.map(segment)}
         </g>
+        <g stroke="#1e293b" strokeWidth={u * 0.2}>
+          {frame.grid.map(segment)}
+        </g>
+        <g stroke="#334155" strokeWidth={u * 0.25}>
+          {frame.edges.map(segment)}
+        </g>
+        {axes.map(({ axis, title, ticks, middle, out }) => {
+          // Screen y runs down, so flip the outward direction's y.
+          const anchor = out.x > 0.3 ? 'start' : out.x < -0.3 ? 'end' : 'middle';
+          const [tx, ty] = screen(middle);
+          return (
+            <g key={axis} data-axis={axis} fill="#64748b" fontSize={u * 2.2}>
+              {ticks.map(({ at, value }) => {
+                const [x, y] = screen(at);
+                return (
+                  <text
+                    key={value}
+                    x={x + out.x * u * 2}
+                    y={y - out.y * u * 2}
+                    textAnchor={anchor}
+                    dominantBaseline="middle"
+                  >
+                    {formatMetres(value)}
+                  </text>
+                );
+              })}
+              <text
+                x={tx + out.x * u * 8}
+                y={ty - out.y * u * 8}
+                textAnchor={anchor}
+                dominantBaseline="middle"
+                fill="#94a3b8"
+              >
+                {title}
+              </text>
+            </g>
+          );
+        })}
 
         {/* Merge point, drawn flat on the screen so it reads from any angle */}
         <g stroke="#facc15" strokeWidth={u * 0.25}>
