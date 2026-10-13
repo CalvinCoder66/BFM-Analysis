@@ -31,7 +31,11 @@ with what replaced them.
 | `WingPlane.Strength.CritOverload` | 810 kN; we read the wing-break load as twice that, 1.62 MN | With the instructor on, maximum G holds a load of 1.59–1.68 MN at every weight (0.98–1.04 × 1.62 MN) | ✅ Twice the value is right, and it is the instructor's limit |
 | `Instructor.overloadMult` | 0.90 / 1.05, read as the steady and brief-peak fractions of the wing-break load | Holds about 1.0 × the wing-break load, for 8 s or more | ❌ Neither fraction applies |
 | `Autopilot.Pitch` G limit | 12 g, soft (strength 0.5) | No fixed 12 g: from 10.75 g at 15.6 t to 13.3 g at 12.9 t, depending on weight | ❌ Not what limits G |
-| `Autopilot.Pitch` angle-of-attack limit | 21° | Levels off at 25–26.5° in every lift-limited pull | ❌ About 5° low |
+| `Autopilot.Pitch` angle-of-attack limit | 21° | Levels off at 25–26.5° in every lift-limited pull | ❌ About 5° low on its own |
+| `AoaLimits` × (1 + `AoaLimitsMargin` %) | 21° × 1.2 = 25.2° | Median plateau 25.3° over 17 runs | ✅ Fits (one aircraft) |
+| Wing polar (`WingPlane.FlapsPolar0`), Dagor maths | Whole-aircraft lift | Measured ÷ wing-only model: median 1.03 at 10–20° | ✅ Within 5% |
+| Fuselage polar (`FuselagePlane.Polar`) lift and induced drag | Adds lift and drag | Including them (and the stabiliser's lift) overstates lift by about 20% and drag under load by 20–70% | ❌ Leave out (only its `CdMin` counts) |
+| Summed `CdMin` of all surfaces | Zero-lift drag | Measured CD0 is 1.05 × the sum, Mach 0.6–1.45 | ✅ Within 5% |
 | Dashboard model (mock data) | Instructor allows 0.85 × wing-break load | 0.98–1.04 × | ❌ Too strict; fix when the frontend switches to real data (milestone 7) |
 
 ## Values that match
@@ -102,6 +106,14 @@ Every lift-limited pull (cards C, D and E) levelled off at **25–26.5°**, neve
 21°. Medians of each run's highest angles: 24.9–26.5°. Below about 780 km/h IAS this limit, not
 G, decides the turn.
 
+`Autopilot.Pitch` also has `AoaLimitsMargin` = 20. Read as a percentage on top of `AoaLimits`, it
+gives 21° × 1.2 = **25.2°**, against a median plateau of 25.3° (95th-percentile angle of the 17
+runs that reached the limit: 23.9–26.8°). Milestone 5 uses that rule for every aircraft. The
+margin varies across the roster (5–20%), so a second aircraft is the real test: the Gripen
+(22°, 20%) predicts 26.4°, the Su-30MKK (22°, 7%) 23.5° and the F/A-18F (30°, 10%) 33°. The
+Mach-dependent multipliers next to it (`AoaLimitsMult0/1`) don't show in the Typhoon data: the
+angle still reached 15–17° at Mach 0.9, where halving would allow 12.6°.
+
 ## Measured performance (reference for milestones 4 and 5)
 
 These have no direct datamine counterpart. They are what the extracted thrust and aerodynamics
@@ -171,6 +183,34 @@ Ps peaks just below Mach 1 and falls through the transonic drag rise.
 | --- | --- | --- | --- | --- | --- |
 | C_N | 1.28 | 1.28 | 1.24 | 1.17 | 1.13 |
 
+### Lift and drag from the polars (milestone 5)
+
+The polar maths is in Gaijin's open-source Dagor Engine
+(`prog/gameLibs/gamePhys/common/polares.cpp`): a linear lift curve that rounds into a parabola at
+`alphaCritHigh` / `ClCritHigh`, drag = `CdMin` + k·CL² with k = 1 / (π·e·b²/S), and seven Mach
+curves (1 `CdMin`, 2 lift slope, 3 `ClCrit`, 4 critical angle, 5 k, 6 aerodynamic centre, 7 `Cl0`).
+How the game adds the surfaces together isn't public, so the reduction was fitted to these
+flights, using the logged thrust and the energy rate for drag (D = T·cos α − W·Ps / V):
+
+| Comparison (measured ÷ model) | Samples | Median | 10th–90th percentile |
+| --- | --- | --- | --- |
+| Lift, 10–20° angle of attack, Mach 0.35–0.95 | 1,053 | 1.03 | 0.99–1.06 |
+| Zero-lift drag, Mach 0.6–1.45 | 1,207 | 1.05 | 1.04–1.37 |
+| Drag at CL 0.6–1.2 | 1,682 | 0.98 | 0.92–1.10 |
+
+- **Lift comes from the wing polar alone** (with the wing's 0.7° incidence). Adding the fuselage
+  and stabiliser polars' lift makes the model about 20% too high, and its slope too steep. The canards may trim it
+  out; the files don't say.
+- **Drag is the wing polar plus every surface's `CdMin` by area.** The fuselage polar's induced
+  drag (k = 0.68 on its own area) doesn't appear in the data.
+- Zero-lift drag runs 5% above the summed `CdMin`; small items such as `OilRadiatorCd` (0.002)
+  may account for it.
+- The game's load factor includes the thrust's component normal to the flight path
+  (T·sin α, up to about 0.5 g at low speed and full power). The frontend's turn model should add
+  it in the lift-limited region; it is also why the kinematic turn rate from `Ny` ran up to 12%
+  below the track-measured rate in the 500 km/h turns.
+- `tests/test_extract_aero.py` replays the flights against the model.
+
 ### Corner speed and turn rates
 
 - **Corner speed ≈ 780 km/h IAS** at about 13 t: D-902 held 12.2 g down to about 780 km/h, then G
@@ -228,7 +268,10 @@ Not datamine findings, but they shaped how the evidence is gathered:
   values).
 - Whether the constant-force G rule holds for aircraft with other instructor settings or a hard
   fly-by-wire limit (the F-16's `Autopilot.Pitch` strength is 1.0).
-- Where the instructor's 25–26.5° angle-of-attack limit comes from in the files.
+- ~~Where the instructor's 25–26.5° angle-of-attack limit comes from~~ — `AoaLimits` ×
+  (1 + `AoaLimitsMargin` %) fits; needs a second aircraft.
+- Why the fuselage polar's lift and induced drag don't show in the flights, and whether that holds
+  for other layouts (no canards, LERX).
 - ~~Whether the datamine thrust tables reproduce the logged thrust~~ — yes, within 1% (see
   Engine thrust).
 - Where the afterburner's angle-of-attack thrust loss comes from in the files.
@@ -255,7 +298,8 @@ card and check `Mfuel` in the log.
   Gripen variants and to every aircraft with the common 0.85 / 0.92 setting.
   - Card D at 900 km/h, three runs at about 30% fuel, plus one or two at 70% or more to confirm
     the force scales with weight.
-  - Card D at 500 and 700 km/h for the angle-of-attack limit (the files say 22°).
+  - Card D at 500 and 700 km/h for the angle-of-attack limit (the files say 22°; the margin rule
+    predicts 26.4°).
   - Card A (to top speed or VNE) and card C in afterburner, for thrust and drag.
 - [ ] **2. Su-30MKK (`su_30mkk`).** Tests whether a near-hard limiter binds: `Autopilot.Pitch` is
   12 g at strength 0.95, below the 0.99 we treat as hard. At about 3,000 kg of fuel the force rule

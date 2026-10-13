@@ -153,6 +153,28 @@ def render_extraction_markdown(extraction: Extraction) -> str:
             f'| {t.military_N[0][0] / 1000:,.1f} | {afterburner} | {mid / 1000:,.1f} '
             f'| {t.afterburner_N[0][0] / (mass * G0):.2f} |'
         )
+    lines += [
+        '',
+        '## Lift and drag',
+        '',
+        'From the wing and surface polars (milestone 5): lift from the wing polar, capped at the '
+        "instructor's angle-of-attack limit (`AoaLimits` × (1 + `AoaLimitsMargin` %)); CD0 sums "
+        "every surface's `CdMin` by area; k is the wing's induced-drag factor. Fitted to the "
+        'Typhoon FGR.4 flights only (docs/FINDINGS.md), so treat other aircraft as unvalidated.',
+        '',
+        '| BR | Aircraft | AoA limit (°) | CLmax M0.4 | CLmax M0.8 | CD0 M0.8 | CD0 M1.2 '
+        '| k M0.8 |',
+        '| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |',
+    ]
+    for a in extraction.aircraft:
+        ae = a.aero.value
+        m4, m8, m12 = ae.mach.index(0.4), ae.mach.index(0.8), ae.mach.index(1.2)
+        aoa = '—' if ae.aoa_limit_deg is None else f'{ae.aoa_limit_deg:.1f}'
+        lines.append(
+            f'| {_br(*a.entry.br_range)} | {a.entry.name} | {aoa} '
+            f'| {ae.cl_max[m4]:.2f} | {ae.cl_max[m8]:.2f} '
+            f'| {ae.cd0[m8]:.4f} | {ae.cd0[m12]:.4f} | {ae.k[m8]:.3f} |'
+        )
     if extraction.failures:
         lines += ['', '## Failed', '', '| Entry | Error |', '| --- | --- |']
         lines += [f'| `{f.entry_id}` | {f.error} |' for f in extraction.failures]
