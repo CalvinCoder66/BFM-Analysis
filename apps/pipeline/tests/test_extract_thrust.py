@@ -40,13 +40,21 @@ def test_table_totals_both_engines_and_converts_mach_with_isa() -> None:
     assert table.military_N[0][mach1] == pytest.approx(2 * 5800 * 1.0225 * G0, rel=2e-4)
 
 
-def test_lift_jets_are_not_counted_as_thrust() -> None:
+def test_lift_jets_are_not_counted_as_thrust_but_vectoring_nozzles_are() -> None:
     # The Yak-141's lift engines point 76° up; only the main engine pushes the jet forward.
-    fm = {
-        **TYPHOON,
-        'Engine1': {'Type': 0, 'Nozzle0': {'Direction': [0.0, 76.0]}},
+    yak = {**TYPHOON, 'Engine1': {'Type': 0, 'Nozzle0': {'Direction': [0.0, 76.0]}}}
+    assert extract_thrust(yak, 'yak').value.engines == 1
+    # The Su-30SM's nozzles are mounted 4° off axis and vector ±15° in pitch: still thrust.
+    vectoring = {
+        'Type': 0,
+        'Nozzle0': {
+            'Direction': [2.0, 4.0],
+            'HasThrustVecMainControlsMode': True,
+            'ElevatorToThrustDeflection0': [550.0, 15.0, 0.0, -15.0],
+        },
     }
-    assert extract_thrust(fm, 'yak').value.engines == 1
+    su30 = {**TYPHOON, 'Engine0': vectoring, 'Engine1': vectoring}
+    assert extract_thrust(su30, 'su_30sm').value.engines == 2
 
 
 def test_rejects_an_engine_without_a_thrust_grid() -> None:

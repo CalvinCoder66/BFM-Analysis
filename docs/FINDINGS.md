@@ -232,6 +232,13 @@ Not datamine findings, but they shaped how the evidence is gathered:
 - ~~Whether the datamine thrust tables reproduce the logged thrust~~ — yes, within 1% (see
   Engine thrust).
 - Where the afterburner's angle-of-attack thrust loss comes from in the files.
+- **Thrust vectoring.** The Su-30SM, SM2 and MKM have pitch thrust vectoring in the files:
+  `ElevatorToThrustDeflection0` = [550, 15, 0, −15] and `…1` = [900, 1, 0, −1], read as up to
+  ±15° of nozzle deflection at full stick below 550 km/h, fading to ±1° by 900 km/h. It doesn't
+  change thrust magnitude, so milestone 4 ignores it; it matters for low-speed pitch authority and
+  adds a lift component (thrust × sin of the deflection), which milestone 5 should account for.
+  None of these is flyable by us yet, so it is unvalidated. The Harriers' nozzle rotation
+  (`HasThrustVecMainControlsMode`, VTOL) is a separate mechanism.
 
 ## Next flights (to do)
 

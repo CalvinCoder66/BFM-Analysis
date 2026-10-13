@@ -27,7 +27,11 @@ ALTITUDES_M = [float(h) for h in range(0, 16_000, 1_000)]
 MACHS = [round(0.1 * i, 1) for i in range(25)]
 MILITARY_THROTTLE = 1.0
 AFTERBURNER_THROTTLE = 1.1
-#: Nozzles pointing further than this from the flight path are lift jets (Yak-141), not thrust.
+#: Engines whose nozzle is *mounted* pointing further than this from the aircraft's axis
+#: (`Nozzle0.Direction`) are lift jets, like the Yak-141's 76° lift engines, and don't push the jet
+#: forward. This is the fixed mounting angle, not thrust vectoring: the Su-30SM/SM2/MKM nozzles
+#: are mounted 4° off axis and swivel up to ±15° in flight (`ElevatorToThrustDeflection*`), and
+#: they count as normal engines here.
 MAX_NOZZLE_PITCH_DEG = 45.0
 
 
