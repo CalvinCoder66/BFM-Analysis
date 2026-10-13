@@ -13,7 +13,7 @@ Interactive web dashboard that turns War Thunder flight-model data into practica
 Manoeuvres (BFM) decisions for 4th-generation jets. It compares two aircraft (attacker vs.
 defender) across 1-circle (radius) and 2-circle (rate) fights using Energy-Manoeuvrability (E-M)
 theory, driven by sliders for altitude, fuel/loadout, airspeed, flight path angle, turn duration,
-and G-limiter state.
+and pilot style.
 
 Built by Calvin Cheung as a portfolio/learning project. The full plan lives in
 `docs/PROJECT-PLAN.md`; read it before starting a new phase.
@@ -21,8 +21,8 @@ Built by Calvin Cheung as a portfolio/learning project. The full plan lives in
 ## Current Status
 
 **UI design complete (phases 1–3 and the phase 4 HUD polish); the data is still mock.** The dashboard has
-scenario controls (altitude, merge speed, turn duration; per side aircraft, own merge speed, loadout, fuel,
-G limiter, pilot style, turn plane), and a **hotbar** of four focus views: Summary (who wins
+scenario controls (altitude, merge speed, turn duration; per side aircraft (searchable, grouped by
+BR), loadout (quick picks plus a per-pylon-slot editor), own merge speed, fuel, pilot style, turn plane), and a **hotbar** of four focus views: Summary (who wins
 each fight, E-M diagram), 1-circle, 2-circle and Energy. Each view shows only its own charts and
 a few key stats, with the rest behind "show more". Keep it that way: add new stats to a focus view's
 `more` list rather than to the always-visible ones. What remains is phase 4's real data, which means
@@ -50,7 +50,7 @@ BFM-Analysis/
 │   ├── frontend/              # React + Vite + Tailwind dashboard
 │   │   ├── src/
 │   │   │   ├── app.tsx        # Root component
-│   │   │   ├── data/          # Aircraft JSON loader + zod schema (validated at load)
+│   │   │   ├── data/          # Aircraft JSON loader + zod schema (validated at load), stores.ts (pylon-slot rules)
 │   │   │   ├── features/
 │   │   │   │   ├── scenario/   # Sidebar: altitude, merge speed, unit, per-side aircraft/own merge speed/loadout/fuel
 │   │   │   │   ├── comparison/ # matchup.ts (pure: computeMatchup, verdicts), metrics.ts, StatsPanel
@@ -145,10 +145,13 @@ and get a portal URL.
   afterburner thrust table, and loadouts (mass + ΔCD0).
 - **G limits follow War Thunder:** the wing-break load is a force (`wingBreakLoad_N`, WT
   `Strength.CritOverload`), so wing-break G = force / weight and falls with mass. The instructor
-  allows `instructorFraction` of that (WT `overloadMult`, ~0.85). A fly-by-wire limit (`fcs`, F-16
-  only) caps both instructor-on and instructor-off.
-- Scenario inputs: altitude, fuel, loadout, limiter (instructor/off), optional pilot G (smooth
-  flying; null = yank to the limiter), turn-plane inclination θ.
+  allows `instructorFraction` of that (about 1.0 in RB flight tests). A fly-by-wire limit (`fcs`,
+  F-16 family) caps it. Realistic Battles only: there is no instructor-off option.
+- Loadouts: a quick pick (`loadouts`, mass + ΔCD0), or custom pylon-slot picks evaluated by
+  `data/stores.ts` against the aircraft's `stores` rules (bans both ways, requirements, total and
+  per-side load, left/right balance).
+- Scenario inputs: altitude, fuel, loadout or custom store load, optional pilot G (smooth
+  flying; null = yank to the instructor limit), turn-plane inclination θ.
 - Point-performance turn rate is the circle average in the turn plane at constant speed:
   ω = g·√(n² − cos²θ) / V (level turn when θ = 0).
 - Outputs per speed: lift-limited and available G, ITR, STR (thrust = drag), radii, Ps at 1 g and

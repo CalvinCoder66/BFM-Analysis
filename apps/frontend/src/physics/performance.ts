@@ -20,17 +20,14 @@ import { type Atmosphere, casToTas, G0, isa, tasToCas } from './atmosphere';
 import { interp1, interp2 } from './interpolate';
 import { degToRad, radToDeg } from './units';
 
-/** War Thunder instructor on, or off (manual control up to the wing-break limit). */
-export type Limiter = 'instructor' | 'off';
-
 export interface Configuration {
   altitude_m: number;
   /** Internal fuel as a fraction of capacity, 0–1. */
   fuelFraction: number;
   loadoutId: string;
-  /** Defaults to the instructor. */
-  limiter?: Limiter;
-  /** G the pilot chooses to fly at (smooth flying), capped by the limiter. Omit to pull to the limit. */
+  /** A custom store load (from the pylon-slot editor), used instead of the loadout. */
+  customLoad?: { mass_kg: number; cd0Delta: number };
+  /** G the pilot chooses to fly at (smooth flying), capped by the instructor. Omit to pull to the limit. */
   pilotG?: number | null;
   /** Turn-plane inclination, degrees: 0 = level turn, 90 = vertical loop. Defaults to 0. */
   turnPlane_deg?: number;
@@ -39,10 +36,8 @@ export interface Configuration {
 export interface GLimits {
   /** Load factor at which the wings fail at the current weight. */
   wingBreak: number;
-  /** Highest G the War Thunder instructor allows. */
+  /** Highest G the Realistic Battles instructor allows (and the fly-by-wire limit, if any). */
   instructor: number;
-  /** Highest G with the instructor off (fly-by-wire limiter, else wing-break). */
-  manual: number;
 }
 
 export interface FlightCondition {
@@ -53,7 +48,7 @@ export interface FlightCondition {
   cd0Delta: number;
   atmosphere: Atmosphere;
   gLimits: GLimits;
-  /** G ceiling for this condition: the limiter, or the pilot's chosen G if lower. */
+  /** G ceiling for this condition: the instructor's, or the pilot's chosen G if lower. */
   gLimit: number;
   /** Turn-plane inclination, radians. */
   turnPlane: number;
@@ -66,7 +61,6 @@ export function gLimitsFor(aircraft: Aircraft, weight_N: number): GLimits {
   return {
     wingBreak,
     instructor: Math.min(fbw, wingBreak * instructorFraction),
-    manual: Math.min(fbw, wingBreak),
   };
 }
 
@@ -78,7 +72,7 @@ export interface PointPerformance {
   liftLimitG: number;
   /** Available load factor: min(lift limit, condition G limit). */
   maxG: number;
-  /** What caps maxG: CLmax, or the G limit (limiter or pilot). */
+  /** What caps maxG: CLmax, or the G limit (instructor or pilot). */
   limitedBy: 'lift' | 'g-limit';
   /** Instantaneous turn rate at max available G, deg/s (circle average in an inclined plane). */
   itr: number;
@@ -98,13 +92,12 @@ export interface PointPerformance {
 }
 
 export function resolveCondition(aircraft: Aircraft, config: Configuration): FlightCondition {
-  const loadout = aircraft.loadouts.find((l) => l.id === config.loadoutId);
+  const loadout = config.customLoad ?? aircraft.loadouts.find((l) => l.id === config.loadoutId);
   if (!loadout) throw new Error(`Unknown loadout "${config.loadoutId}" for ${aircraft.id}`);
   const fuelFraction = Math.min(Math.max(config.fuelFraction, 0), 1);
   const mass_kg = aircraft.emptyMass_kg + fuelFraction * aircraft.internalFuel_kg + loadout.mass_kg;
   const weight_N = mass_kg * G0;
   const gLimits = gLimitsFor(aircraft, weight_N);
-  const ceiling = config.limiter === 'off' ? gLimits.manual : gLimits.instructor;
   return {
     aircraft,
     altitude_m: config.altitude_m,
@@ -113,7 +106,7 @@ export function resolveCondition(aircraft: Aircraft, config: Configuration): Fli
     cd0Delta: loadout.cd0Delta,
     atmosphere: isa(config.altitude_m),
     gLimits,
-    gLimit: Math.min(ceiling, config.pilotG ?? Number.POSITIVE_INFINITY),
+    gLimit: Math.min(gLimits.instructor, config.pilotG ?? Number.POSITIVE_INFINITY),
     turnPlane: degToRad(config.turnPlane_deg ?? 0),
   };
 }
