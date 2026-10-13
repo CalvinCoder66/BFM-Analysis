@@ -2,13 +2,9 @@ import { metresToFeet } from '../../physics/units';
 import { SPEED_UNITS, type SpeedUnit } from '../../shared/format';
 import { Segmented } from '../../shared/ui/Segmented';
 import { Slider } from '../../shared/ui/Slider';
-import type { Scenario } from '../comparison/matchup';
+import { type Scenario, SIDES } from '../comparison/matchup';
 import { AircraftControls } from './AircraftControls';
-
-const MERGE_RANGE: Record<SpeedUnit, { min: number; max: number; step: number }> = {
-  kmh: { min: 300, max: 1400, step: 10 },
-  kts: { min: 160, max: 760, step: 5 },
-};
+import { MergeSpeedSlider } from './MergeSpeedSlider';
 
 export function ScenarioPanel({
   scenario,
@@ -21,8 +17,7 @@ export function ScenarioPanel({
   onScenarioChange: (scenario: Scenario) => void;
   onUnitChange: (unit: SpeedUnit) => void;
 }) {
-  const speed = SPEED_UNITS[unit];
-  const mergeValue = Math.round(speed.fromMs(scenario.mergeCas));
+  const overridden = SIDES.filter((side) => scenario[side].mergeCas !== null);
 
   return (
     <div className="space-y-4">
@@ -53,16 +48,22 @@ export function ScenarioPanel({
           display={`${scenario.altitude_m.toLocaleString('en-GB')} m · ${Math.round(metresToFeet(scenario.altitude_m)).toLocaleString('en-GB')} ft`}
           onChange={(altitude_m) => onScenarioChange({ ...scenario, altitude_m })}
         />
-        <Slider
-          label="Merge speed (IAS)"
-          value={mergeValue}
-          min={MERGE_RANGE[unit].min}
-          max={MERGE_RANGE[unit].max}
-          step={MERGE_RANGE[unit].step}
-          display={`${mergeValue} ${speed.label}`}
-          onChange={(v) => onScenarioChange({ ...scenario, mergeCas: speed.toMs(v) })}
-          accent="#facc15"
-        />
+        <div className="space-y-1">
+          <MergeSpeedSlider
+            label="Merge speed (IAS)"
+            cas={scenario.mergeCas}
+            unit={unit}
+            onChange={(mergeCas) => onScenarioChange({ ...scenario, mergeCas })}
+            accent="#facc15"
+          />
+          {overridden.length > 0 && (
+            <p className="text-[11px] text-slate-500">
+              {overridden.length === 2
+                ? 'Both jets fly their own merge speed.'
+                : `The ${overridden[0]} flies its own merge speed.`}
+            </p>
+          )}
+        </div>
         <Slider
           label="Turn duration"
           value={scenario.turnDuration_s}
@@ -74,16 +75,16 @@ export function ScenarioPanel({
         />
       </section>
 
-      <AircraftControls
-        side="attacker"
-        config={scenario.attacker}
-        onChange={(attacker) => onScenarioChange({ ...scenario, attacker })}
-      />
-      <AircraftControls
-        side="defender"
-        config={scenario.defender}
-        onChange={(defender) => onScenarioChange({ ...scenario, defender })}
-      />
+      {SIDES.map((side) => (
+        <AircraftControls
+          key={side}
+          side={side}
+          config={scenario[side]}
+          mergeCas={scenario.mergeCas}
+          unit={unit}
+          onChange={(config) => onScenarioChange({ ...scenario, [side]: config })}
+        />
+      ))}
     </div>
   );
 }

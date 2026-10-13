@@ -1,7 +1,10 @@
 import type { Scenario, SideConfig } from '../features/comparison/matchup';
 import { kmhToMs } from '../physics/units';
 
-/** A side config with test defaults: 50% fuel, clean, instructor on, yanking, level turn. */
+/**
+ * A side config with test defaults: 50% fuel, clean, instructor on, yanking, level turn, flying
+ * the scenario's merge speed.
+ */
 export const sideConfig = (
   aircraftId: string,
   overrides: Partial<SideConfig> = {},
@@ -12,6 +15,7 @@ export const sideConfig = (
   limiter: 'instructor',
   pilotG: null,
   turnPlane_deg: 0,
+  mergeCas: null,
   ...overrides,
 });
 

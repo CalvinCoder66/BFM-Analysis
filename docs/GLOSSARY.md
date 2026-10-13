@@ -8,7 +8,7 @@ Terms used in the dashboard, the code and the docs. Grouped by topic, alphabetic
 - **2-circle fight**: after the merge, both aircraft turn towards each other, each flying their own circle, and chase nose-to-tail. A rate fight: the **higher sustained turn rate** wins in the long run. In the dashboard each pilot flies as set (smooth or yanking).
 - **BFM (Basic Fighter Manoeuvres)**: close-range, within-visual-range manoeuvring to get a firing position after the merge.
 - **Energy fighting**: managing speed and altitude (energy) rather than spending it all on turning. Contrast with **angles fighting**, which spends energy to point the nose now.
-- **Merge**: the moment two aircraft pass each other head-on; the fight starts here. **Merge speed** is set in the sidebar as IAS.
+- **Merge**: the moment two aircraft pass each other head-on; the fight starts here. **Merge speed** is set in the sidebar as IAS for both jets; either jet can tick **Own merge speed** to override it with its own.
 - **Nose authority**: how quickly an aircraft can point its nose at a target, mostly limited by instantaneous turn rate.
 - **Snap shot**: a quick, high-angle gun shot taken as the target passes through the nose, rather than a tracking shot.
 - **Turn from the merge**: the dashboard's time simulation of a sustained hard turn from the merge speed, used by the turn timeline, turn circles and Energy view.

@@ -96,7 +96,7 @@ How the code in `apps/frontend/src` is organised:
 
 - **`physics/`**: pure TypeScript with no React. It covers the standard atmosphere, table interpolation, the turn-performance model (G limits, turn rate and radius, Ps) and a turn-from-the-merge simulation. Everything is in SI units and covered by unit tests with hand-checked values.
 - **`data/`**: loads and validates every aircraft JSON file. Adding an aircraft means adding one file.
-- **`features/scenario/`**: the sidebar controls (altitude, merge speed, turn duration, and per-side aircraft, loadout, fuel, G limiter, pilot style and turn plane).
+- **`features/scenario/`**: the sidebar controls (altitude, merge speed, turn duration, and per-side aircraft, own merge speed (optional override), loadout, fuel, G limiter, pilot style and turn plane).
 - **`features/comparison/`**: turns a scenario into a matchup. It works out each side's performance at full pull and as flown, decides who wins each fight, and defines the stats shown.
 - **`features/focus/`**: the hotbar and its four views (Summary, 1-circle, 2-circle and Energy). Each view shows only its own charts and key stats, with the rest behind "show more".
 - **`features/charts/`**: pure functions that build Plotly figures, the turn-circle geometry, and the thin components that draw them.
