@@ -46,6 +46,10 @@ def component_fm(name: str) -> dict:
                     'RightIn': 3.65, 'RightMid': 4.65, 'RightOut': 5.65,
                 },
                 'Strength': {'CritOverload': [-400000.0, 770000.0], 'VNE': 1555.0, 'MNE': 2.2},
+                'FlapsPolar0': {
+                    'OswaldsEfficiencyNumber': 0.7, 'lineClCoeff': 0.072, 'Cl0': 0.0,
+                    'alphaCritHigh': 29.0, 'ClCritHigh': 1.75, 'CdMin': 0.0085,
+                },
             }
         },
         'Mass': {'EmptyMass': 9031.0, 'MaxFuelMass0': 6398.0, 'OilMass': 30.0},

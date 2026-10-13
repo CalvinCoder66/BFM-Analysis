@@ -154,9 +154,9 @@ pass the validation below before we drop the mock badge for that aircraft.
 | `gLimits` instructor (reworked) | FM `Instructor` (`overloadMult`, `overloadTimeRange`, `critMult`), overridden by the unit's `instructorOverloadMult` / `instructorCritMult` | Model two limits: a **steady** limit and a short **peak** the instructor allows briefly. That covers the 12–13 g you see in RB. Keep the raw arrays | **Low until validated** |
 | `gLimits.fcs` | Autopilot `Pitch.RateMaxLoadFactorMax[1]` (and `AoaLimits`) when the unit's `autopilotImpl` is `FBW` | Direct (F-16: 10). The AoA limit feeds into CLmax | Medium |
 | `thrust` table | `EngineType0.Main.ThrustMax` grid (altitude × TAS, `ThrustMax0`, `ThrustMaxCoeff_i_j`, `ThrAftMaxCoeff_i_j`), afterburner `ThrustMult` / `AfterburnerBoost`, engine count | Game formula confirmed within 1% against the Typhoon's logged thrust (FINDINGS.md); TAS→Mach with ISA, resampled to our Mach grid. Built in milestone 4 | Medium (one aircraft) |
-| `aero.clMax(M)` | Wing `FlapsPolar0` (`ClCritHigh`, `alphaCritHigh`, `lineClCoeff`, `Cl0`) with the `MachCritN`/`MachMaxN`/`MultLimitN` modifiers, capped by the FBW/instructor AoA limit | Evaluate the polar at each Mach on our grid | **Low until validated** |
-| `aero.cd0(M)` | `CdMin` of wing, fuselage and tail polars weighted by area, plus fixed drag items, with Mach modifiers | Evaluate at each Mach | **Low until validated** |
-| `aero.k(M)` | Wing `OswaldsEfficiencyNumber`, span and area (k = 1 / (π·e·AR)), with Mach modifiers | Evaluate at each Mach | Medium |
+| `aero.clMax(M)` | Wing `FlapsPolar0` (`ClCritHigh`, `alphaCritHigh`, `lineClCoeff`, `Cl0`) with the seven Mach curves, at the instructor's AoA limit `AoaLimits` × (1 + `AoaLimitsMargin` %) | Dagor Engine polar maths; wing-only lift fits the Typhoon within 5% (FINDINGS.md). Built in milestone 5 | Low (one aircraft) |
+| `aero.cd0(M)` | `CdMin` of wing, fuselage and tail polars weighted by area, with Mach curve 1 | Sum; measured is 1.05 × on the Typhoon | Low (one aircraft) |
+| `aero.k(M)` | Wing `OswaldsEfficiencyNumber`, span and area (k = 1 / (π·e·AR)), with Mach curve 5 | Drag under load fits the Typhoon within 2% (median) | Medium |
 | `loadouts[].mass_kg` | Preset → slot → weapon files (`mass`, `rocket.mass`, racks, tanks) | Sum resolved masses; fail if any reference is unresolved | High |
 | `loadouts[].cd0Delta` | Store `dragCx` / slot modifiers | Needs the game's store-drag formula and reference area | **Low until validated** |
 | `provenance` (new) | `version`, tag, commit SHA | Per file, with per-field confidence | — |
@@ -241,7 +241,15 @@ in the turn timeline. Any change there is a frontend physics fix and doesn't aff
 4. **Thrust.** Grid extraction, game formula, TAS→Mach resampling; checked against cards A and B.
 5. **Aerodynamics.** Component-polar evaluation into CLmax/CD0/k per Mach, checked against cards
    C–E. Expect a few rounds here.
-6. **Loadouts.** Preset resolution, exact masses, store drag checked with a loaded run of card A.
+6. **Loadouts.** The unit files encode War Thunder's customisable loadouts: `WeaponSlots` lists
+   each pylon slot's presets, `BannedWeaponPreset` (a preset rules out one in another slot, e.g.
+   the F-14D's front-fuselage AIM-54 pair rules out the rear AIM-7 pair), `DependentWeaponPreset`
+   (a preset needs another, e.g. GBU-12 needs the LANTIRN pod; drop tanks come in pairs),
+   `maxloadMass` and left/right console limits, plus the game's named `weapon_presets`. The
+   pipeline emits the slot model (presets with weapons, roles, mass, drag, bans and dependencies)
+   so the frontend can offer quick picks and a validated slot editor, including swing-role loads.
+   Weapon masses come from the weapon files; store drag needs the game's formula and is checked
+   with a loaded run of card A.
 7. **Switch the frontend to real data.** Schema additions, picker, RB-only limiter, badges, credits,
    `data:check` in CI. Mock files are removed once every roster aircraft has real data.
 8. **Automation.** A scheduled GitHub Action checks for a new datamine tag, runs `data:update` and

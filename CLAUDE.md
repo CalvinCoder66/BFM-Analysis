@@ -55,7 +55,7 @@ BFM-Analysis/
 │   └── pipeline/              # Python 3.14 (uv) datamine pipeline: fetch, roster, extraction
 │       ├── pipeline.toml      # Pinned datamine tag + roster rules (BR range, classes, deny)
 │       ├── validation/        # protocol.md (test cards) + flights/ (committed telemetry logs)
-│       └── src/bfm_pipeline/  # fetch, datamine, roster, isa, extract/ (basic, thrust), telemetry/, report, cli
+│       └── src/bfm_pipeline/  # fetch, datamine, roster, isa, extract/ (basic, thrust, aero), telemetry/, report, cli
 ├── data/
 │   ├── aircraft/              # Version-controlled aircraft performance JSON (one file per aircraft)
 │   ├── roster.json            # Generated: in-scope aircraft (RB 12.0–14.7, unique flight models)
