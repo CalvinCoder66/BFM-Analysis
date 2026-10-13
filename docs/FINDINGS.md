@@ -5,10 +5,14 @@ which ones it doesn't, and which ones mean something other than they appear to. 
 file as more aircraft are flown; the newest evidence wins, and superseded readings stay listed
 with what replaced them.
 
-- **Game version:** War Thunder 2.59.0.65; datamine tag `2.59.0.65` (pinned in
-  `apps/pipeline/pipeline.toml`).
+- **Game version:** War Thunder 2.59.0.65, the latest patch at the time of flying, and the same
+  patch as the datamine. All 25 runs were flown on **12 October 2026, 20:54–21:43 UTC**, on the
+  live game. The datamine's newest tag, `2.59.0.65` (pinned in `apps/pipeline/pipeline.toml`),
+  was published earlier the same day at 14:11 UTC, and no newer tag exists. The telemetry doesn't
+  report the game version, so the folder name `2.59.0.65` is the pinned datamine tag; pass
+  `--game-version` to the recorder if the game is ever ahead of the datamine.
 - **Aircraft flown:** EF-2000 Typhoon FGR.4 (`ef_2000_fgr4`, RB 14.3), fully upgraded, clean,
-  Realistic with mouse aim (instructor on), Western Europe map. October 2026.
+  Realistic with mouse aim (instructor on), Western Europe map.
 - **Evidence:** 25 runs in `apps/pipeline/validation/flights/2.59.0.65/ef_2000_fgr4/`, flown to
   the test cards in `apps/pipeline/validation/protocol.md`. Reproduce any number here with
   `mise run data:analyse -- <logs>`.
@@ -21,6 +25,8 @@ with what replaced them.
 | Datamine field | Datamine value (or our reading of it) | What the game does | Verdict |
 | --- | --- | --- | --- |
 | `Mass.MaxFuelMass0` | 7,110 kg | Telemetry `Mfuel0` = 7,110 kg | ✅ Exact |
+| `EngineType0.Main.ThrustMax` grid, `Mode*.ThrustMult`, `AfterburnerBoost` | Thrust from the community formula (below) | Logged engine thrust: median 0.992 × the formula at military power, 0.998 × in afterburner | ✅ Within 1% |
+| `Main.ThrottleBoost` | 1.01 | Not applied at 100% throttle (it would put the formula 1% further from the log) | ✅ Ignored |
 | `WingPlane.Strength.VNE` | 1,607 km/h IAS | Overspeed reported at Mach 1.42, about 1,200 m, where IAS first passed 1,607 km/h | ✅ Matches |
 | `WingPlane.Strength.CritOverload` | 810 kN; we read the wing-break load as twice that, 1.62 MN | With the instructor on, maximum G holds a load of 1.59–1.68 MN at every weight (0.98–1.04 × 1.62 MN) | ✅ Twice the value is right, and it is the instructor's limit |
 | `Instructor.overloadMult` | 0.90 / 1.05, read as the steady and brief-peak fractions of the wing-break load | Holds about 1.0 × the wing-break load, for 8 s or more | ❌ Neither fraction applies |
@@ -115,8 +121,31 @@ must reproduce.
 | Military | 0.90 | 3,023 | 4,741 |
 | Military | 0.99 | 3,224 | 4,766 |
 
-Total afterburner thrust levels off at about 218–220 kN above Mach 1.1. To be compared with the
-datamine thrust tables in milestone 4.
+Total afterburner thrust levels off at about 218–220 kN above Mach 1.1.
+
+**The datamine reproduces it (milestone 4).** Per engine, with bilinear interpolation over
+altitude and true airspeed:
+
+- military = `ThrustMax0` × `ThrustMaxCoeff`(h, V) × `ThrustMult` of the throttle 1.0 mode;
+- afterburner = `ThrustMax0` × `ThrustMaxCoeff` × `ThrAftMaxCoeff`(h, V) × `ThrustMult` of the
+  throttle 1.1 mode × `AfterburnerBoost`.
+
+Against every steady full-power sample in the 25 runs (logged thrust ÷ formula, using the logged
+height and true airspeed):
+
+| Setting | Samples | Median | 5th–95th percentile | Within 3% |
+| --- | --- | --- | --- | --- |
+| Military | 3,444 | 0.992 | 0.976–0.999 | 97% |
+| Afterburner, angle of attack ≤ 10° | 1,284 | 0.998 | 0.990–1.003 | 98% |
+| Afterburner, all | 1,779 | 0.998 | 0.959–1.003 | 83% |
+
+- In afterburner, the logged thrust falls below the formula as the angle of attack rises: about
+  1.6% low at 10–15°, 2.5% at 15–20° and 3.7% at 20–30°. At military power there is no such
+  trend. The game must apply an angle-of-attack (or intake) loss in reheat that isn't in the grid;
+  it costs Ps in hard turns but not top speed.
+- `ThrottleBoost` (1.01) is not applied at 100% throttle.
+- The test `tests/test_extract_thrust.py` replays these logs against the formula, so a change
+  that breaks it fails CI.
 
 ### Ps at 1 g, afterburner (card A run 1)
 
@@ -200,7 +229,16 @@ Not datamine findings, but they shaped how the evidence is gathered:
 - Whether the constant-force G rule holds for aircraft with other instructor settings or a hard
   fly-by-wire limit (the F-16's `Autopilot.Pitch` strength is 1.0).
 - Where the instructor's 25–26.5° angle-of-attack limit comes from in the files.
-- Whether the datamine thrust tables reproduce the logged thrust (milestone 4).
+- ~~Whether the datamine thrust tables reproduce the logged thrust~~ — yes, within 1% (see
+  Engine thrust).
+- Where the afterburner's angle-of-attack thrust loss comes from in the files.
+- **Thrust vectoring.** The Su-30SM, SM2 and MKM have pitch thrust vectoring in the files:
+  `ElevatorToThrustDeflection0` = [550, 15, 0, −15] and `…1` = [900, 1, 0, −1], read as up to
+  ±15° of nozzle deflection at full stick below 550 km/h, fading to ±1° by 900 km/h. It doesn't
+  change thrust magnitude, so milestone 4 ignores it; it matters for low-speed pitch authority and
+  adds a lift component (thrust × sin of the deflection), which milestone 5 should account for.
+  None of these is flyable by us yet, so it is unvalidated. The Harriers' nozzle rotation
+  (`HasThrustVecMainControlsMode`, VTOL) is a separate mechanism.
 
 ## Next flights (to do)
 
