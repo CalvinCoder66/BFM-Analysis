@@ -6,6 +6,7 @@ import {
   computeSide,
   energyVerdict,
   oneCircleVerdict,
+  sideMergeCas,
   timelineVerdict,
   turnRateDelta,
   twoCircleVerdict,
@@ -71,6 +72,20 @@ describe('computeSide', () => {
   it('falls back to the first loadout when the loadout id does not exist on the aircraft', () => {
     const side = computeSide({ ...f16, loadoutId: '2xfox2-6xfox1' }, 1_000, kmhToMs(800));
     expect(side.loadout.id).toBe('clean');
+  });
+});
+
+describe('own merge speed', () => {
+  it('overrides the scenario merge speed for that jet only', () => {
+    const s = scenario({ attacker: { ...f16, mergeCas: kmhToMs(1_000) } });
+    expect(sideMergeCas(s, 'attacker')).toBeCloseTo(kmhToMs(1_000), 9);
+    expect(sideMergeCas(s, 'defender')).toBe(s.mergeCas);
+    const m = computeMatchup(s);
+    expect(m.attacker.pull.atMerge?.cas).toBeCloseTo(kmhToMs(1_000), 6);
+    expect(m.defender.pull.atMerge?.cas).toBeCloseTo(kmhToMs(800), 6);
+    // The turn from the merge starts at each jet's own speed.
+    expect(m.attacker.flown.timeline[0]?.cas).toBeCloseTo(kmhToMs(1_000), 6);
+    expect(m.defender.flown.timeline[0]?.cas).toBeCloseTo(kmhToMs(800), 6);
   });
 });
 

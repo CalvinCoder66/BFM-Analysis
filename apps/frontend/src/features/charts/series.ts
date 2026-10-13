@@ -12,6 +12,7 @@ import {
   type Scenario,
   SIDES,
   type Side,
+  sideMergeCas,
   turnRateDelta,
 } from '../comparison/matchup';
 
@@ -53,39 +54,55 @@ function speedAxisTitle(unit: SpeedUnit) {
   return `Indicated airspeed (${SPEED_UNITS[unit].label})`;
 }
 
-function mergeMarker(
+/**
+ * Dashed line at the merge speed: one yellow line when both jets merge at the same speed, or one
+ * per jet in its colour when either flies its own.
+ */
+function mergeMarkers(
   scenario: Scenario,
   unit: SpeedUnit,
-): { shape: Partial<Shape>; label: Partial<Annotations> } {
-  const x = SPEED_UNITS[unit].fromMs(scenario.mergeCas);
+): { shapes: Partial<Shape>[]; labels: Partial<Annotations>[] } {
+  const speeds = SIDES.map((side) => sideMergeCas(scenario, side));
+  const markers =
+    speeds[0] === speeds[1]
+      ? [{ cas: speeds[0] ?? scenario.mergeCas, colour: '#facc15' }]
+      : SIDES.map((side, i) => ({
+          cas: speeds[i] ?? scenario.mergeCas,
+          colour: SIDE_COLOURS[side],
+        }));
   return {
-    shape: {
-      type: 'line',
-      xref: 'x',
-      yref: 'paper',
-      x0: x,
-      x1: x,
-      y0: 0,
-      y1: 1,
-      line: { color: '#facc15', width: 1.5, dash: 'dash' },
-    },
-    label: {
-      x,
+    shapes: markers.map(({ cas, colour }) => {
+      const x = SPEED_UNITS[unit].fromMs(cas);
+      return {
+        type: 'line',
+        xref: 'x',
+        yref: 'paper',
+        x0: x,
+        x1: x,
+        y0: 0,
+        y1: 1,
+        line: { color: colour, width: 1.5, dash: 'dash' },
+      };
+    }),
+    // Stagger the labels so two nearby lines keep both readable.
+    labels: markers.map(({ cas, colour }, i) => ({
+      x: SPEED_UNITS[unit].fromMs(cas),
       xref: 'x',
       y: 1,
       yref: 'paper',
       yanchor: 'top',
       xanchor: 'left',
       xshift: 4,
+      yshift: -16 * i,
       text: 'Merge',
       showarrow: false,
-      font: { color: '#facc15', size: 11 },
-    },
+      font: { color: colour, size: 11 },
+    })),
   };
 }
 
 function baseLayout(scenario: Scenario, unit: SpeedUnit, yTitle: string): Partial<Layout> {
-  const merge = mergeMarker(scenario, unit);
+  const merge = mergeMarkers(scenario, unit);
   return {
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor: '#0b1222',
@@ -95,8 +112,8 @@ function baseLayout(scenario: Scenario, unit: SpeedUnit, yTitle: string): Partia
     legend: { orientation: 'h', x: 0, y: 1.02, yanchor: 'bottom', font: { size: 11 } },
     xaxis: { ...AXIS, title: { text: speedAxisTitle(unit) }, hoverformat: '.0f' },
     yaxis: { ...AXIS, title: { text: yTitle } },
-    shapes: [merge.shape],
-    annotations: [merge.label],
+    shapes: merge.shapes,
+    annotations: merge.labels,
   };
 }
 

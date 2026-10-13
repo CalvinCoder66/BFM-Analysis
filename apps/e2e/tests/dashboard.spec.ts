@@ -161,6 +161,11 @@ test('updates the comparison when the scenario changes', async ({ page }) => {
 
   await page.getByLabel('Defender aircraft').selectOption('su-27');
   await expect(page.getByRole('columnheader', { name: 'Su-27S' })).toBeVisible();
+
+  // The attacker can merge at its own speed, over the scenario's.
+  await page.getByLabel(/Attacker Own merge speed/).check();
+  await page.getByLabel('Attacker merge speed').fill('1000');
+  await expect(page.getByText('1000 vs 800 km/h merge')).toBeVisible();
 });
 
 test('models the G limiter and pilot style', async ({ page }) => {

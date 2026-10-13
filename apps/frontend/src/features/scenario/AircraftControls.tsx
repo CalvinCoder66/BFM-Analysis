@@ -1,10 +1,12 @@
 import { useId } from 'react';
 import { AIRCRAFT, getAircraft } from '../../data/aircraft';
 import { resolveCondition } from '../../physics/performance';
+import { formatSpeed, type SpeedUnit } from '../../shared/format';
 import { Segmented } from '../../shared/ui/Segmented';
 import { Slider } from '../../shared/ui/Slider';
 import { SIDE_COLOURS } from '../charts/series';
 import type { Side, SideConfig } from '../comparison/matchup';
+import { MergeSpeedSlider } from './MergeSpeedSlider';
 
 const SIDE_LABEL: Record<Side, string> = { attacker: 'Attacker', defender: 'Defender' };
 /** Default G for a pilot who flies smoothly instead of yanking. */
@@ -22,10 +24,15 @@ function planeLabel(deg: number) {
 export function AircraftControls({
   side,
   config,
+  mergeCas,
+  unit,
   onChange,
 }: {
   side: Side;
   config: SideConfig;
+  /** The scenario's merge speed, which this jet flies unless it has its own. */
+  mergeCas: number;
+  unit: SpeedUnit;
   onChange: (config: SideConfig) => void;
 }) {
   const aircraftId = useId();
@@ -100,6 +107,33 @@ export function AircraftControls({
         onChange={(pct) => onChange({ ...config, fuelFraction: pct / 100 })}
         accent={colour}
       />
+
+      {/* Optional override of the scenario's merge speed, kept low-key until it is used. */}
+      <div className="space-y-2">
+        <label className="flex items-center gap-1.5 text-[11px] text-slate-500 hover:text-slate-300">
+          <input
+            type="checkbox"
+            checked={config.mergeCas !== null}
+            onChange={(e) => onChange({ ...config, mergeCas: e.target.checked ? mergeCas : null })}
+            style={{ accentColor: colour }}
+          />
+          <span>
+            <span className="sr-only">{label} </span>Own merge speed
+          </span>
+          {config.mergeCas === null && (
+            <span className="text-slate-600">· using {formatSpeed(mergeCas, unit)}</span>
+          )}
+        </label>
+        {config.mergeCas !== null && (
+          <MergeSpeedSlider
+            label={`${label} merge speed`}
+            cas={config.mergeCas}
+            unit={unit}
+            onChange={(cas) => onChange({ ...config, mergeCas: cas })}
+            accent={colour}
+          />
+        )}
+      </div>
 
       <details className="group space-y-3 rounded border border-slate-800 bg-slate-950/40 px-2 py-1.5">
         <summary className="cursor-pointer select-none list-none text-xs text-slate-400 hover:text-slate-200">

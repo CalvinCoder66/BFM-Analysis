@@ -65,6 +65,7 @@ describe('emDiagram', () => {
 
   it('marks the merge speed and leaves headroom above the best ITR', () => {
     const { layout } = emDiagram(matchup, scenario, opts);
+    expect(layout.shapes).toHaveLength(1);
     expect(layout.shapes?.[0]?.x0).toBeCloseTo(800, 6);
     const best = Math.max(
       matchup.attacker.pull.summary.maxItr.value,
@@ -72,6 +73,15 @@ describe('emDiagram', () => {
     );
     const range = layout.yaxis?.range as [number, number];
     expect(range[1]).toBeGreaterThan(best);
+  });
+
+  it("marks each jet's own merge speed in its colour when they differ", () => {
+    const own = testScenario({ attacker: sideConfig('f-16c', { mergeCas: kmhToMs(1_000) }) });
+    const { layout } = emDiagram(computeMatchup(own), own, opts);
+    expect(layout.shapes?.map((s) => [s.x0, s.line?.color])).toEqual([
+      [expect.closeTo(1_000, 6), SIDE_COLOURS.attacker],
+      [expect.closeTo(800, 6), SIDE_COLOURS.defender],
+    ]);
   });
 
   it('draws radius lines whose turn rate equals TAS / radius', () => {

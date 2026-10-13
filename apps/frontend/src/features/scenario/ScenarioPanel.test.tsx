@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
-import { knotsToMs } from '../../physics/units';
+import { kmhToMs, knotsToMs } from '../../physics/units';
 import type { SpeedUnit } from '../../shared/format';
 import { sideConfig, testScenario } from '../../test/scenarios';
 import type { Scenario } from '../comparison/matchup';
@@ -53,6 +53,29 @@ describe('ScenarioPanel', () => {
     fireEvent.change(slider, { target: { value: '400' } });
     expect(last().mergeCas).toBeCloseTo(knotsToMs(400), 6);
     expect(screen.getByText('400 kts')).toBeInTheDocument();
+  });
+
+  it('lets one jet fly its own merge speed over the scenario one', async () => {
+    const { last } = renderPanel();
+    const own = screen.getByLabelText(/Attacker Own merge speed/);
+    expect(screen.queryByLabelText('Attacker merge speed')).toBeNull();
+
+    // Ticking starts from the scenario speed, then only this jet's speed moves.
+    await userEvent.click(own);
+    expect(last().attacker.mergeCas).toBeCloseTo(kmhToMs(800), 6);
+    expect(screen.getByText('The attacker flies its own merge speed.')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Attacker merge speed'), { target: { value: '1000' } });
+    expect(last().attacker.mergeCas).toBeCloseTo(kmhToMs(1_000), 6);
+
+    fireEvent.change(screen.getByLabelText('Merge speed (IAS)'), { target: { value: '600' } });
+    expect(last().mergeCas).toBeCloseTo(kmhToMs(600), 6);
+    expect(last().attacker.mergeCas).toBeCloseTo(kmhToMs(1_000), 6);
+    expect(last().defender.mergeCas).toBeNull();
+    expect(screen.getByText(/using 600 km\/h/)).toBeInTheDocument();
+
+    await userEvent.click(own);
+    expect(last().attacker.mergeCas).toBeNull();
+    expect(screen.queryByLabelText('Attacker merge speed')).toBeNull();
   });
 
   it('resets the loadout to one the new aircraft has when the aircraft changes', async () => {

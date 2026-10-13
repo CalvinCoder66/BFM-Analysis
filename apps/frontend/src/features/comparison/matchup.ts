@@ -27,11 +27,13 @@ export interface SideConfig {
   pilotG: number | null;
   /** Turn-plane inclination: 0° level turn … 90° vertical loop. */
   turnPlane_deg: number;
+  /** This jet's own merge speed (CAS, m/s), overriding the scenario's; null = the scenario's. */
+  mergeCas: number | null;
 }
 
 export interface Scenario {
   altitude_m: number;
-  /** Merge speed as calibrated airspeed (≈ IAS), m/s. */
+  /** Merge speed as calibrated airspeed (≈ IAS), m/s, for each jet without its own. */
   mergeCas: number;
   /** How long to fly the turn in the timeline and turn-circle views, seconds. */
   turnDuration_s: number;
@@ -102,10 +104,20 @@ export function computeSide(
   return { aircraft, loadout, config, pull, flown };
 }
 
+/** The merge speed a side flies: its own if set, otherwise the scenario's. */
+export function sideMergeCas(scenario: Scenario, side: Side): number {
+  return scenario[side].mergeCas ?? scenario.mergeCas;
+}
+
 export function computeMatchup(scenario: Scenario): Matchup {
-  const side = (config: SideConfig) =>
-    computeSide(config, scenario.altitude_m, scenario.mergeCas, scenario.turnDuration_s);
-  return { attacker: side(scenario.attacker), defender: side(scenario.defender) };
+  const side = (s: Side) =>
+    computeSide(
+      scenario[s],
+      scenario.altitude_m,
+      sideMergeCas(scenario, s),
+      scenario.turnDuration_s,
+    );
+  return { attacker: side('attacker'), defender: side('defender') };
 }
 
 export interface Verdict {

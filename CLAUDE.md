@@ -12,7 +12,7 @@ Built by Calvin Cheung as a portfolio/learning project. The full plan lives in
 ## Current Status
 
 **UI design complete (phases 1–3 and the phase 4 HUD polish); the data is still mock.** The dashboard has
-scenario controls (altitude, merge speed, turn duration; per side aircraft, loadout, fuel,
+scenario controls (altitude, merge speed, turn duration; per side aircraft, own merge speed, loadout, fuel,
 G limiter, pilot style, turn plane), and a **hotbar** of four focus views: Summary (who wins
 each fight, E-M diagram), 1-circle, 2-circle and Energy. Each view shows only its own charts and
 a few key stats, with the rest behind "show more". Keep it that way: add new stats to a focus view's
@@ -43,7 +43,7 @@ BFM-Analysis/
 │   │   │   ├── app.tsx        # Root component
 │   │   │   ├── data/          # Aircraft JSON loader + zod schema (validated at load)
 │   │   │   ├── features/
-│   │   │   │   ├── scenario/   # Sidebar: altitude, merge speed, unit, per-side aircraft/loadout/fuel
+│   │   │   │   ├── scenario/   # Sidebar: altitude, merge speed, unit, per-side aircraft/own merge speed/loadout/fuel
 │   │   │   │   ├── comparison/ # matchup.ts (pure: computeMatchup, verdicts), metrics.ts, StatsPanel
 │   │   │   │   ├── focus/      # focus.ts (focus views: charts + stats), Hotbar, FocusView
 │   │   │   │   └── charts/     # series.ts (Plotly figures), circles.ts (3D merge tracks), camera.ts (orbit, zoom, pan), box.ts + SceneBox (3D box), labels.ts (label placement), ChartArea

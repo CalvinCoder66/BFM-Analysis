@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
-import { computeMatchup, type Scenario } from './features/comparison/matchup';
+import { computeMatchup, type Scenario, sideMergeCas } from './features/comparison/matchup';
 import { FocusView } from './features/focus/FocusView';
 import { type FocusId, fightResults, getFocus } from './features/focus/focus';
 import { Hotbar } from './features/focus/Hotbar';
 import { SMOOTH_PILOT_G } from './features/scenario/AircraftControls';
 import { ScenarioPanel } from './features/scenario/ScenarioPanel';
 import { kmhToMs } from './physics/units';
-import { formatSpeed, type SpeedUnit } from './shared/format';
+import { formatSpeed, SPEED_UNITS, type SpeedUnit } from './shared/format';
 
 export const DEFAULT_SCENARIO: Scenario = {
   altitude_m: 1_000,
@@ -19,6 +19,7 @@ export const DEFAULT_SCENARIO: Scenario = {
     limiter: 'instructor',
     pilotG: SMOOTH_PILOT_G,
     turnPlane_deg: 0,
+    mergeCas: null,
   },
   defender: {
     aircraftId: 'mig-29',
@@ -27,6 +28,7 @@ export const DEFAULT_SCENARIO: Scenario = {
     limiter: 'instructor',
     pilotG: null,
     turnPlane_deg: 0,
+    mergeCas: null,
   },
 };
 
@@ -36,7 +38,13 @@ export function App() {
   const [focusId, setFocusId] = useState<FocusId>('summary');
   const matchup = useMemo(() => computeMatchup(scenario), [scenario]);
   const results = fightResults(matchup, scenario, unit);
-  const mergeLabel = formatSpeed(scenario.mergeCas, unit);
+  // Each jet flies its own merge speed if set; show both when they differ.
+  const attackerMerge = sideMergeCas(scenario, 'attacker');
+  const defenderMerge = sideMergeCas(scenario, 'defender');
+  const mergeLabel =
+    attackerMerge === defenderMerge
+      ? formatSpeed(attackerMerge, unit)
+      : `${Math.round(SPEED_UNITS[unit].fromMs(attackerMerge))} vs ${formatSpeed(defenderMerge, unit)}`;
 
   return (
     <div className="flex min-h-full flex-col">
