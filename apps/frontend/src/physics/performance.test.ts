@@ -89,30 +89,39 @@ describe('G limits (War Thunder model)', () => {
     gLimits: { wingBreakLoad_N: 1_176_798, fcs: null, instructorFraction: 0.85 },
   };
 
-  it('derives wing-break, instructor and manual G from the wing-break force and weight', () => {
+  it('derives wing-break and instructor G from the wing-break force and weight', () => {
     const limits = gLimitsFor(noFbw, 10_000 * 9.80665);
     expect(limits.wingBreak).toBeCloseTo(12, 6);
     expect(limits.instructor).toBeCloseTo(10.2, 6);
-    expect(limits.manual).toBeCloseTo(12, 6);
   });
 
   it('lowers the wing-break G as the jet gets heavier', () => {
     expect(gLimitsFor(noFbw, 12_000 * 9.80665).wingBreak).toBeCloseTo(10, 6);
   });
 
-  it('lets a fly-by-wire limiter cap both instructor and manual G', () => {
-    const limits = gLimitsFor(fixture, 10_000 * 9.80665);
-    expect(limits.instructor).toBe(8);
-    expect(limits.manual).toBe(8);
+  it('lets a fly-by-wire limiter cap the instructor G', () => {
+    expect(gLimitsFor(fixture, 10_000 * 9.80665).instructor).toBe(8);
   });
 
-  it('uses the instructor by default, the manual limit when it is off, and the pilot G if lower', () => {
+  it('uses the instructor limit, or the pilot G if lower', () => {
     const base = { altitude_m: 0, fuelFraction: 0.5, loadoutId: 'clean' };
     expect(resolveCondition(noFbw, base).gLimit).toBeCloseTo(10.2, 6);
-    expect(resolveCondition(noFbw, { ...base, limiter: 'off' }).gLimit).toBeCloseTo(12, 6);
     expect(resolveCondition(noFbw, { ...base, pilotG: 7 }).gLimit).toBe(7);
-    // A pilot G above the limiter cannot exceed it.
+    // A pilot G above the instructor's cannot exceed it.
     expect(resolveCondition(noFbw, { ...base, pilotG: 11 }).gLimit).toBeCloseTo(10.2, 6);
+  });
+
+  it('carries a custom store load instead of the loadout', () => {
+    // 1 000 kg of stores on 10 t: 11 t, so the 12 g wing-break force gives 10.909 g.
+    const loaded = resolveCondition(noFbw, {
+      altitude_m: 0,
+      fuelFraction: 0.5,
+      loadoutId: 'clean',
+      customLoad: { mass_kg: 1_000, cd0Delta: 0.004 },
+    });
+    expect(loaded.mass_kg).toBe(11_000);
+    expect(loaded.cd0Delta).toBe(0.004);
+    expect(loaded.gLimits.wingBreak).toBeCloseTo(12 / 1.1, 6);
   });
 });
 

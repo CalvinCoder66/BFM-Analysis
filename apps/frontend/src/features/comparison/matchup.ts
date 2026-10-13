@@ -1,10 +1,10 @@
 import { getAircraft } from '../../data/aircraft';
-import type { Aircraft, Loadout } from '../../data/aircraft-schema';
+import type { Aircraft, Loadout, Selection } from '../../data/aircraft-schema';
+import { evaluate } from '../../data/stores';
 import { casToTas } from '../../physics/atmosphere';
 import {
   envelope,
   type FlightCondition,
-  type Limiter,
   type PerformanceSummary,
   type PointPerformance,
   pointPerformance,
@@ -20,9 +20,10 @@ export interface SideConfig {
   aircraftId: string;
   /** 0–1 */
   fuelFraction: number;
+  /** Quick-pick loadout. */
   loadoutId: string;
-  /** War Thunder instructor on, or off (manual up to wing-break / fly-by-wire limit). */
-  limiter: Limiter;
+  /** Custom pylon-slot picks from the loadout editor, used instead of the quick pick; null = none. */
+  stores: Selection | null;
   /** G the pilot holds when flying smoothly; null = yank to the limiter every time. */
   pilotG: number | null;
   /** Turn-plane inclination: 0° level turn … 90° vertical loop. */
@@ -80,6 +81,17 @@ function fly(condition: FlightCondition, mergeCas: number, duration_s: number): 
   };
 }
 
+/** The load a side carries: its custom slot picks if any, otherwise its quick pick. */
+export function effectiveLoadout(aircraft: Aircraft, config: SideConfig): Loadout {
+  if (config.stores && aircraft.stores) {
+    const { mass_kg, cd0Delta } = evaluate(aircraft.stores, config.stores);
+    return { id: 'custom', name: 'Custom', mass_kg, cd0Delta, selection: config.stores };
+  }
+  const loadout = aircraft.loadouts.find((l) => l.id === config.loadoutId) ?? aircraft.loadouts[0];
+  if (!loadout) throw new Error(`${aircraft.id} has no loadouts`);
+  return loadout;
+}
+
 export function computeSide(
   config: SideConfig,
   altitude_m: number,
@@ -87,13 +99,12 @@ export function computeSide(
   turnDuration_s = 20,
 ): SideResult {
   const aircraft = getAircraft(config.aircraftId);
-  const loadout = aircraft.loadouts.find((l) => l.id === config.loadoutId) ?? aircraft.loadouts[0];
-  if (!loadout) throw new Error(`${aircraft.id} has no loadouts`);
+  const loadout = effectiveLoadout(aircraft, config);
   const base = {
     altitude_m,
     fuelFraction: config.fuelFraction,
     loadoutId: loadout.id,
-    limiter: config.limiter,
+    customLoad: config.stores ? loadout : undefined,
     turnPlane_deg: config.turnPlane_deg,
   };
   const pull = fly(resolveCondition(aircraft, base), mergeCas, turnDuration_s);

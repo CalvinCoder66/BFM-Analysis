@@ -58,11 +58,14 @@ describe('computeSide', () => {
     expect(side.flown.atMerge?.psAtMaxG).toBeGreaterThan(side.pull.atMerge?.psAtMaxG ?? 0);
   });
 
-  it('raises the G limit and best ITR when the instructor is off', () => {
-    const on = computeSide(mig, 1_000, kmhToMs(800));
-    const off = computeSide({ ...mig, limiter: 'off' }, 1_000, kmhToMs(800));
-    expect(off.pull.condition.gLimit).toBeGreaterThan(on.pull.condition.gLimit);
-    expect(off.pull.summary.maxItr.value).toBeGreaterThan(on.pull.summary.maxItr.value);
+  it('flies custom pylon-slot picks instead of the quick pick', () => {
+    const f14 = sideConfig('f-14d');
+    const clean = computeSide(f14, 1_000, kmhToMs(800));
+    // Two AIM-54C on the front fuselage: 2 × 463 kg in the F-14D stores data.
+    const custom = computeSide({ ...f14, stores: { 4: 'aim_54c_x2_fuse' } }, 1_000, kmhToMs(800));
+    expect(custom.loadout).toMatchObject({ id: 'custom', mass_kg: 926 });
+    expect(custom.pull.condition.mass_kg - clean.pull.condition.mass_kg).toBeCloseTo(926, 9);
+    expect(custom.pull.summary.maxItr.value).toBeLessThan(clean.pull.summary.maxItr.value);
   });
 
   it('simulates the turn for the requested duration', () => {

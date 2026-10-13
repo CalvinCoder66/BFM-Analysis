@@ -2,6 +2,7 @@
   "id": "mig-29",
   "name": "MiG-29 (9-12)",
   "nation": "USSR",
+  "br": 12.7,
   "source": "mock",
   "gamePatch": null,
   "notes": "Mock values loosely based on public MiG-29 9-12 figures (2\u00d7 RD-33). Not War Thunder data. G limits follow the War Thunder model: wing-break load is a force (datamine Strength.CritOverload, assumed per wing so doubled here), the instructor holds 85% of wing-break G (overloadMult 0.85\u20130.92), and only the F-16 has a fly-by-wire limiter (RateMaxLoadFactorMax 10). To be verified against the datamine in the data pipeline phase.",

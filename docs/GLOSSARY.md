@@ -35,10 +35,10 @@ Terms used in the dashboard, the code and the docs. Grouped by topic, alphabetic
 
 ## G and limits
 
-- **Fly-by-wire (FBW) limiter**: a flight-control computer that caps G regardless of stick input. In War Thunder only the F-16 has one modelled (10 g); it applies with the instructor on or off.
+- **Fly-by-wire (FBW) limiter**: a flight-control computer that caps G regardless of stick input. In War Thunder the F-16 family has one modelled (10 g); it caps the instructor's limit.
 - **Full pull**: pulling to the G limiter (or max lift) every time. Used for 1-circle results.
 - **G / load factor (n)**: lift divided by weight. 1 g is level flight; 9 g means the lift is nine times the aircraft's weight.
-- **G limiter**: in the dashboard, either the **instructor** (War Thunder's mouse-aim assistance, which holds about 85% of the wing-break G) or **off** (manual control up to wing-break or the fly-by-wire limit).
+- **G limiter**: in the dashboard, the Realistic Battles **instructor**, which flight tests show holds about the full wing-break load (`instructorFraction` ≈ 1.0), capped by any fly-by-wire limit. The dashboard models RB only, so there is no instructor-off option.
 - **Instructor**: War Thunder's virtual co-pilot that turns mouse-aim input into control surface movement and keeps the aircraft below its limits.
 - **Pilot style**: per side, either **yanks to limit** (always full pull) or **smooth** (holds a chosen G, default 7 g, to keep energy).
 - **As flown**: performance at the G the pilot actually uses (their smooth G, or full pull if they yank). Used for 2-circle, energy and timeline results.
@@ -78,5 +78,6 @@ Terms used in the dashboard, the code and the docs. Grouped by topic, alphabetic
 - **Flight model (FM)**: an aircraft's set of aerodynamic, engine and mass data in the game files.
 - **Fox-1 / Fox-2 / Fox-3**: NATO brevity codes for semi-active radar, infrared and active radar missiles. Used in loadout names.
 - **Game patch**: the War Thunder version a dataset matches. Mock data has no patch (`gamePatch: null`).
-- **Loadout**: the stores carried (missiles, pylons, tanks), adding mass and drag.
+- **Loadout**: the stores carried (missiles, pylons, tanks), adding mass and drag. Chosen as a **quick pick** (clean, the game's presets) or built in the **Customise** panel, one **preset** per pylon **slot**. The game's rules apply: a preset can **ban** a preset in another slot (both ways) or **require** one (e.g. GBU-12 needs the LANTIRN; drop tanks come in pairs), and the total and per-side store mass and left/right balance are capped. Loads are tagged **A2A**, **A2G** or **Mixed**.
+- **Data badges**: **Mock** (development values), **Unvalidated · WT 2.59** (datamine values not yet checked in flight) and **Datamine · WT 2.59** (checked against test flights).
 - **Mock data**: estimated values for building the UI, marked `source: "mock"`. Not War Thunder figures.

@@ -159,7 +159,7 @@ test('updates the comparison when the scenario changes', async ({ page }) => {
   await expect(page.getByText('9,000 m · 29,528 ft')).toBeVisible();
   await expect.poll(() => statNumber(page, 'Best STR')).toBeLessThan(before);
 
-  await page.getByLabel('Defender aircraft').selectOption('su-27');
+  await page.getByLabel('Defender aircraft', { exact: true }).selectOption('su-27');
   await expect(page.getByRole('columnheader', { name: 'Su-27S' })).toBeVisible();
 
   // The attacker can merge at its own speed, over the scenario's.
@@ -168,7 +168,7 @@ test('updates the comparison when the scenario changes', async ({ page }) => {
   await expect(page.getByText('1000 vs 800 km/h merge')).toBeVisible();
 });
 
-test('models the G limiter and pilot style', async ({ page }) => {
+test('models the RB instructor and pilot style', async ({ page }) => {
   await page.goto('/');
   await focusTab(page, /^Energy/).click();
   // The smooth 7 g F-16C pilot keeps more speed than when yanking to the limiter.
@@ -179,10 +179,29 @@ test('models the G limiter and pilot style', async ({ page }) => {
   await expect(page.getByText(/Instructor 10\.0 g · yanks/)).toBeVisible();
   await expect.poll(() => statNumber(page, 'Airspeed left')).toBeLessThan(smoothSpeed);
 
-  // MiG-29 has no fly-by-wire: turning the instructor off raises its G limit.
-  await openPilotAndLimits(page, 'Defender');
-  await page.getByRole('group', { name: 'Defender G limiter' }).getByText(/^Off/).click();
-  await expect(page.getByText(/^Off 14\.\d g · yanks/)).toBeVisible();
+  // Realistic Battles only: there is no instructor-off option.
+  await expect(page.getByRole('group', { name: 'Attacker G limiter' })).toHaveCount(0);
+});
+
+test('customises a loadout slot by slot and credits the data source', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/');
+  await page.getByLabel('Search defender aircraft').fill('tomcat');
+  await page.getByLabel('Defender aircraft', { exact: true }).selectOption('f-14d');
+  await expect(page.getByText(/vs F-14D Super Tomcat/)).toBeVisible();
+
+  const defender = page.getByRole('group', { name: 'Defender', exact: true });
+  await defender.getByText('Customise').click();
+  await page.getByLabel('Defender front fuselage').selectOption('aim_54c_x2_fuse');
+  await page.getByLabel('Defender rear fuselage').selectOption('aim_54c_x2');
+  await expect(defender.getByText('4× AIM-54C · 1,852 kg')).toBeVisible();
+  await expect(page.getByLabel('Defender loadout')).toHaveValue('__custom');
+  // A heavier load costs turn performance in the stats straight away.
+  await focusTab(page, /^1-circle/).click();
+  await expect(page.getByRole('rowheader', { name: 'Min radius', exact: true })).toBeVisible();
+
+  await expect(page.getByText(/extracted by gszabi99\/War-Thunder-Datamine/)).toBeVisible();
+  expect(errors).toEqual([]);
 });
 
 test('shows top and bottom turn rates for an inclined turn plane', async ({ page }) => {

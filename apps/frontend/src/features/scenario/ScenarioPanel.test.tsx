@@ -12,6 +12,12 @@ const initial = testScenario({
   defender: sideConfig('mig-29', { loadoutId: '2xfox2' }),
 });
 const group = (name: string) => screen.getByRole('group', { name });
+/** The RB instructor G shown in a side's "Pilot & limits". */
+const instructorG = (side: string) =>
+  Number.parseFloat(
+    screen.getByText(`${side} RB instructor`).parentElement?.textContent?.split('instructor')[1] ??
+      '',
+  );
 
 /** Stateful harness so the panel behaves as it does inside the app. */
 function renderPanel() {
@@ -84,7 +90,7 @@ describe('ScenarioPanel', () => {
     expect(last().defender).toMatchObject({ aircraftId: 'su-27', loadoutId: 'clean' });
 
     const loadouts = within(screen.getByLabelText('Defender loadout')).getAllByRole('option');
-    expect(loadouts.map((o) => o.textContent)).toContain('2× R-73 + 6× R-27ER (+2500 kg)');
+    expect(loadouts.map((o) => o.textContent)).toContain('2× R-73 + 6× R-27ER (+2,500 kg)');
   });
 
   it('changes fuel as a fraction and shows the fuel mass', () => {
@@ -95,28 +101,79 @@ describe('ScenarioPanel', () => {
     expect(screen.getByText('20% · 635 kg')).toBeInTheDocument();
   });
 
-  it('shows the instructor and manual G limits and switches the limiter', async () => {
-    const { last } = renderPanel();
-    // F-16C: fly-by-wire caps both at 10 g.
-    const f16 = group('Attacker G limiter');
-    expect(within(f16).getByLabelText('Instructor 10.0 g')).toBeChecked();
-    expect(within(f16).getByLabelText('Off 10.0 g')).toBeInTheDocument();
-    expect(screen.getByText(/Fly-by-wire limits to 10 g either way/)).toBeInTheDocument();
-
-    // MiG-29: no fly-by-wire, so switching the instructor off allows more G.
-    await userEvent.click(within(group('Defender G limiter')).getByLabelText(/^Off/));
-    expect(last().defender.limiter).toBe('off');
+  it('shows the RB instructor G limit, with no instructor-off option', () => {
+    renderPanel();
+    // F-16C: the fly-by-wire limit caps the instructor at 10 g.
+    expect(instructorG('Attacker')).toBe(10);
+    expect(screen.getByText(/Fly-by-wire caps it at 10 g/)).toBeInTheDocument();
+    expect(screen.queryByRole('group', { name: 'Attacker G limiter' })).toBeNull();
   });
 
-  it('lowers the G limits as the jet gets heavier', () => {
+  it('lowers the G limit as the jet gets heavier', () => {
     renderPanel();
-    const limiterLabel = () =>
-      within(group('Defender G limiter'))
-        .getByLabelText(/^Instructor/)
-        .closest('label')?.textContent ?? '';
-    const light = Number.parseFloat(limiterLabel().replace('Instructor', ''));
+    const light = instructorG('Defender');
     fireEvent.change(screen.getByLabelText('Defender fuel'), { target: { value: '100' } });
-    expect(Number.parseFloat(limiterLabel().replace('Instructor', ''))).toBeLessThan(light);
+    expect(instructorG('Defender')).toBeLessThan(light);
+  });
+
+  it('searches the aircraft list, grouped by battle rating', async () => {
+    renderPanel();
+    const picker = screen.getByLabelText('Defender aircraft');
+    expect(
+      within(picker)
+        .getAllByRole('group')
+        .map((g) => g.getAttribute('label')),
+    ).toEqual(expect.arrayContaining(['BR 13.7', 'BR 13.0']));
+    // Variant names are searchable; the selected MiG-29 stays listed.
+    await userEvent.type(screen.getByLabelText('Search defender aircraft'), 'vf-11');
+    expect(
+      within(picker)
+        .getAllByRole('option')
+        .map((o) => o.textContent),
+    ).toEqual(['F-14D Super Tomcat · USA', 'MiG-29 (9-12) · USSR']);
+    await userEvent.selectOptions(picker, 'f-14d');
+    expect(screen.getByText(/Also flown as F-14D \(VF-11\) Super Tomcat/)).toBeInTheDocument();
+  });
+
+  it("builds a custom load slot by slot, within the game's rules", async () => {
+    const { last } = renderPanel();
+    await userEvent.selectOptions(screen.getByLabelText('Defender aircraft'), 'f-14d');
+    const front = screen.getByLabelText('Defender front fuselage');
+
+    // GBU-12s need the LANTIRN, so it comes along on the right glove.
+    await userEvent.selectOptions(front, 'gbu_12_x2_fuse');
+    expect(last().defender.stores).toEqual({ 4: 'gbu_12_x2_fuse', 7: 'lantirn' });
+    expect(screen.getByLabelText('Defender loadout')).toHaveValue('__custom');
+    expect(screen.getByText('A2G')).toBeInTheDocument();
+    expect(screen.getByText('2× GBU-12, 1× LANTIRN · 790 kg')).toBeInTheDocument();
+
+    // Two Sparrows up front rule out two Phoenixes behind them.
+    await userEvent.selectOptions(front, 'aim_7m_x2_fuse');
+    const phoenixes = within(screen.getByLabelText('Defender rear fuselage')).getByRole('option', {
+      name: /^AIM-54C ×2/,
+    });
+    expect(phoenixes).toBeDisabled();
+    expect(phoenixes).toHaveTextContent(
+      'AIM-7M ×2 on front fuselage rules out AIM-54C ×2 on rear fuselage',
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Back to the quick pick' }));
+    expect(last().defender.stores).toBeNull();
+  });
+
+  it('hides air-to-ground choices with "A2A only"', async () => {
+    renderPanel();
+    await userEvent.selectOptions(screen.getByLabelText('Defender aircraft'), 'f-14d');
+    const quickPicks = () =>
+      within(screen.getByLabelText('Defender loadout'))
+        .getAllByRole('option')
+        .map((o) => o.textContent);
+    expect(quickPicks().some((name) => name?.startsWith('Strike'))).toBe(true);
+    await userEvent.click(screen.getByLabelText('Defender A2A only'));
+    expect(quickPicks().some((name) => name?.startsWith('Strike'))).toBe(false);
+    const front = within(screen.getByLabelText('Defender front fuselage'));
+    expect(front.queryByRole('option', { name: /GBU-12/ })).toBeNull();
+    expect(front.getByRole('option', { name: 'AIM-54C ×2' })).toBeInTheDocument();
   });
 
   it('switches between a yanking and a smooth pilot with a 7 g default', async () => {

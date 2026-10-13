@@ -6,10 +6,10 @@ There are ways to configure aircraft states on both sides. Parameters such as:
 
 - Merge speed
 - Altitude
-- Fuel and loadout
+- Fuel and loadout: quick picks, or a per-pylon-slot editor that enforces the game's rules
 - Flight path angle relative to the horizontal plane (vertical loop vs flat horizontal turn)
 - Turn duration
-- G-limiter toggles (War Thunder instructor on/off) and pilot style (yanking vs smooth)
+- Realistic Battles instructor G limit and pilot style (yanking vs smooth)
 
 > **Status:** the UI is built and runs against **mock** aircraft data. Replacing it with datamined War Thunder values is the next phase (see [Backend (planned)](#backend-planned)).
 
@@ -96,7 +96,7 @@ How the code in `apps/frontend/src` is organised:
 
 - **`physics/`**: pure TypeScript with no React. It covers the standard atmosphere, table interpolation, the turn-performance model (G limits, turn rate and radius, Ps) and a turn-from-the-merge simulation. Everything is in SI units and covered by unit tests with hand-checked values.
 - **`data/`**: loads and validates every aircraft JSON file. Adding an aircraft means adding one file.
-- **`features/scenario/`**: the sidebar controls (altitude, merge speed, turn duration, and per-side aircraft, own merge speed (optional override), loadout, fuel, G limiter, pilot style and turn plane).
+- **`features/scenario/`**: the sidebar controls (altitude, merge speed, turn duration, and per-side aircraft, own merge speed (optional override), loadout and slot editor, fuel, pilot style and turn plane).
 - **`features/comparison/`**: turns a scenario into a matchup. It works out each side's performance at full pull and as flown, decides who wins each fight, and defines the stats shown.
 - **`features/focus/`**: the hotbar and its four views (Summary, 1-circle, 2-circle and Energy). Each view shows only its own charts and key stats, with the rest behind "show more".
 - **`features/charts/`**: pure functions that build Plotly figures, the turn-circle geometry, and the thin components that draw them.
@@ -135,4 +135,4 @@ We'll only add a FastAPI service if a feature needs a server. Examples are compa
 
 ## Credits
 
-- Flight-model data comes from War Thunder © Gaijin Entertainment, as extracted by the community [War-Thunder-Datamine](https://github.com/gszabi99/War-Thunder-Datamine) project. This project is not affiliated with or endorsed by Gaijin Entertainment.
+- Flight-model data from War Thunder © Gaijin Entertainment, extracted by [gszabi99/War-Thunder-Datamine](https://github.com/gszabi99/War-Thunder-Datamine). Not affiliated with Gaijin. The dashboard shows the same line in its footer.

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { computeMatchup, type Scenario, sideMergeCas } from './features/comparison/matchup';
+import { type DataStatus, dataStatus, patchLabel } from './data/aircraft';
+import { computeMatchup, type Scenario, SIDES, sideMergeCas } from './features/comparison/matchup';
 import { FocusView } from './features/focus/FocusView';
 import { type FocusId, fightResults, getFocus } from './features/focus/focus';
 import { Hotbar } from './features/focus/Hotbar';
@@ -7,6 +8,7 @@ import { SMOOTH_PILOT_G } from './features/scenario/AircraftControls';
 import { ScenarioPanel } from './features/scenario/ScenarioPanel';
 import { kmhToMs } from './physics/units';
 import { formatSpeed, SPEED_UNITS, type SpeedUnit } from './shared/format';
+import { DataBadge } from './shared/ui/DataBadge';
 
 export const DEFAULT_SCENARIO: Scenario = {
   altitude_m: 1_000,
@@ -16,7 +18,7 @@ export const DEFAULT_SCENARIO: Scenario = {
     aircraftId: 'f-16c',
     fuelFraction: 0.5,
     loadoutId: '2xfox2',
-    limiter: 'instructor',
+    stores: null,
     pilotG: SMOOTH_PILOT_G,
     turnPlane_deg: 0,
     mergeCas: null,
@@ -25,7 +27,7 @@ export const DEFAULT_SCENARIO: Scenario = {
     aircraftId: 'mig-29',
     fuelFraction: 0.5,
     loadoutId: '2xfox2',
-    limiter: 'instructor',
+    stores: null,
     pilotG: null,
     turnPlane_deg: 0,
     mergeCas: null,
@@ -38,6 +40,11 @@ export function App() {
   const [focusId, setFocusId] = useState<FocusId>('summary');
   const matchup = useMemo(() => computeMatchup(scenario), [scenario]);
   const results = fightResults(matchup, scenario, unit);
+  // The header shows the least trustworthy of the two jets' data.
+  const statuses = SIDES.map((side) => dataStatus(matchup[side].aircraft));
+  const headerStatus = (['mock', 'unvalidated', 'validated'] as const).find((s) =>
+    statuses.includes(s),
+  ) as DataStatus;
   // Each jet flies its own merge speed if set; show both when they differ.
   const attackerMerge = sideMergeCas(scenario, 'attacker');
   const defenderMerge = sideMergeCas(scenario, 'defender');
@@ -58,8 +65,8 @@ export function App() {
           {matchup.defender.aircraft.name} <span className="text-slate-600">·</span>{' '}
           {scenario.altitude_m.toLocaleString('en-GB')} m <span className="text-slate-600">·</span>{' '}
           {mergeLabel} merge
-          <span className="ml-3 rounded border border-amber-400/40 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-amber-300/90">
-            Mock data
+          <span className="ml-3">
+            <DataBadge status={headerStatus} patch={patchLabel(matchup.attacker.aircraft)} />
           </span>
         </p>
       </header>
@@ -84,6 +91,16 @@ export function App() {
           />
         </main>
       </div>
+      <footer className="px-5 pb-4 text-[11px] text-slate-600">
+        Flight-model data from War Thunder © Gaijin Entertainment, extracted by{' '}
+        <a
+          href="https://github.com/gszabi99/War-Thunder-Datamine"
+          className="underline-offset-2 hover:text-slate-400 hover:underline"
+        >
+          gszabi99/War-Thunder-Datamine
+        </a>
+        . Not affiliated with Gaijin.
+      </footer>
     </div>
   );
 }

@@ -1,0 +1,701 @@
+{
+  "id": "f-14d",
+  "name": "F-14D Super Tomcat",
+  "nation": "USA",
+  "br": 13.0,
+  "variants": [
+    {
+      "id": "f_14d",
+      "name": "F-14D Super Tomcat",
+      "nation": "USA",
+      "br": 13.0
+    },
+    {
+      "id": "f_14d_vf_11",
+      "name": "F-14D (VF-11) Super Tomcat",
+      "nation": "USA",
+      "br": 13.0
+    }
+  ],
+  "source": "mock",
+  "gamePatch": null,
+  "notes": "Mock flight model and mock store masses for UI development. The stores follow the shape of the F-14D unit file (WeaponSlots, BannedWeaponPreset, DependentWeaponPreset, maxloadMass 6,580 kg); the per-side limits, drag and masses are estimates. Not War Thunder data: the pipeline replaces this file with data/aircraft/f-14d.json from the datamine.",
+  "wingArea_m2": 52.49,
+  "emptyMass_kg": 19840,
+  "internalFuel_kg": 7350,
+  "gLimits": {
+    "wingBreakLoad_N": 2200000,
+    "fcs": null,
+    "instructorFraction": 1.0
+  },
+  "maxIas_kmh": 1480,
+  "maxMach": 2.34,
+  "aero": {
+    "mach": [0, 0.4, 0.6, 0.8, 0.9, 1.0, 1.1, 1.2, 1.6, 2.0, 2.4],
+    "clMax": [1.5, 1.5, 1.45, 1.3, 1.15, 1.0, 0.92, 0.88, 0.8, 0.72, 0.68],
+    "cd0": [0.0195, 0.0195, 0.0198, 0.0205, 0.023, 0.037, 0.045, 0.046, 0.044, 0.042, 0.041],
+    "k": [0.13, 0.13, 0.134, 0.145, 0.165, 0.21, 0.25, 0.29, 0.38, 0.47, 0.54]
+  },
+  "thrust": {
+    "altitude_m": [0, 2000, 4000, 6000, 8000, 10000, 12000],
+    "mach": [0, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.4],
+    "afterburner_N": [
+      [238650, 269007, 296213, 331437, 374680, 425942, 485224, 552523, 622112, 688267, 810265],
+      [205953, 232149, 255627, 286027, 323345, 367584, 418742, 476821, 536876, 593967, 699248],
+      [176472, 198918, 219036, 245082, 277060, 314966, 358802, 408565, 460025, 508942, 599154],
+      [150026, 169110, 186214, 208356, 235542, 267767, 305034, 347341, 391088, 432676, 509370],
+      [126440, 142522, 156937, 175598, 198511, 225669, 257076, 292733, 329602, 364652, 429287],
+      [105533, 118957, 130987, 146564, 165688, 188356, 214570, 244331, 275104, 304358, 358308],
+      [85320, 96172, 105900, 118492, 133951, 152279, 173473, 197532, 222411, 246063, 289677]
+    ],
+    "military_N": [
+      [147963, 166784, 183652, 205491, 232302, 264084, 300839, 342564, 385709, 426726, 502364],
+      [127691, 143932, 158489, 177337, 200474, 227902, 259620, 295629, 332863, 368260, 433534],
+      [109413, 123329, 135802, 151951, 171777, 195279, 222457, 253310, 285216, 315544, 371475],
+      [93016, 104848, 115453, 129181, 146036, 166016, 189121, 215351, 242475, 268259, 315809],
+      [78393, 88364, 97301, 108871, 123077, 139915, 159387, 181494, 204353, 226084, 266158],
+      [65430, 73753, 81212, 90870, 102727, 116781, 133033, 151485, 170564, 188702, 222151],
+      [52898, 59627, 65658, 73465, 83050, 94413, 107553, 122470, 137895, 152559, 179600]
+    ]
+  },
+  "loadouts": [
+    {
+      "id": "clean",
+      "name": "Clean",
+      "mass_kg": 0,
+      "cd0Delta": 0,
+      "selection": {}
+    },
+    {
+      "id": "f_14d_default",
+      "name": "Default: 4× AIM-54C, 2× AIM-7M, 2× AIM-9M",
+      "mass_kg": 2486,
+      "cd0Delta": 0.0068,
+      "selection": {
+        "1": "aim_9m",
+        "2": "aim_54c",
+        "4": "aim_54c_x2_fuse",
+        "5": "aim_7m_x2",
+        "7": "aim_54c",
+        "8": "aim_9m"
+      }
+    },
+    {
+      "id": "phoenix",
+      "name": "6× AIM-54C, 2× AIM-9M",
+      "mass_kg": 2950,
+      "cd0Delta": 0.0078,
+      "selection": {
+        "1": "aim_9m",
+        "2": "aim_54c",
+        "4": "aim_54c_x2_fuse",
+        "5": "aim_54c_x2",
+        "7": "aim_54c",
+        "8": "aim_9m"
+      }
+    },
+    {
+      "id": "strike",
+      "name": "Strike: 2× GBU-12, LANTIRN, tanks, 2× AIM-9M",
+      "mass_kg": 2926,
+      "cd0Delta": 0.0066,
+      "selection": {
+        "1": "aim_9m",
+        "3": "tank_280",
+        "4": "gbu_12_x2_fuse",
+        "6": "tank_280",
+        "7": "lantirn",
+        "8": "aim_9m"
+      }
+    }
+  ],
+  "stores": {
+    "maxLoad_kg": 6580,
+    "maxLoadLeft_kg": 2800,
+    "maxLoadRight_kg": 2800,
+    "maxDisbalance_kg": 750,
+    "dragValidated": false,
+    "slots": [
+      {
+        "index": 1,
+        "name": "left shoulder",
+        "side": "left",
+        "presets": [
+          {
+            "id": "aim_9m",
+            "name": "AIM-9M",
+            "roles": ["aam"],
+            "weapons": [
+              {
+                "id": "aim-9m",
+                "name": "AIM-9M",
+                "count": 1
+              }
+            ],
+            "mass_kg": 86,
+            "cd0Delta": 0.0003
+          },
+          {
+            "id": "aim_9l",
+            "name": "AIM-9L",
+            "roles": ["aam"],
+            "weapons": [
+              {
+                "id": "aim-9l",
+                "name": "AIM-9L",
+                "count": 1
+              }
+            ],
+            "mass_kg": 86,
+            "cd0Delta": 0.0003
+          },
+          {
+            "id": "aim_9m_bol",
+            "name": "AIM-9M + BOL pod",
+            "roles": ["aam", "pod"],
+            "weapons": [
+              {
+                "id": "aim-9m",
+                "name": "AIM-9M",
+                "count": 1
+              },
+              {
+                "id": "bol_pod",
+                "name": "BOL pod",
+                "count": 1
+              }
+            ],
+            "mass_kg": 131,
+            "cd0Delta": 0.0004
+          }
+        ]
+      },
+      {
+        "index": 2,
+        "name": "left glove",
+        "side": "left",
+        "presets": [
+          {
+            "id": "aim_9m",
+            "name": "AIM-9M",
+            "roles": ["aam"],
+            "weapons": [
+              {
+                "id": "aim-9m",
+                "name": "AIM-9M",
+                "count": 1
+              }
+            ],
+            "mass_kg": 86,
+            "cd0Delta": 0.0003
+          },
+          {
+            "id": "aim_9l",
+            "name": "AIM-9L",
+            "roles": ["aam"],
+            "weapons": [
+              {
+                "id": "aim-9l",
+                "name": "AIM-9L",
+                "count": 1
+              }
+            ],
+            "mass_kg": 86,
+            "cd0Delta": 0.0003
+          },
+          {
+            "id": "aim_7m",
+            "name": "AIM-7M",
+            "roles": ["aam"],
+            "weapons": [
+              {
+                "id": "aim-7m",
+                "name": "AIM-7M",
+                "count": 1
+              }
+            ],
+            "mass_kg": 231,
+            "cd0Delta": 0.0007
+          },
+          {
+            "id": "aim_54a",
+            "name": "AIM-54A",
+            "roles": ["aam"],
+            "weapons": [
+              {
+                "id": "aim-54a",
+                "name": "AIM-54A",
+                "count": 1
+              }
+            ],
+            "mass_kg": 453,
+            "cd0Delta": 0.0012,
+            "bans": [
+              {
+                "slot": 5,
+                "preset": "aim_7m_x2"
+              }
+            ]
+          },
+          {
+            "id": "aim_54c",
+            "name": "AIM-54C",
+            "roles": ["aam"],
+            "weapons": [
+              {
+                "id": "aim-54c",
+                "name": "AIM-54C",
+                "count": 1
+              }
+            ],
+            "mass_kg": 463,
+            "cd0Delta": 0.0012
+          },
+          {
+            "id": "lau_10",
+            "name": "LAU-10 (4× Zuni)",
+            "roles": ["rocket"],
+            "weapons": [
+              {
+                "id": "lau-10_4x_zuni",
+                "name": "LAU-10 (4× Zuni)",
+                "count": 1
+              }
+            ],
+            "mass_kg": 223,
+            "cd0Delta": 0.0012
+          }
+        ]
+      },
+      {
+        "index": 3,
+        "name": "left intake",
+        "side": "left",
+        "presets": [
+          {
+            "id": "tank_280",
+            "name": "280 gal drop tank",
+            "roles": ["fuel"],
+            "weapons": [
+              {
+                "id": "280_gal_drop_tank",
+                "name": "280 gal drop tank",
+                "count": 1
+              }
+            ],
+            "mass_kg": 982,
+            "cd0Delta": 0.0018,
+            "requires": [
+              {
+                "slot": 6,
+                "preset": "tank_280"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "index": 4,
+        "name": "front fuselage",
+        "side": "centre",
+        "presets": [
+          {
+            "id": "aim_7m_fuse",
+            "name": "AIM-7M",
+            "roles": ["aam"],
+            "weapons": [
+              {
+                "id": "aim-7m",
+                "name": "AIM-7M",
+                "count": 1
+              }
+            ],
+            "mass_kg": 231,
+            "cd0Delta": 0.0007
+          },
+          {
+            "id": "aim_7m_x2_fuse",
+            "name": "AIM-7M ×2",
+            "roles": ["aam"],
+            "weapons": [
+              {
+                "id": "aim-7m",
+                "name": "AIM-7M",
+                "count": 2
+              }
+            ],
+            "mass_kg": 462,
+            "cd0Delta": 0.0014,
+            "bans": [
+              {
+                "slot": 5,
+                "preset": "aim_54c_x2"
+              },
+              {
+                "slot": 5,
+                "preset": "mk_82_x2"
+              }
+            ]
+          },
+          {
+            "id": "aim_54a_x2_fuse",
+            "name": "AIM-54A ×2",
+            "roles": ["aam"],
+            "weapons": [
+              {
+                "id": "aim-54a",
+                "name": "AIM-54A",
+                "count": 2
+              }
+            ],
+            "mass_kg": 906,
+            "cd0Delta": 0.0024,
+            "bans": [
+              {
+                "slot": 5,
+                "preset": "aim_7m_x2"
+              }
+            ]
+          },
+          {
+            "id": "aim_54c_x2_fuse",
+            "name": "AIM-54C ×2",
+            "roles": ["aam"],
+            "weapons": [
+              {
+                "id": "aim-54c",
+                "name": "AIM-54C",
+                "count": 2
+              }
+            ],
+            "mass_kg": 926,
+            "cd0Delta": 0.0024
+          },
+          {
+            "id": "mk_82_x2_fuse",
+            "name": "Mk 82 ×2",
+            "roles": ["bomb"],
+            "weapons": [
+              {
+                "id": "mk_82",
+                "name": "Mk 82",
+                "count": 2
+              }
+            ],
+            "mass_kg": 482,
+            "cd0Delta": 0.0012
+          },
+          {
+            "id": "mk_83_x2_fuse",
+            "name": "Mk 83 ×2",
+            "roles": ["bomb"],
+            "weapons": [
+              {
+                "id": "mk_83",
+                "name": "Mk 83",
+                "count": 2
+              }
+            ],
+            "mass_kg": 894,
+            "cd0Delta": 0.0018
+          },
+          {
+            "id": "gbu_12_x2_fuse",
+            "name": "GBU-12 ×2",
+            "roles": ["bomb"],
+            "weapons": [
+              {
+                "id": "gbu-12",
+                "name": "GBU-12",
+                "count": 2
+              }
+            ],
+            "mass_kg": 554,
+            "cd0Delta": 0.0016,
+            "requires": [
+              {
+                "slot": 7,
+                "preset": "lantirn"
+              }
+            ]
+          },
+          {
+            "id": "gbu_16_fuse",
+            "name": "GBU-16",
+            "roles": ["bomb"],
+            "weapons": [
+              {
+                "id": "gbu-16",
+                "name": "GBU-16",
+                "count": 1
+              }
+            ],
+            "mass_kg": 454,
+            "cd0Delta": 0.0011,
+            "requires": [
+              {
+                "slot": 7,
+                "preset": "lantirn"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "index": 5,
+        "name": "rear fuselage",
+        "side": "centre",
+        "presets": [
+          {
+            "id": "aim_7m_x2",
+            "name": "AIM-7M ×2",
+            "roles": ["aam"],
+            "weapons": [
+              {
+                "id": "aim-7m",
+                "name": "AIM-7M",
+                "count": 2
+              }
+            ],
+            "mass_kg": 462,
+            "cd0Delta": 0.0014
+          },
+          {
+            "id": "aim_54a_x2",
+            "name": "AIM-54A ×2",
+            "roles": ["aam"],
+            "weapons": [
+              {
+                "id": "aim-54a",
+                "name": "AIM-54A",
+                "count": 2
+              }
+            ],
+            "mass_kg": 906,
+            "cd0Delta": 0.0024
+          },
+          {
+            "id": "aim_54c_x2",
+            "name": "AIM-54C ×2",
+            "roles": ["aam"],
+            "weapons": [
+              {
+                "id": "aim-54c",
+                "name": "AIM-54C",
+                "count": 2
+              }
+            ],
+            "mass_kg": 926,
+            "cd0Delta": 0.0024
+          },
+          {
+            "id": "mk_82_x2",
+            "name": "Mk 82 ×2",
+            "roles": ["bomb"],
+            "weapons": [
+              {
+                "id": "mk_82",
+                "name": "Mk 82",
+                "count": 2
+              }
+            ],
+            "mass_kg": 482,
+            "cd0Delta": 0.0012
+          }
+        ]
+      },
+      {
+        "index": 6,
+        "name": "right intake",
+        "side": "right",
+        "presets": [
+          {
+            "id": "tank_280",
+            "name": "280 gal drop tank",
+            "roles": ["fuel"],
+            "weapons": [
+              {
+                "id": "280_gal_drop_tank",
+                "name": "280 gal drop tank",
+                "count": 1
+              }
+            ],
+            "mass_kg": 982,
+            "cd0Delta": 0.0018,
+            "requires": [
+              {
+                "slot": 3,
+                "preset": "tank_280"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "index": 7,
+        "name": "right glove",
+        "side": "right",
+        "presets": [
+          {
+            "id": "aim_9m",
+            "name": "AIM-9M",
+            "roles": ["aam"],
+            "weapons": [
+              {
+                "id": "aim-9m",
+                "name": "AIM-9M",
+                "count": 1
+              }
+            ],
+            "mass_kg": 86,
+            "cd0Delta": 0.0003
+          },
+          {
+            "id": "aim_9l",
+            "name": "AIM-9L",
+            "roles": ["aam"],
+            "weapons": [
+              {
+                "id": "aim-9l",
+                "name": "AIM-9L",
+                "count": 1
+              }
+            ],
+            "mass_kg": 86,
+            "cd0Delta": 0.0003
+          },
+          {
+            "id": "aim_7m",
+            "name": "AIM-7M",
+            "roles": ["aam"],
+            "weapons": [
+              {
+                "id": "aim-7m",
+                "name": "AIM-7M",
+                "count": 1
+              }
+            ],
+            "mass_kg": 231,
+            "cd0Delta": 0.0007
+          },
+          {
+            "id": "aim_54a",
+            "name": "AIM-54A",
+            "roles": ["aam"],
+            "weapons": [
+              {
+                "id": "aim-54a",
+                "name": "AIM-54A",
+                "count": 1
+              }
+            ],
+            "mass_kg": 453,
+            "cd0Delta": 0.0012,
+            "bans": [
+              {
+                "slot": 5,
+                "preset": "aim_7m_x2"
+              }
+            ]
+          },
+          {
+            "id": "aim_54c",
+            "name": "AIM-54C",
+            "roles": ["aam"],
+            "weapons": [
+              {
+                "id": "aim-54c",
+                "name": "AIM-54C",
+                "count": 1
+              }
+            ],
+            "mass_kg": 463,
+            "cd0Delta": 0.0012
+          },
+          {
+            "id": "lau_10",
+            "name": "LAU-10 (4× Zuni)",
+            "roles": ["rocket"],
+            "weapons": [
+              {
+                "id": "lau-10_4x_zuni",
+                "name": "LAU-10 (4× Zuni)",
+                "count": 1
+              }
+            ],
+            "mass_kg": 223,
+            "cd0Delta": 0.0012
+          },
+          {
+            "id": "lantirn",
+            "name": "LANTIRN",
+            "roles": ["pod"],
+            "weapons": [
+              {
+                "id": "lantirn",
+                "name": "LANTIRN",
+                "count": 1
+              }
+            ],
+            "mass_kg": 236,
+            "cd0Delta": 0.0008
+          }
+        ]
+      },
+      {
+        "index": 8,
+        "name": "right shoulder",
+        "side": "right",
+        "presets": [
+          {
+            "id": "aim_9m",
+            "name": "AIM-9M",
+            "roles": ["aam"],
+            "weapons": [
+              {
+                "id": "aim-9m",
+                "name": "AIM-9M",
+                "count": 1
+              }
+            ],
+            "mass_kg": 86,
+            "cd0Delta": 0.0003
+          },
+          {
+            "id": "aim_9l",
+            "name": "AIM-9L",
+            "roles": ["aam"],
+            "weapons": [
+              {
+                "id": "aim-9l",
+                "name": "AIM-9L",
+                "count": 1
+              }
+            ],
+            "mass_kg": 86,
+            "cd0Delta": 0.0003
+          },
+          {
+            "id": "aim_9m_bol",
+            "name": "AIM-9M + BOL pod",
+            "roles": ["aam", "pod"],
+            "weapons": [
+              {
+                "id": "aim-9m",
+                "name": "AIM-9M",
+                "count": 1
+              },
+              {
+                "id": "bol_pod",
+                "name": "BOL pod",
+                "count": 1
+              }
+            ],
+            "mass_kg": 131,
+            "cd0Delta": 0.0004
+          }
+        ]
+      }
+    ]
+  }
+}

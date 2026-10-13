@@ -1,19 +1,18 @@
-import { useId } from 'react';
-import { AIRCRAFT, getAircraft } from '../../data/aircraft';
+import { dataStatus, getAircraft, patchLabel } from '../../data/aircraft';
 import { resolveCondition } from '../../physics/performance';
 import { formatSpeed, type SpeedUnit } from '../../shared/format';
+import { DataBadge } from '../../shared/ui/DataBadge';
 import { Segmented } from '../../shared/ui/Segmented';
 import { Slider } from '../../shared/ui/Slider';
 import { SIDE_COLOURS } from '../charts/series';
-import type { Side, SideConfig } from '../comparison/matchup';
+import { effectiveLoadout, type Side, type SideConfig } from '../comparison/matchup';
+import { AircraftPicker } from './AircraftPicker';
+import { LoadoutControls } from './LoadoutControls';
 import { MergeSpeedSlider } from './MergeSpeedSlider';
 
 const SIDE_LABEL: Record<Side, string> = { attacker: 'Attacker', defender: 'Defender' };
 /** Default G for a pilot who flies smoothly instead of yanking. */
 export const SMOOTH_PILOT_G = 7;
-
-const selectClass =
-  'w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-100 focus:border-slate-500 focus:outline-none';
 
 function planeLabel(deg: number) {
   if (deg === 0) return '0° · level';
@@ -35,18 +34,18 @@ export function AircraftControls({
   unit: SpeedUnit;
   onChange: (config: SideConfig) => void;
 }) {
-  const aircraftId = useId();
-  const loadoutId = useId();
   const aircraft = getAircraft(config.aircraftId);
   const colour = SIDE_COLOURS[side];
   const label = SIDE_LABEL[side];
   // G limits depend only on weight, so altitude does not matter here.
+  const loadout = effectiveLoadout(aircraft, config);
   const { gLimits } = resolveCondition(aircraft, {
     altitude_m: 0,
     fuelFraction: config.fuelFraction,
-    loadoutId: config.loadoutId,
+    loadoutId: loadout.id,
+    customLoad: config.stores ? loadout : undefined,
   });
-  const ceiling = config.limiter === 'off' ? gLimits.manual : gLimits.instructor;
+  const ceiling = gLimits.instructor;
   const pilotMax = Math.floor(ceiling * 2) / 2;
 
   return (
@@ -58,44 +57,16 @@ export function AircraftControls({
         {label}
       </legend>
 
-      <div className="space-y-1">
-        <label htmlFor={aircraftId} className="text-xs uppercase tracking-wider text-slate-400">
-          {label} aircraft
-        </label>
-        <select
-          id={aircraftId}
-          className={selectClass}
-          value={config.aircraftId}
-          onChange={(e) => {
-            const next = getAircraft(e.target.value);
-            onChange({ ...config, aircraftId: next.id, loadoutId: next.loadouts[0]?.id ?? '' });
-          }}
-        >
-          {AIRCRAFT.map((a) => (
-            <option key={a.id} value={a.id}>
-              {a.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      <AircraftPicker
+        label={label}
+        value={config.aircraftId}
+        onChange={(aircraftId) => {
+          const next = getAircraft(aircraftId);
+          onChange({ ...config, aircraftId, loadoutId: next.loadouts[0]?.id ?? '', stores: null });
+        }}
+      />
 
-      <div className="space-y-1">
-        <label htmlFor={loadoutId} className="text-xs uppercase tracking-wider text-slate-400">
-          {label} loadout
-        </label>
-        <select
-          id={loadoutId}
-          className={selectClass}
-          value={config.loadoutId}
-          onChange={(e) => onChange({ ...config, loadoutId: e.target.value })}
-        >
-          {aircraft.loadouts.map((l) => (
-            <option key={l.id} value={l.id}>
-              {l.name} {l.mass_kg > 0 ? `(+${l.mass_kg} kg)` : ''}
-            </option>
-          ))}
-        </select>
-      </div>
+      <LoadoutControls label={label} aircraft={aircraft} config={config} onChange={onChange} />
 
       <Slider
         label={`${label} fuel`}
@@ -140,29 +111,25 @@ export function AircraftControls({
           <span className="mr-1 inline-block transition-transform group-open:rotate-90">›</span>
           <span className="uppercase tracking-wider">Pilot &amp; limits</span>
           <span className="mt-0.5 block font-mono text-slate-300">
-            {config.limiter === 'off' ? 'Off' : 'Instructor'} {ceiling.toFixed(1)} g ·{' '}
+            Instructor {ceiling.toFixed(1)} g ·{' '}
             {config.pilotG === null
               ? 'yanks'
               : `smooth ${Math.min(config.pilotG, ceiling).toFixed(1)} g`}{' '}
             · {config.turnPlane_deg}° plane
           </span>
         </summary>
-        <Segmented
-          legend={`${label} G limiter`}
-          showLegend
-          value={config.limiter}
-          options={[
-            { value: 'instructor', label: `Instructor ${gLimits.instructor.toFixed(1)} g` },
-            { value: 'off', label: `Off ${gLimits.manual.toFixed(1)} g` },
-          ]}
-          onChange={(limiter) => onChange({ ...config, limiter })}
-        />
-        <p className="-mt-2 text-[11px] text-slate-500">
-          {aircraft.gLimits.fcs !== null
-            ? `Fly-by-wire limits to ${aircraft.gLimits.fcs} g either way. `
-            : ''}
-          Wings fail at {gLimits.wingBreak.toFixed(1)} g at this weight.
-        </p>
+        <div className="space-y-0.5">
+          <p className="text-xs text-slate-400">
+            <span className="uppercase tracking-wider">{label} RB instructor</span>{' '}
+            <span className="font-mono text-slate-200">{ceiling.toFixed(1)} g</span>
+          </p>
+          <p className="text-[11px] text-slate-500">
+            {aircraft.gLimits.fcs !== null
+              ? `Fly-by-wire caps it at ${aircraft.gLimits.fcs} g. `
+              : ''}
+            Wings fail at {gLimits.wingBreak.toFixed(1)} g at this weight.
+          </p>
+        </div>
 
         <Segmented
           legend={`${label} pilot`}
@@ -204,9 +171,10 @@ export function AircraftControls({
         />
       </details>
 
-      {aircraft.source === 'mock' && (
-        <p className="text-[11px] text-amber-400/80">Mock data, not War Thunder values</p>
-      )}
+      <p className="flex items-center gap-2 text-[11px] text-slate-500">
+        <DataBadge status={dataStatus(aircraft)} patch={patchLabel(aircraft)} />
+        {dataStatus(aircraft) === 'mock' && 'Not War Thunder values'}
+      </p>
     </fieldset>
   );
 }
