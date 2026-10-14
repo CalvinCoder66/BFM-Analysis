@@ -1,0 +1,14 @@
+{
+  "aircraft": "saab_jas39c",
+  "card": "E",
+  "run": 701,
+  "game_version": "2.59.0.65",
+  "loadout": "clean",
+  "start_fuel_kg": null,
+  "map": "Western Europe",
+  "mode": "Realistic, instructor (mouse aim)",
+  "notes": "Low fuel run",
+  "recorded_at": "2026-10-14T18:25:50+00:00",
+  "url": "http://127.0.0.1:8111",
+  "target_hz": 20.0
+}
