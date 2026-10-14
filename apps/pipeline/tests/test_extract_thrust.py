@@ -67,7 +67,7 @@ def _logged_vs_model(afterburner: bool, max_aoa: float = 90.0) -> list[float]:
     engine = parse_engine_type(TYPHOON['EngineType0'], 'typhoon')
     throttle = 110 if afterburner else 100
     ratios = []
-    for log in sorted(FLIGHTS.glob('*.jsonl.gz')):
+    for log in sorted(FLIGHTS.rglob('*.jsonl.gz')):
         with gzip.open(log, 'rt', encoding='utf-8') as f:
             states = [s for line in f if (s := json.loads(line).get('state'))]
         # Skip engine spool-up: the throttle must have been at this setting for 5 samples.
