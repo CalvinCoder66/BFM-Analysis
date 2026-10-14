@@ -70,11 +70,18 @@ def measured() -> dict[str, list[float]]:
     """
     table = extract_aero(TYPHOON, 'typhoon').value
     out: dict[str, list[float]] = {'lift': [], 'cd0': [], 'cd_high_cl': [], 'aoa_plateau': []}
-    for log in sorted(FLIGHTS.glob('*.jsonl.gz')):
+
+    # Use rglob to recursively search all sub-folders (A, C, D, E, Misc)
+    for log in sorted(FLIGHTS.rglob('*.jsonl.gz')):
         samples = load_run(log).samples
         aoas = sorted(s.aoa for s in samples if s.aoa is not None)
-        if log.name[0] in 'CDE' and aoas[-1] > 24:  # runs that reached the AoA limit
+
+        # Check parent folder name (e.g., 'C - Sustained Turns') instead of file name
+        if (
+            log.parent.name[0] in 'CDE' and aoas and aoas[-1] > 24
+        ):  # runs that reached the AoA limit
             out['aoa_plateau'].append(aoas[int(0.95 * len(aoas))])
+
         for i, s in enumerate(samples):
             if s.aoa is None or s.fuel is None:
                 continue
